@@ -76,3 +76,14 @@ app/.cxx/
 *.patch
 
 __pycache__/
+
+# UltimateGadget: analisis y capturas (nunca versionar)
+capturas/
+*.btsnoop
+*.cfa
+btsnoop_hci.log
+bugreport-*.zip
+*.pcap
+*.pcapng
+*-rfcomm.tsv
+jadx-out/
