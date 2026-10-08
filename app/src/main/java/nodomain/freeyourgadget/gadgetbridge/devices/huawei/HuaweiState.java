@@ -83,6 +83,12 @@ public class HuaweiState {
 
         // Set non-numeric capabilities
         this.expandCapabilities = GB.hexStringToByteArray(getCapabilitiesSharedPreferences().getString("expandCapabilities", "00"));
+        if (BuildConfig.DEBUG) {
+            // Phase 0 spike: compare capabilities between watches (golf is 105, golf auto download 285)
+            LOG.info("Cached expand capabilities for {} ({} bytes): {} golf(105)={} golfAutoDownload(285)={}",
+                    address.substring(Math.max(0, address.length() - 5)), expandCapabilities.length,
+                    GB.hexdump(expandCapabilities), supportsExpandCapability(105), supportsExpandCapability(285));
+        }
         this.notificationCapabilities = (byte) getCapabilitiesSharedPreferences().getInt("notificationCapabilities", -0x01);
         this.notificationConstraints = ByteBuffer.wrap(GB.hexStringToByteArray(
                 getCapabilitiesSharedPreferences().getString(
