@@ -133,7 +133,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "nodomain.freeyourgadget.gadgetbridge"
+        applicationId "com.qtekfun.ultimategadget"
 
         // Note: update toolchain.languageVersion when changing targetSdk
         //noinspection OldTargetApi
