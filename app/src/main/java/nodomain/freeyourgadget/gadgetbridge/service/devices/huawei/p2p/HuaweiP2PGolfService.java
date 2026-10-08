@@ -74,7 +74,8 @@ public class HuaweiP2PGolfService extends HuaweiBaseP2PService {
     public void registered() {
         LOG.info("HuaweiP2PGolfService registered, probing golf packages");
         probe(PACKAGE_SPORT_WATCH, () -> probe(PACKAGE_HARMONY_WATCH, () -> probe(PACKAGE_CONTROL, () ->
-                requestLocalCourseList(this::sendTestCourseListFile))));
+                requestLocalCourseList(() -> sendTestCourseListFile(() ->
+                        requestLocalCourseList(null))))));
     }
 
     private void probe(final String pkg, final Runnable next) {
@@ -145,7 +146,7 @@ public class HuaweiP2PGolfService extends HuaweiBaseP2PService {
      * Phase 0 spike: push a single fabricated course record (no real map data) to see whether the
      * watch accepts the container format at all. This does not contain any Huawei course data.
      */
-    private void sendTestCourseListFile() {
+    private void sendTestCourseListFile(final Runnable next) {
         currentPackage = PACKAGE_SPORT_WATCH;
         final byte[] record = buildCourseRecord("UltimateGadget Test", 900100001, 1, 0);
         final ByteBuffer businessHead = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(1);
@@ -162,8 +163,16 @@ public class HuaweiP2PGolfService extends HuaweiBaseP2PService {
         buf.put(record);
         final byte[] msg = buf.array();
         LOG.info("Golf probe: sending test course list file ({} bytes): {}", msg.length, StringUtils.bytesToHex(msg));
-        sendCommand(msg, (code, data) -> LOG.info("Golf probe: test course list file ack code {} data {}", code,
-                data == null ? "null" : StringUtils.bytesToHex(data)));
+        sendCommand(msg, (code, data) -> {
+            // Note: this ack is the generic P2P transport ack (0xcf), not a golf-layer
+            // confirmation that the record was stored. We re-query the local course list
+            // right after to check that for real.
+            LOG.info("Golf probe: test course list file transport ack code {} data {}", code,
+                    data == null ? "null" : StringUtils.bytesToHex(data));
+            if (next != null) {
+                next.run();
+            }
+        });
     }
 
     @Override
@@ -177,9 +186,14 @@ public class HuaweiP2PGolfService extends HuaweiBaseP2PService {
             return;
         }
         final ByteBuffer buf = ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN);
+        final int type = buf.getInt();
         LOG.info("HuaweiP2PGolfService handleData: type {} version {} total {} headLen {} msgId {} rsp {} mapStyle {} ({} bytes)",
-                buf.getInt(), buf.getInt(), buf.getInt(), buf.getInt(), buf.getInt(), buf.getInt(), buf.getInt(), data.length);
+                type, buf.getInt(), buf.getInt(), buf.getInt(), buf.getInt(), buf.getInt(), buf.getInt(), data.length);
         LOG.info("HuaweiP2PGolfService payload: {}", StringUtils.bytesToHex(java.util.Arrays.copyOfRange(data, HEADER_SIZE, Math.min(data.length, HEADER_SIZE + 64))));
+        if (type == TYPE_LOCAL_COURSE_LIST && data.length >= HEADER_SIZE + 4) {
+            final int courseCount = ByteBuffer.wrap(data, HEADER_SIZE, 4).order(ByteOrder.LITTLE_ENDIAN).getInt();
+            LOG.info("Golf probe: watch reports {} downloaded course(s)", courseCount);
+        }
     }
 
     public static HuaweiP2PGolfService getRegisteredInstance(HuaweiP2PManager manager) {
