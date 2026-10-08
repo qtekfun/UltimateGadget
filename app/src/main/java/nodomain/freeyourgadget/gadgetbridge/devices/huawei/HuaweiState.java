@@ -29,6 +29,7 @@ import java.util.TreeMap;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
+import nodomain.freeyourgadget.gadgetbridge.BuildConfig;
 import nodomain.freeyourgadget.gadgetbridge.GBApplication;
 import nodomain.freeyourgadget.gadgetbridge.activities.CameraActivity;
 import nodomain.freeyourgadget.gadgetbridge.activities.appmanager.AppManagerActivity;
@@ -125,6 +126,12 @@ public class HuaweiState {
 
     public void saveExpandCapabilities(byte[] capabilities) {
         expandCapabilities = capabilities;
+        if (BuildConfig.DEBUG) {
+            // Phase 0 spike: compare capabilities between watches (golf is 105, golf auto download 285)
+            LOG.info("Expand capabilities ({} bytes): {} golf(105)={} golfAutoDownload(285)={}",
+                    capabilities == null ? 0 : capabilities.length, GB.hexdump(capabilities),
+                    supportsExpandCapability(105), supportsExpandCapability(285));
+        }
         getCapabilitiesSharedPreferences().edit().putString("expandCapabilities", GB.hexdump(capabilities)).apply();
     }
 
