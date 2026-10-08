@@ -55,6 +55,7 @@ import de.greenrobot.dao.Property;
 import de.greenrobot.dao.query.DeleteQuery;
 import de.greenrobot.dao.query.QueryBuilder;
 import kotlin.Triple;
+import nodomain.freeyourgadget.gadgetbridge.BuildConfig;
 import nodomain.freeyourgadget.gadgetbridge.GBApplication;
 import nodomain.freeyourgadget.gadgetbridge.R;
 import nodomain.freeyourgadget.gadgetbridge.activities.SettingsActivity;
@@ -142,6 +143,7 @@ import nodomain.freeyourgadget.gadgetbridge.service.devices.huawei.datasync.Huaw
 import nodomain.freeyourgadget.gadgetbridge.service.devices.huawei.datasync.HuaweiDataSyncWheelchairService;
 import nodomain.freeyourgadget.gadgetbridge.service.devices.huawei.p2p.HuaweiP2PAppIcon;
 import nodomain.freeyourgadget.gadgetbridge.service.devices.huawei.p2p.HuaweiP2PBatteryService;
+import nodomain.freeyourgadget.gadgetbridge.service.devices.huawei.p2p.HuaweiP2PGolfService;
 import nodomain.freeyourgadget.gadgetbridge.service.devices.huawei.p2p.HuaweiP2PCalendarService;
 import nodomain.freeyourgadget.gadgetbridge.service.devices.huawei.p2p.HuaweiP2PCannedRepliesService;
 import nodomain.freeyourgadget.gadgetbridge.service.devices.huawei.p2p.HuaweiP2PContactsService;
@@ -1190,6 +1192,11 @@ public class HuaweiSupportProvider {
                         if (HuaweiP2PBatteryService.getRegisteredInstance(huaweiP2PManager) == null) {
                             HuaweiP2PBatteryService batteryService = new HuaweiP2PBatteryService(huaweiP2PManager);
                             batteryService.register();
+                        }
+
+                        // Phase 0 spike (debug builds only): probe the golf mini-app of the watch
+                        if (BuildConfig.DEBUG && HuaweiP2PGolfService.getRegisteredInstance(huaweiP2PManager) == null) {
+                            new HuaweiP2PGolfService(huaweiP2PManager).register();
                         }
                     }
                 }
