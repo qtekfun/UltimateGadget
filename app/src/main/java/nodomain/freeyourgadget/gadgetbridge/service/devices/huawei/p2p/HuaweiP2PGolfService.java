@@ -179,6 +179,17 @@ public class HuaweiP2PGolfService extends HuaweiBaseP2PService {
     public void unregister() {
     }
 
+    // GOLF_GPS_INFO_SEND: business type 8. This is DEVICE-INITIATED: the watch sends it (with its
+    // own msgId) when the user opens "find course near me" on the watch golf app, carrying its GPS
+    // position. Huawei Health replies with a GOLF_COURSE_LIST_FILE (type 12) using the SAME msgId,
+    // containing nearby courses. Our earlier unsolicited type-12 push (Proof of concept 2) used an
+    // arbitrary msgId the watch was not waiting for, which is the likely reason it was ignored.
+    // Payload layout (sport watch, i.e. watchType 0): 4 reserved/unknown bytes, then latitude
+    // (double, 8 bytes LE), then longitude (double, 8 bytes LE). Reconstructed from Huawei Health's
+    // GolfDataReceiverFactory/GolfDeviceProxy via static analysis of the APK, not from captured
+    // Huawei server traffic.
+    private static final int TYPE_GPS_INFO_SEND = 8;
+
     @Override
     public void handleData(byte[] data) {
         if (data == null || data.length < HEADER_SIZE) {
@@ -187,13 +198,50 @@ public class HuaweiP2PGolfService extends HuaweiBaseP2PService {
         }
         final ByteBuffer buf = ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN);
         final int type = buf.getInt();
-        LOG.info("HuaweiP2PGolfService handleData: type {} version {} total {} headLen {} msgId {} rsp {} mapStyle {} ({} bytes)",
-                type, buf.getInt(), buf.getInt(), buf.getInt(), buf.getInt(), buf.getInt(), buf.getInt(), data.length);
+        buf.getInt(); // version
+        buf.getInt(); // total length
+        buf.getInt(); // business head length
+        final int msgId = buf.getInt();
+        buf.getInt(); // response state
+        buf.getInt(); // map style
+        LOG.info("HuaweiP2PGolfService handleData: type {} msgId {} ({} bytes)", type, msgId, data.length);
         LOG.info("HuaweiP2PGolfService payload: {}", StringUtils.bytesToHex(java.util.Arrays.copyOfRange(data, HEADER_SIZE, Math.min(data.length, HEADER_SIZE + 64))));
+
         if (type == TYPE_LOCAL_COURSE_LIST && data.length >= HEADER_SIZE + 4) {
             final int courseCount = ByteBuffer.wrap(data, HEADER_SIZE, 4).order(ByteOrder.LITTLE_ENDIAN).getInt();
             LOG.info("Golf probe: watch reports {} downloaded course(s)", courseCount);
+        } else if (type == TYPE_GPS_INFO_SEND && data.length >= HEADER_SIZE + 20) {
+            final ByteBuffer payload = ByteBuffer.wrap(data, HEADER_SIZE, data.length - HEADER_SIZE).order(ByteOrder.LITTLE_ENDIAN);
+            payload.getInt(); // reserved (sport watch convention)
+            final double lat = payload.getDouble();
+            final double lon = payload.getDouble();
+            LOG.info("Golf probe: watch asked for courses near lat={} lon={} msgId={} -> replying with a fabricated course", lat, lon, msgId);
+            replyCourseListFile(msgId);
         }
+    }
+
+    /**
+     * Replies to a device-initiated GOLF_GPS_INFO_SEND with one fabricated course, using the same
+     * msgId as the request (the correlation the watch is presumably waiting on).
+     */
+    private void replyCourseListFile(int msgId) {
+        currentPackage = PACKAGE_SPORT_WATCH;
+        final byte[] record = buildCourseRecord("UltimateGadget Nearby Test", 900100002, 1, 0);
+        final ByteBuffer buf = ByteBuffer.allocate(HEADER_SIZE + 4 + record.length).order(ByteOrder.LITTLE_ENDIAN);
+        buf.putInt(TYPE_COURSE_LIST_FILE);
+        buf.putInt(1); // version
+        buf.putInt(buf.capacity()); // total length
+        buf.putInt(4); // business head length (course count field)
+        buf.putInt(msgId); // correlate with the watch's request
+        buf.putInt(0); // response state: success
+        buf.putInt(0); // map style
+        buf.position(HEADER_SIZE);
+        buf.putInt(1); // course count
+        buf.put(record);
+        final byte[] msg = buf.array();
+        LOG.info("Golf probe: sending GPS-correlated course list file (msgId {}, {} bytes): {}", msgId, msg.length, StringUtils.bytesToHex(msg));
+        sendCommand(msg, (code, data) -> LOG.info("Golf probe: GPS-correlated course list file transport ack code {} data {}", code,
+                data == null ? "null" : StringUtils.bytesToHex(data)));
     }
 
     public static HuaweiP2PGolfService getRegisteredInstance(HuaweiP2PManager manager) {
