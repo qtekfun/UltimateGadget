@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.charset.StandardCharsets;
 
 import nodomain.freeyourgadget.gadgetbridge.service.devices.huawei.HuaweiP2PManager;
 import nodomain.freeyourgadget.gadgetbridge.util.StringUtils;
@@ -72,7 +73,8 @@ public class HuaweiP2PGolfService extends HuaweiBaseP2PService {
     @Override
     public void registered() {
         LOG.info("HuaweiP2PGolfService registered, probing golf packages");
-        probe(PACKAGE_SPORT_WATCH, () -> probe(PACKAGE_HARMONY_WATCH, () -> probe(PACKAGE_CONTROL, this::requestLocalCourseList)));
+        probe(PACKAGE_SPORT_WATCH, () -> probe(PACKAGE_HARMONY_WATCH, () -> probe(PACKAGE_CONTROL, () ->
+                requestLocalCourseList(this::sendTestCourseListFile))));
     }
 
     private void probe(final String pkg, final Runnable next) {
@@ -106,11 +108,61 @@ public class HuaweiP2PGolfService extends HuaweiBaseP2PService {
     }
 
     /** Read-only: asks the watch which courses it has downloaded. */
-    private void requestLocalCourseList() {
+    private void requestLocalCourseList(final Runnable next) {
         currentPackage = PACKAGE_SPORT_WATCH;
         final byte[] msg = buildMessage(TYPE_LOCAL_COURSE_LIST, 1, new byte[]{1, 0, 0, 0});
         LOG.info("Golf probe: sending local course list request ({} bytes)", msg.length);
-        sendCommand(msg, (code, data) -> LOG.info("Golf probe: course list request ack code {} data {}", code,
+        sendCommand(msg, (code, data) -> {
+            LOG.info("Golf probe: course list request ack code {} data {}", code,
+                    data == null ? "null" : StringUtils.bytesToHex(data));
+            if (next != null) {
+                next.run();
+            }
+        });
+    }
+
+    // GOLF_COURSE_LIST_FILE: business type 12. Payload is a 4 byte course count (little-endian)
+    // followed by N * 92 byte GolfCourseInfo records (80 byte UTF-8 name, zero padded; 4 byte
+    // courseId LE; 4 byte version LE; 4 byte distance-in-meters LE). Format reconstructed from
+    // Huawei Health's GolfCourseInfo.toBytes()/GolfNumberHeader via static analysis of the APK
+    // (own phone, own account), not captured from any Huawei server traffic.
+    private static final int TYPE_COURSE_LIST_FILE = 12;
+    private static final int COURSE_RECORD_SIZE = 92;
+    private static final int COURSE_NAME_MAX_BYTES = 80;
+
+    private static byte[] buildCourseRecord(String name, int courseId, int version, int distanceMeters) {
+        final ByteBuffer rec = ByteBuffer.allocate(COURSE_RECORD_SIZE).order(ByteOrder.LITTLE_ENDIAN);
+        final byte[] nameBytes = name.getBytes(StandardCharsets.UTF_8);
+        rec.put(nameBytes, 0, Math.min(nameBytes.length, COURSE_NAME_MAX_BYTES));
+        rec.position(COURSE_NAME_MAX_BYTES);
+        rec.putInt(courseId);
+        rec.putInt(version);
+        rec.putInt(distanceMeters);
+        return rec.array();
+    }
+
+    /**
+     * Phase 0 spike: push a single fabricated course record (no real map data) to see whether the
+     * watch accepts the container format at all. This does not contain any Huawei course data.
+     */
+    private void sendTestCourseListFile() {
+        currentPackage = PACKAGE_SPORT_WATCH;
+        final byte[] record = buildCourseRecord("UltimateGadget Test", 900100001, 1, 0);
+        final ByteBuffer businessHead = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(1);
+        final ByteBuffer buf = ByteBuffer.allocate(HEADER_SIZE + 4 + record.length).order(ByteOrder.LITTLE_ENDIAN);
+        buf.putInt(TYPE_COURSE_LIST_FILE);
+        buf.putInt(1); // version
+        buf.putInt(buf.capacity()); // total length
+        buf.putInt(4); // business head length (course count field)
+        buf.putInt(2); // msgId
+        buf.putInt(0); // response state
+        buf.putInt(0); // map style
+        buf.position(HEADER_SIZE);
+        buf.put(businessHead.array());
+        buf.put(record);
+        final byte[] msg = buf.array();
+        LOG.info("Golf probe: sending test course list file ({} bytes): {}", msg.length, StringUtils.bytesToHex(msg));
+        sendCommand(msg, (code, data) -> LOG.info("Golf probe: test course list file ack code {} data {}", code,
                 data == null ? "null" : StringUtils.bytesToHex(data)));
     }
 
