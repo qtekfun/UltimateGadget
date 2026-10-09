@@ -87,3 +87,4 @@ bugreport-*.zip
 *.pcapng
 *-rfcomm.tsv
 jadx-out/
+.claude/
