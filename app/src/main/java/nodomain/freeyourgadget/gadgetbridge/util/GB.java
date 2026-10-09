@@ -60,7 +60,6 @@ import nodomain.freeyourgadget.gadgetbridge.BuildConfig;
 import nodomain.freeyourgadget.gadgetbridge.GBApplication;
 import nodomain.freeyourgadget.gadgetbridge.GBEnvironment;
 import nodomain.freeyourgadget.gadgetbridge.R;
-import nodomain.freeyourgadget.gadgetbridge.activities.ControlCenterv2;
 import nodomain.freeyourgadget.gadgetbridge.activities.SettingsActivity;
 import nodomain.freeyourgadget.gadgetbridge.deviceevents.GBDeviceEventScreenshot;
 import nodomain.freeyourgadget.gadgetbridge.impl.GBDevice;
@@ -199,7 +198,9 @@ public class GB {
     }
 
     private static PendingIntent getContentIntent(Context context) {
-        Intent notificationIntent = new Intent(context, ControlCenterv2.class);
+        // UltimateGadget: notifications open the new UI (UltimateHomeActivity), not the classic one.
+        Intent notificationIntent = new Intent(context,
+                nodomain.freeyourgadget.gadgetbridge.activities.ultimate.UltimateHomeActivity.class);
         notificationIntent.setPackage(BuildConfig.APPLICATION_ID);
         notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
                 | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -607,7 +608,7 @@ public class GB {
 
     private static Notification createTransferNotification(CharSequence title, CharSequence text, boolean ongoing,
                                                            int percentage, Context context) {
-        Intent notificationIntent = new Intent(context, ControlCenterv2.class);
+        Intent notificationIntent = new Intent(context, nodomain.freeyourgadget.gadgetbridge.activities.ultimate.UltimateHomeActivity.class);
         notificationIntent.setPackage(BuildConfig.APPLICATION_ID);
         notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
                 | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -649,7 +650,7 @@ public class GB {
 
     private static Notification createInstallNotification(CharSequence text, boolean ongoing,
                                                           int percentage, Context context) {
-        Intent notificationIntent = new Intent(context, ControlCenterv2.class);
+        Intent notificationIntent = new Intent(context, nodomain.freeyourgadget.gadgetbridge.activities.ultimate.UltimateHomeActivity.class);
         notificationIntent.setPackage(BuildConfig.APPLICATION_ID);
         notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
                 | Intent.FLAG_ACTIVITY_CLEAR_TASK);
