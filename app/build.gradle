@@ -163,6 +163,16 @@ android {
                 keyPassword System.getProperty("nightly_key_password")
             }
         }
+        // UltimateGadget release signing, driven by env vars set by the release CI
+        // (see .github/workflows/release.yml). Absent locally -> release falls back to debug.
+        release {
+            if (System.getenv("UG_KEYSTORE_FILE") != null) {
+                storeFile file(System.getenv("UG_KEYSTORE_FILE"))
+                storePassword System.getenv("UG_KEYSTORE_PASSWORD")
+                keyAlias System.getenv("UG_KEY_ALIAS")
+                keyPassword System.getenv("UG_KEY_PASSWORD")
+            }
+        }
     }
 
     flavorDimensions += "device_type"
@@ -213,6 +223,13 @@ android {
         release {
             minifyEnabled true
             proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+            // Signed with the release key when UG_KEYSTORE_FILE is set (CI); otherwise debug-signed
+            // so the APK stays installable for local/testing builds.
+            if (System.getenv("UG_KEYSTORE_FILE") != null) {
+                signingConfig = signingConfigs.release
+            } else {
+                signingConfig = signingConfigs.debug
+            }
         }
 
         nightly {
