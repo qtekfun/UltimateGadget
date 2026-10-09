@@ -50,6 +50,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import nodomain.freeyourgadget.gadgetbridge.GBApplication
+import nodomain.freeyourgadget.gadgetbridge.util.PermissionsUtils
+import nodomain.freeyourgadget.gadgetbridge.activities.welcome.WelcomeActivity
+import nodomain.freeyourgadget.gadgetbridge.activities.PermissionsActivity
+import nodomain.freeyourgadget.gadgetbridge.activities.ControlCenterv2
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.dashboard.DashboardScreen
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.dashboard.DashboardViewModel
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.detail.UltimateHealthDetailActivity
@@ -71,6 +75,7 @@ class UltimateHomeActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (runStartupGate()) return
 
         setContent {
             UltimateTheme {
@@ -124,12 +129,34 @@ class UltimateHomeActivity : AppCompatActivity() {
                                 devices = devices,
                                 onOpenDevice = { openDevice(it) },
                                 onAddDevice = { startActivity(Intent(this@UltimateHomeActivity, UltimateAddDeviceActivity::class.java)) },
+                                onOverflow = { startActivity(Intent(this@UltimateHomeActivity, ControlCenterv2::class.java)) },
                             )
                         }
                     }
                 }
             }
         }
+    }
+
+    /**
+     * First-run / permission gating, mirroring ControlCenterv2 so the new launcher behaves
+     * correctly. Returns true if it redirected to the welcome flow (and finished this activity).
+     */
+    private fun runStartupGate(): Boolean {
+        val prefs = GBApplication.getPrefs()
+        if (prefs.getBoolean("first_run", true)) {
+            startActivity(Intent(this, WelcomeActivity::class.java))
+            finish()
+            return true
+        }
+        if (prefs.getBoolean("permission_pestering", true) && !PermissionsUtils.checkAllPermissions(this)) {
+            startActivity(
+                Intent(this, PermissionsActivity::class.java)
+                    .putExtra(PermissionsActivity.ARG_SHOW_DO_NOT_ASK_BUTTON, true),
+            )
+        }
+        GBApplication.deviceService().requestDeviceInfo()
+        return false
     }
 
     private fun openDevice(d: DeviceCardUi) {
