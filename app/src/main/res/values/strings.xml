@@ -5109,6 +5109,11 @@
     <string name="huawei_offline_maps_type_contour">Contour</string>
     <string name="huawei_offline_maps_type_global">World overview</string>
     <string name="huawei_offline_maps_delete">Delete</string>
+        <string name="huawei_tab_maps">Maps</string>
+    <string name="huawei_tab_routes">Routes</string>
+    <string name="huawei_route_intro">Send a GPX route to the watch. Pick a .gpx file from your phone.</string>
+    <string name="huawei_route_pick">Send a route (GPX)</string>
+    <string name="huawei_route_sending">Sending route…</string>
     <string name="huawei_offline_maps_delete_title">Delete map</string>
     <string name="huawei_offline_maps_delete_confirm">Delete \"%1$s\" from the watch?</string>
     <string name="huawei_offline_maps_deleting">Deleting…</string>
