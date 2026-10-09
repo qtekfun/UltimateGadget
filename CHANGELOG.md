@@ -2,6 +2,20 @@
 
 <!-- For contributors: do not modify this file - the project maintainers will update it as needed -->
 
+#### 0.96.0
+
+* Nueva interfaz UltimateGadget como app completa: Inicio (dashboard con datos reales + readiness), lista de dispositivos con tarjetas e iconos propios por categoría, y detalle de dispositivo agrupado por secciones
+* Sistema de temas: claro / oscuro / seguir sistema / colores dinámicos (Material You) / AMOLED, con cambio en caliente
+* Menú ⋮ unificado en ambas pestañas; "ordenar tarjetas" dentro del menú
+* Mapas offline del reloj (OpenStreetMap) + planificador de rutas (dibujar y enviar GPX) con visor MapLibre/PMTiles y botón de ubicación
+* Esferas (ver/activar/borrar/importar; la activación reenvía la hora para que se aplique del todo), apps del reloj, música con playlists, alarmas/recordatorios/relojes mundiales/temporizadores
+* Informes semanales/mensuales con gráficas y export a PDF, objetivos/rachas/medallas, sueño avanzado, rendimiento (PAI/carga/VO2max/HRV)
+* Entrenos filtrables por tipo con nombre localizado e icono; detección y tarjeta de ronda de golf
+* Export de entrenos a GPX/FIT, export/import de la base, notificaciones (apps + No molestar), A-GNSS para marcas soportadas
+* Widget de inicio + Quick Settings tiles; notificación en curso con pasos; reconexión del último reloj al abrir; sincronización periódica
+* Flujos de emparejamiento, instalación, ajustes y primer arranque reescritos en la estética nueva; UI clásica retirada
+* APK por arquitectura (ABI splits) para reducir tamaño
+
 #### 0.95.0
 
 * Initial support for 1MORE SonoFlow SE
