@@ -17,22 +17,27 @@
 package nodomain.freeyourgadget.gadgetbridge.activities.ultimate.detail
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -41,10 +46,19 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.dashboard.BarSparkline
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.dashboard.DashboardCard
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.dashboard.DashboardCardId
@@ -176,18 +190,103 @@ private fun SleepDetail(data: DashboardData?) {
     }
 }
 
+/** One activity type present in the workout list, for the filter chips. */
+private data class WorkoutType(val code: Int, val label: String, val iconRes: Int)
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun WorkoutsDetail(workouts: List<WorkoutRow>, onOpenWorkout: (Long) -> Unit = {}) {
     val scheme = MaterialTheme.colorScheme
     if (workouts.isEmpty()) { EmptyCard("Sin entrenos todavía") ; return }
-    workouts.forEach { w ->
+
+    // Distinct activity types present in the data, in order of first appearance.
+    val types = remember(workouts) {
+        workouts.distinctBy { it.activityKindCode }
+            .map { WorkoutType(it.activityKindCode, it.typeLabel, it.iconRes) }
+    }
+    // null = "Todos"; otherwise the selected ActivityKind code.
+    var selected by remember(workouts) { mutableStateOf<Int?>(null) }
+
+    // Show the type filter only when there is more than one type to choose from.
+    if (types.size > 1) {
+        Row(
+            Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            FilterChip(
+                selected = selected == null,
+                onClick = { selected = null },
+                label = { Text("Todos") },
+            )
+            types.forEach { t ->
+                FilterChip(
+                    selected = selected == t.code,
+                    onClick = { selected = if (selected == t.code) null else t.code },
+                    label = { Text(t.label.ifEmpty { "—" }) },
+                    leadingIcon = {
+                        Icon(
+                            painter = painterResource(t.iconRes),
+                            contentDescription = null,
+                            modifier = Modifier.size(FilterChipDefaults.IconSize),
+                        )
+                    },
+                )
+            }
+        }
+        Spacer(Modifier.height(2.dp))
+    }
+
+    val shown = if (selected == null) workouts else workouts.filter { it.activityKindCode == selected }
+
+    shown.forEach { w ->
         Box(Modifier.clickable { onOpenWorkout(w.id) }) {
             DashboardCard {
-                Text(w.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = scheme.onSurface)
-                Spacer(Modifier.height(4.dp))
-                val dur = w.durationSeconds
-                val durLabel = String.format(Locale.getDefault(), "%d:%02d:%02d", dur / 3600, (dur % 3600) / 60, dur % 60)
-                Text("${w.whenLabel} · $durLabel · ver mapa ›", color = scheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    // Type icon in a tinted circle.
+                    Box(
+                        Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(scheme.surfaceContainerHighest),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Image(
+                            painter = painterResource(w.iconRes),
+                            contentDescription = w.typeLabel.ifEmpty { null },
+                            colorFilter = ColorFilter.tint(scheme.primary),
+                            modifier = Modifier.size(22.dp),
+                        )
+                    }
+                    Spacer(Modifier.width(12.dp))
+                    Column(Modifier.fillMaxWidth()) {
+                        // Localized activity type name as the primary line.
+                        Text(
+                            w.typeLabel.ifEmpty { w.title },
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = scheme.onSurface,
+                        )
+                        // Custom device name, only when it differs from the type.
+                        if (w.title.isNotBlank() && w.title != w.typeLabel) {
+                            Text(
+                                w.title,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = scheme.onSurfaceVariant,
+                            )
+                        }
+                        Spacer(Modifier.height(4.dp))
+                        val dur = w.durationSeconds
+                        val durLabel = String.format(
+                            Locale.getDefault(), "%d:%02d:%02d",
+                            dur / 3600, (dur % 3600) / 60, dur % 60,
+                        )
+                        Text(
+                            "${w.whenLabel} · $durLabel · ver mapa ›",
+                            color = scheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                    }
+                }
             }
         }
     }
