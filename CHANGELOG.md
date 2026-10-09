@@ -2,6 +2,12 @@
 
 <!-- For contributors: do not modify this file - the project maintainers will update it as needed -->
 
+#### 0.98.0
+
+* Copia de seguridad completa y cifrada (.ugbak): exporta entrenos, toda la configuración de la app, los ajustes por dispositivo y las rutas, protegidos con contraseña (AES-256-GCM); restaurable en otro teléfono (el emparejamiento Bluetooth hay que rehacerlo)
+* Botón "Reiniciar app" en Exportar/Importar para aplicar una importación
+* La app descargadora de mapas (sidecar) se publica también con cada release, firmada
+
 #### 0.97.0
 
 * Golf: scorecard por hoyo (par, golpes, ±, putts) con totales, leído de la sincronización normal de entrenos (sin root ni Huawei Health); las rondas de golf se identifican como Golf
