@@ -77,6 +77,7 @@ fun UltimateHomeScreen(
     devices: List<DeviceCardUi>,
     onOpenDevice: (DeviceCardUi) -> Unit,
     onAddDevice: () -> Unit,
+    onSortCards: () -> Unit = {},
     onExportImport: () -> Unit = {},
     onPhoneMaps: () -> Unit = {},
     onNotifications: () -> Unit = {},
@@ -101,18 +102,15 @@ fun UltimateHomeScreen(
                 },
                 actions = {
                     IconButton(onClick = {}) { Icon(Icons.Filled.Search, contentDescription = "Search") }
-                    Box {
-                        var menuOpen by remember { mutableStateOf(false) }
-                        IconButton(onClick = { menuOpen = true }) { Icon(Icons.Filled.MoreVert, contentDescription = "More") }
-                        DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
-                            DropdownMenuItem(text = { Text("Exportar / Importar") }, onClick = { menuOpen = false; onExportImport() })
-                            DropdownMenuItem(text = { Text("Mapas del móvil") }, onClick = { menuOpen = false; onPhoneMaps() })
-                            DropdownMenuItem(text = { Text("Notificaciones") }, onClick = { menuOpen = false; onNotifications() })
-                            DropdownMenuItem(text = { Text("Informes y objetivos") }, onClick = { menuOpen = false; onReports() })
-                            DropdownMenuItem(text = { Text("Rendimiento") }, onClick = { menuOpen = false; onPerformance() })
-                            DropdownMenuItem(text = { Text("Ajustes") }, onClick = { menuOpen = false; onSettings() })
-                        }
-                    }
+                    UltimateOverflowMenu(
+                        onSortCards = onSortCards,
+                        onExportImport = onExportImport,
+                        onPhoneMaps = onPhoneMaps,
+                        onNotifications = onNotifications,
+                        onReports = onReports,
+                        onPerformance = onPerformance,
+                        onSettings = onSettings,
+                    )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = palette.background,
@@ -158,6 +156,37 @@ fun UltimateHomeScreen(
     }
 }
 
+/**
+ * Shared ⋮ overflow menu used by the TopAppBar of BOTH home tabs ("Inicio" / dashboard and
+ * "Dispositivos"), so the two menus stay identical. "Ordenar tarjetas" activates the dashboard's
+ * card-edit mode (the host switches to the Inicio tab first if needed); the rest open the matching
+ * Ultimate activities.
+ */
+@Composable
+fun UltimateOverflowMenu(
+    onSortCards: () -> Unit,
+    onExportImport: () -> Unit,
+    onPhoneMaps: () -> Unit,
+    onNotifications: () -> Unit,
+    onReports: () -> Unit,
+    onPerformance: () -> Unit,
+    onSettings: () -> Unit,
+) {
+    Box {
+        var menuOpen by remember { mutableStateOf(false) }
+        IconButton(onClick = { menuOpen = true }) { Icon(Icons.Filled.MoreVert, contentDescription = "More") }
+        DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+            DropdownMenuItem(text = { Text("Ordenar tarjetas") }, onClick = { menuOpen = false; onSortCards() })
+            DropdownMenuItem(text = { Text("Exportar / Importar") }, onClick = { menuOpen = false; onExportImport() })
+            DropdownMenuItem(text = { Text("Mapas del móvil") }, onClick = { menuOpen = false; onPhoneMaps() })
+            DropdownMenuItem(text = { Text("Notificaciones") }, onClick = { menuOpen = false; onNotifications() })
+            DropdownMenuItem(text = { Text("Informes y objetivos") }, onClick = { menuOpen = false; onReports() })
+            DropdownMenuItem(text = { Text("Rendimiento") }, onClick = { menuOpen = false; onPerformance() })
+            DropdownMenuItem(text = { Text("Ajustes") }, onClick = { menuOpen = false; onSettings() })
+        }
+    }
+}
+
 @Composable
 fun SectionHeader(text: String) {
     val palette = LocalUltimatePalette.current
@@ -182,12 +211,14 @@ fun accentColors(seed: Int): Pair<Color, Color> {
 
 @Composable
 fun HeroCard(d: DeviceCardUi, stats: HeroStats?, onClick: () -> Unit) {
-    val palette = LocalUltimatePalette.current
     val (c1, c2) = accentColors(d.accentSeed)
-    // Hero text sits on a self-contained dark gradient, so white / translucent-white reads well
-    // regardless of the (future) light/dark app theme.
+    // The hero is a self-contained dark accent card in BOTH light and dark app themes: the accent
+    // gradient is dark and the overlay below is a fixed dark scrim (never the theme background), so
+    // white / translucent-white text keeps its contrast in light mode too. Tinting the "CONECTADO"
+    // label with a fixed light teal keeps the accent flavour while staying readable on the dark card.
     val onHero = Color.White
     val onHeroMuted = Color.White.copy(alpha = 0.72f)
+    val heroAccent = Color(0xFF7DD3C0)
     Box(
         Modifier
             .fillMaxWidth()
@@ -198,7 +229,7 @@ fun HeroCard(d: DeviceCardUi, stats: HeroStats?, onClick: () -> Unit) {
         Box(
             Modifier
                 .matchParentSize()
-                .background(Brush.verticalGradient(listOf(Color.Transparent, palette.background.copy(alpha = 0.92f)))),
+                .background(Brush.verticalGradient(listOf(Color.Transparent, Color.Black.copy(alpha = 0.55f)))),
         )
         Column(
             Modifier
@@ -224,7 +255,7 @@ fun HeroCard(d: DeviceCardUi, stats: HeroStats?, onClick: () -> Unit) {
                     Text(
                         (if (d.busy) "Sincronizando" else "Conectado").uppercase(),
                         style = MaterialTheme.typography.labelSmall,
-                        color = palette.secondary,
+                        color = heroAccent,
                     )
                     Text(
                         d.name,

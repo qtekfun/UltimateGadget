@@ -103,6 +103,19 @@ class UltimateHomeActivity : AppCompatActivity() {
                     onDispose { lbm.unregisterReceiver(receiver) }
                 }
 
+                // The dashboard VM is hoisted here (not inside the tab-0 slot) so the shared ⋮ menu
+                // on BOTH tabs can drive its edit mode via onSortCards.
+                val dashboardVm: DashboardViewModel = viewModel()
+
+                // Overflow-menu callbacks, shared by both tabs so the menu is identical everywhere.
+                val onSortCards = { tab = 0; dashboardVm.setEditing(true) }
+                val onExportImport = { startActivity(Intent(this@UltimateHomeActivity, nodomain.freeyourgadget.gadgetbridge.activities.ultimate.dataio.UltimateDataIOActivity::class.java)) }
+                val onPhoneMaps = { startActivity(Intent(this@UltimateHomeActivity, nodomain.freeyourgadget.gadgetbridge.activities.ultimate.phonemaps.PhoneMapsActivity::class.java)) }
+                val onNotifications = { startActivity(nodomain.freeyourgadget.gadgetbridge.activities.ultimate.notifications.UltimateNotificationsActivity.intent(this@UltimateHomeActivity)) }
+                val onReports = { startActivity(nodomain.freeyourgadget.gadgetbridge.activities.ultimate.reports.UltimateReportsActivity.intent(this@UltimateHomeActivity)) }
+                val onPerformance = { startActivity(nodomain.freeyourgadget.gadgetbridge.activities.ultimate.performance.UltimatePerformanceActivity.intent(this@UltimateHomeActivity)) }
+                val onSettings = { startActivity(nodomain.freeyourgadget.gadgetbridge.activities.ultimate.settings.UltimateSettingsActivity.intent(this@UltimateHomeActivity)) }
+
                 Scaffold(
                     containerColor = palette.background,
                     bottomBar = {
@@ -133,17 +146,27 @@ class UltimateHomeActivity : AppCompatActivity() {
                 ) { inner ->
                     Box(Modifier.padding(inner)) {
                         when (tab) {
-                            0 -> HomeDashboardSlot()
+                            0 -> HomeDashboardSlot(
+                                vm = dashboardVm,
+                                onSortCards = onSortCards,
+                                onExportImport = onExportImport,
+                                onPhoneMaps = onPhoneMaps,
+                                onNotifications = onNotifications,
+                                onReports = onReports,
+                                onPerformance = onPerformance,
+                                onSettings = onSettings,
+                            )
                             else -> UltimateHomeScreen(
                                 devices = devices,
                                 onOpenDevice = { openDevice(it) },
                                 onAddDevice = { startActivity(Intent(this@UltimateHomeActivity, UltimateAddDeviceActivity::class.java)) },
-                                onExportImport = { startActivity(Intent(this@UltimateHomeActivity, nodomain.freeyourgadget.gadgetbridge.activities.ultimate.dataio.UltimateDataIOActivity::class.java)) },
-                                onPhoneMaps = { startActivity(Intent(this@UltimateHomeActivity, nodomain.freeyourgadget.gadgetbridge.activities.ultimate.phonemaps.PhoneMapsActivity::class.java)) },
-                                onNotifications = { startActivity(nodomain.freeyourgadget.gadgetbridge.activities.ultimate.notifications.UltimateNotificationsActivity.intent(this@UltimateHomeActivity)) },
-                                onReports = { startActivity(nodomain.freeyourgadget.gadgetbridge.activities.ultimate.reports.UltimateReportsActivity.intent(this@UltimateHomeActivity)) },
-                                onPerformance = { startActivity(nodomain.freeyourgadget.gadgetbridge.activities.ultimate.performance.UltimatePerformanceActivity.intent(this@UltimateHomeActivity)) },
-                                onSettings = { startActivity(nodomain.freeyourgadget.gadgetbridge.activities.ultimate.settings.UltimateSettingsActivity.intent(this@UltimateHomeActivity)) },
+                                onSortCards = onSortCards,
+                                onExportImport = onExportImport,
+                                onPhoneMaps = onPhoneMaps,
+                                onNotifications = onNotifications,
+                                onReports = onReports,
+                                onPerformance = onPerformance,
+                                onSettings = onSettings,
                                 loadHeroStats = { address -> loadHeroStats(this@UltimateHomeActivity, address) },
                             )
                         }
@@ -275,9 +298,17 @@ class UltimateHomeActivity : AppCompatActivity() {
  * Keep the signature trivial so wiring is a one-line swap.
  */
 @Composable
-private fun HomeDashboardSlot() {
+private fun HomeDashboardSlot(
+    vm: DashboardViewModel,
+    onSortCards: () -> Unit,
+    onExportImport: () -> Unit,
+    onPhoneMaps: () -> Unit,
+    onNotifications: () -> Unit,
+    onReports: () -> Unit,
+    onPerformance: () -> Unit,
+    onSettings: () -> Unit,
+) {
     val context = LocalContext.current
-    val vm: DashboardViewModel = viewModel()
     val state = vm.state.collectAsStateWithLifecycle().value
     DashboardScreen(
         state = state,
@@ -295,6 +326,13 @@ private fun HomeDashboardSlot() {
             }
         },
         onRefresh = { vm.sync() },
+        onSortCards = onSortCards,
+        onExportImport = onExportImport,
+        onPhoneMaps = onPhoneMaps,
+        onNotifications = onNotifications,
+        onReports = onReports,
+        onPerformance = onPerformance,
+        onSettings = onSettings,
     )
 }
 

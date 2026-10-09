@@ -33,7 +33,6 @@ import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -49,6 +48,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.ui.UltimateOverflowMenu
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,6 +59,13 @@ fun DashboardScreen(
     onMoveCard: (Int, Int) -> Unit,
     onOpenDetail: (DashboardCardId) -> Unit,
     onRefresh: () -> Unit = {},
+    onSortCards: () -> Unit = {},
+    onExportImport: () -> Unit = {},
+    onPhoneMaps: () -> Unit = {},
+    onNotifications: () -> Unit = {},
+    onReports: () -> Unit = {},
+    onPerformance: () -> Unit = {},
+    onSettings: () -> Unit = {},
 ) {
     val scheme = MaterialTheme.colorScheme
     Scaffold(
@@ -73,16 +80,27 @@ fun DashboardScreen(
                     )
                 },
                 actions = {
-                    if (!state.editing) {
+                    if (state.editing) {
+                        // In edit mode, keep a quick "done" affordance to leave the card-reorder view.
+                        IconButton(onClick = onToggleEditing) {
+                            Icon(
+                                Icons.Filled.Check,
+                                contentDescription = "Done",
+                                tint = scheme.primary,
+                            )
+                        }
+                    } else {
                         IconButton(onClick = { }) {
                             Icon(Icons.Filled.Search, contentDescription = "Search")
                         }
-                    }
-                    IconButton(onClick = onToggleEditing) {
-                        Icon(
-                            if (state.editing) Icons.Filled.Check else Icons.Filled.Tune,
-                            contentDescription = if (state.editing) "Done" else "Customize",
-                            tint = if (state.editing) scheme.primary else scheme.onSurface,
+                        UltimateOverflowMenu(
+                            onSortCards = onSortCards,
+                            onExportImport = onExportImport,
+                            onPhoneMaps = onPhoneMaps,
+                            onNotifications = onNotifications,
+                            onReports = onReports,
+                            onPerformance = onPerformance,
+                            onSettings = onSettings,
                         )
                     }
                 },

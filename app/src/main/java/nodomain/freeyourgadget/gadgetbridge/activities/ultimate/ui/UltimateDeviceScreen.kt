@@ -104,8 +104,14 @@ fun UltimateDeviceScreen(
 
 @Composable
 private fun DeviceHeader(d: DeviceCardUi) {
-    val palette = LocalUltimatePalette.current
     val (c1, c2) = accentColors(d.accentSeed)
+    // Like the home hero, this header is a self-contained dark accent card in BOTH themes: the
+    // overlay is a fixed dark scrim (not the theme background), so white / light text keeps its
+    // contrast in light mode. Fixed light teal/amber accents read on the dark card in either theme.
+    val onHero = Color.White
+    val onHeroMuted = Color.White.copy(alpha = 0.78f)
+    val heroConnected = Color(0xFF7DD3C0)
+    val heroConnecting = Color(0xFFF5B971)
     Box(
         Modifier
             .fillMaxWidth()
@@ -115,7 +121,7 @@ private fun DeviceHeader(d: DeviceCardUi) {
     ) {
         Box(
             Modifier.fillMaxSize()
-                .background(Brush.verticalGradient(listOf(Color.Transparent, palette.background.copy(alpha = 0.9f)))),
+                .background(Brush.verticalGradient(listOf(Color.Transparent, Color.Black.copy(alpha = 0.55f)))),
         )
         Column(
             Modifier.align(Alignment.BottomStart).padding(18.dp),
@@ -125,21 +131,21 @@ private fun DeviceHeader(d: DeviceCardUi) {
                 d.stateLabel.uppercase(),
                 style = MaterialTheme.typography.labelMedium,
                 color = when {
-                    d.connected -> palette.secondary
-                    d.connecting -> palette.tertiary
-                    else -> Color(0xFFD4D8E4)
+                    d.connected -> heroConnected
+                    d.connecting -> heroConnecting
+                    else -> onHeroMuted
                 },
             )
             Text(
                 d.name,
                 style = MaterialTheme.typography.headlineSmall,
-                color = Color.White,
+                color = onHero,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
             )
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
                 if (d.batteryLevel in 0..100) BatteryPill(d.batteryLevel)
-                Text(d.model ?: d.typeName, style = MaterialTheme.typography.bodySmall, color = Color(0xFFD4D8E4))
+                Text(d.model ?: d.typeName, style = MaterialTheme.typography.bodySmall, color = onHeroMuted)
             }
         }
     }
