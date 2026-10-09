@@ -42,7 +42,6 @@ import nodomain.freeyourgadget.gadgetbridge.impl.GBDeviceApp;
 import nodomain.freeyourgadget.gadgetbridge.service.devices.huawei.requests.GetWatchfacesList;
 import nodomain.freeyourgadget.gadgetbridge.service.devices.huawei.requests.GetWatchfacesNames;
 import nodomain.freeyourgadget.gadgetbridge.service.devices.huawei.requests.Request;
-import nodomain.freeyourgadget.gadgetbridge.service.devices.huawei.requests.SendWatchfaceConfirm;
 import nodomain.freeyourgadget.gadgetbridge.service.devices.huawei.requests.SendWatchfaceOperation;
 
 public class HuaweiWatchfaceManager {
@@ -257,10 +256,7 @@ public class HuaweiWatchfaceManager {
     }
 
     public void setWatchface(UUID uuid) {
-        final String fullFileName = getFullFileName(uuid);
-
-        // Refresh the installed list once everything is done (updates the "current" flag).
-        Request.RequestCallback refreshReq = new Request.RequestCallback() {
+        Request.RequestCallback finalizeReq = new Request.RequestCallback() {
             @Override
             public void call() {
                 requestWatchfaceList();
@@ -272,36 +268,14 @@ public class HuaweiWatchfaceManager {
             }
         };
 
-        // After marking the watchface active we must send the confirm (0x05), exactly like the
-        // upload flow does via AsynchronousResponse. Without it the watch selects the watchface but
-        // does not fully apply/render it (it shows with no time) until the user re-selects it on the
-        // watch, which triggers the watch-side confirm. Sending it here applies it from the phone.
-        Request.RequestCallback confirmReq = new Request.RequestCallback() {
-            @Override
-            public void call() {
-                try {
-                    SendWatchfaceConfirm sendWatchfaceConfirm = new SendWatchfaceConfirm(support, fullFileName);
-                    sendWatchfaceConfirm.setFinalizeReq(refreshReq);
-                    sendWatchfaceConfirm.doPerform();
-                } catch (IOException e) {
-                    LOG.error("Could not confirm watchface: {}", fullFileName, e);
-                }
-            }
-
-            @Override
-            public void handleException(Request.ResponseParseException e) {
-                LOG.error("Watchface activate exception", e);
-            }
-        };
-
         try {
             SendWatchfaceOperation sendWatchfaceOperation = new SendWatchfaceOperation(support,
-                    fullFileName,
+                    getFullFileName(uuid),
                     Watchface.WatchfaceOperation.operationActive);
-            sendWatchfaceOperation.setFinalizeReq(confirmReq);
+            sendWatchfaceOperation.setFinalizeReq(finalizeReq);
             sendWatchfaceOperation.doPerform();
         } catch (IOException e) {
-            LOG.error("Could not set watchface: {}", fullFileName, e);
+            LOG.error("Could not set watchface: {}", getFullFileName(uuid), e);
         }
     }
 
