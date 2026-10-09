@@ -89,7 +89,10 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import nodomain.freeyourgadget.gadgetbridge.GBApplication
 import nodomain.freeyourgadget.gadgetbridge.R
 import nodomain.freeyourgadget.gadgetbridge.activities.AuthKeyActivity
+import nodomain.freeyourgadget.gadgetbridge.activities.devicesettings.DeviceSettingsActivity
+import nodomain.freeyourgadget.gadgetbridge.activities.devicesettings.DeviceSettingsPreferenceConst
 import nodomain.freeyourgadget.gadgetbridge.activities.discovery.DiscoveryPairingPreferenceActivity
+import nodomain.freeyourgadget.gadgetbridge.devices.huawei.HuaweiConstants
 import nodomain.freeyourgadget.gadgetbridge.activities.discovery.GBScanEvent
 import nodomain.freeyourgadget.gadgetbridge.activities.discovery.GBScanEventProcessor
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.theme.LocalUltimatePalette
@@ -437,9 +440,58 @@ class UltimateDiscoveryActivity : AppCompatActivity(), BondingInterface, GBScanE
     private fun checkAuthKeyAndPair(deviceCandidate: GBDeviceCandidate, coordinator: DeviceCoordinator) {
         if (coordinator.requiresAuthKey()) {
             authKeyLauncher.launch(AuthKeyActivity.newIntent(this, deviceCandidate))
+        } else if (coordinator.supportedDeviceSpecificAuthenticationSettings?.isNotEmpty() == true) {
+            // Devices not forced through the auth-key screen (e.g. Huawei, which authenticates
+            // against a Huawei account) still have authentication settings, and pairing before
+            // configuring them can make the watch unbind and factory-reset. Offer a reachable,
+            // skippable step that opens those existing auth settings before bonding.
+            offerOptionalAuthSettings(deviceCandidate, coordinator)
         } else {
             startPair(deviceCandidate, coordinator)
         }
+    }
+
+    private fun offerOptionalAuthSettings(deviceCandidate: GBDeviceCandidate, coordinator: DeviceCoordinator) {
+        val device = DeviceHelper.getInstance().toSupportedDevice(deviceCandidate)
+        if (device == null) {
+            startPair(deviceCandidate, coordinator)
+            return
+        }
+        // If the authentication value is already configured for this device, pairing is safe, so
+        // the pairing button is a plain "Emparejar" rather than the "…de todas formas" warning.
+        val alreadyConfigured = hasAuthConfigured(deviceCandidate.macAddress)
+        val pairLabel = if (alreadyConfigured) "Emparejar" else "Emparejar de todas formas"
+        MaterialAlertDialogBuilder(this)
+            .setTitle("¿Configurar autenticación?")
+            .setMessage(
+                "Este dispositivo puede necesitar que configures la autenticación (por ejemplo, una " +
+                    "cuenta Huawei) antes de emparejar. Emparejar sin ella puede hacer que el reloj se " +
+                    "desvincule y se restablezca de fábrica.\n\nConfigúrala ahora y vuelve a tocar el " +
+                    "dispositivo para emparejar — o empareja de todas formas.",
+            )
+            .setIcon(R.drawable.ic_vpn_key)
+            .setPositiveButton("Configurar") { _, _ ->
+                val startIntent = Intent(this, DeviceSettingsActivity::class.java)
+                startIntent.putExtra(GBDevice.EXTRA_DEVICE, device)
+                startIntent.putExtra(
+                    DeviceSettingsActivity.MENU_ENTRY_POINT,
+                    DeviceSettingsActivity.MENU_ENTRY_POINTS.AUTH_SETTINGS,
+                )
+                startActivity(startIntent)
+            }
+            .setNegativeButton(pairLabel) { _, _ -> startPair(deviceCandidate, coordinator) }
+            .setNeutralButton("Cancelar", null)
+            .show()
+    }
+
+    /** Whether this device already has an authentication value stored (Huawei account or auth key). */
+    private fun hasAuthConfigured(macAddress: String): Boolean {
+        val prefs = GBApplication.getDeviceSpecificSharedPrefs(macAddress) ?: return false
+        val authKeys = listOf(
+            HuaweiConstants.PREF_HUAWEI_ACCOUNT,
+            DeviceSettingsPreferenceConst.PREF_AUTH_KEY,
+        )
+        return authKeys.any { !prefs.getString(it, "").isNullOrBlank() }
     }
 
     private fun startPair(deviceCandidate: GBDeviceCandidate, coordinator: DeviceCoordinator) {
