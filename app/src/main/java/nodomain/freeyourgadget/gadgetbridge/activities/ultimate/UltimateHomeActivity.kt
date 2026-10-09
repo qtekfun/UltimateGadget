@@ -46,6 +46,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
@@ -101,6 +104,20 @@ class UltimateHomeActivity : AppCompatActivity() {
                     onDispose { lbm.unregisterReceiver(receiver) }
                 }
 
+                // Reload the device list whenever we return to the foreground. Deleting a device
+                // happens in the device detail screen and does not always fire ACTION_DEVICE_CHANGED,
+                // so without this the list kept a stale (just-removed) device until next change.
+                val lifecycleOwner = LocalLifecycleOwner.current
+                DisposableEffect(lifecycleOwner) {
+                    val obs = LifecycleEventObserver { _, event ->
+                        if (event == Lifecycle.Event.ON_RESUME) {
+                            devices = loadDevices(this@UltimateHomeActivity)
+                        }
+                    }
+                    lifecycleOwner.lifecycle.addObserver(obs)
+                    onDispose { lifecycleOwner.lifecycle.removeObserver(obs) }
+                }
+
                 // The dashboard VM is hoisted here (not inside the tab-0 slot) so the shared ⋮ menu
                 // on BOTH tabs can drive its edit mode via onSortCards.
                 val dashboardVm: DashboardViewModel = viewModel()
@@ -113,6 +130,8 @@ class UltimateHomeActivity : AppCompatActivity() {
                 val onReports = { startActivity(nodomain.freeyourgadget.gadgetbridge.activities.ultimate.reports.UltimateReportsActivity.intent(this@UltimateHomeActivity)) }
                 val onPerformance = { startActivity(nodomain.freeyourgadget.gadgetbridge.activities.ultimate.performance.UltimatePerformanceActivity.intent(this@UltimateHomeActivity)) }
                 val onSettings = { startActivity(nodomain.freeyourgadget.gadgetbridge.activities.ultimate.settings.UltimateSettingsActivity.intent(this@UltimateHomeActivity)) }
+                // Fully quit: disconnect devices + stop Gadgetbridge services, then close the app.
+                val onQuit = { GBApplication.quit(); finishAffinity() }
 
                 Scaffold(
                     containerColor = palette.background,
@@ -153,6 +172,7 @@ class UltimateHomeActivity : AppCompatActivity() {
                                 onReports = onReports,
                                 onPerformance = onPerformance,
                                 onSettings = onSettings,
+                                onQuit = onQuit,
                             )
                             else -> UltimateHomeScreen(
                                 devices = devices,
@@ -165,6 +185,7 @@ class UltimateHomeActivity : AppCompatActivity() {
                                 onReports = onReports,
                                 onPerformance = onPerformance,
                                 onSettings = onSettings,
+                                onQuit = onQuit,
                                 loadHeroStats = { address -> loadHeroStats(this@UltimateHomeActivity, address) },
                             )
                         }
@@ -305,6 +326,7 @@ private fun HomeDashboardSlot(
     onReports: () -> Unit,
     onPerformance: () -> Unit,
     onSettings: () -> Unit,
+    onQuit: () -> Unit,
 ) {
     val context = LocalContext.current
     val state = vm.state.collectAsStateWithLifecycle().value
@@ -331,6 +353,7 @@ private fun HomeDashboardSlot(
         onReports = onReports,
         onPerformance = onPerformance,
         onSettings = onSettings,
+        onQuit = onQuit,
     )
 }
 
