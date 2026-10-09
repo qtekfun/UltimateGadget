@@ -334,6 +334,7 @@
         <activity android:name=".activities.ultimate.clock.UltimateAlarmsActivity" android:exported="false" android:theme="@style/GadgetbridgeThemeDark.NoActionBar" android:parentActivityName=".activities.ultimate.UltimateDeviceActivity" />
         <activity android:name=".activities.ultimate.clock.UltimateRemindersActivity" android:exported="false" android:theme="@style/GadgetbridgeThemeDark.NoActionBar" android:parentActivityName=".activities.ultimate.UltimateDeviceActivity" />
         <activity android:name=".activities.ultimate.clock.UltimateWorldClocksActivity" android:exported="false" android:theme="@style/GadgetbridgeThemeDark.NoActionBar" android:parentActivityName=".activities.ultimate.UltimateDeviceActivity" />
+        <activity android:name=".activities.ultimate.music.UltimateMusicActivity" android:exported="false" android:theme="@style/GadgetbridgeThemeDark.NoActionBar" android:parentActivityName=".activities.ultimate.UltimateDeviceActivity" />
         <activity android:name=".activities.ultimate.UltimateAddDeviceActivity" android:exported="false" android:theme="@style/GadgetbridgeThemeDark.NoActionBar" android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
         <activity
             android:name=".activities.heartratezones.HeartRateSettingsActivity"
