@@ -80,7 +80,6 @@ fun UltimateHomeScreen(
     onNotifications: () -> Unit = {},
     onReports: () -> Unit = {},
     onPerformance: () -> Unit = {},
-    onClassicMode: () -> Unit = {},
 ) {
     val palette = LocalUltimatePalette.current
     val connected = devices.firstOrNull { it.connected }
@@ -107,7 +106,6 @@ fun UltimateHomeScreen(
                             DropdownMenuItem(text = { Text("Notificaciones") }, onClick = { menuOpen = false; onNotifications() })
                             DropdownMenuItem(text = { Text("Informes y objetivos") }, onClick = { menuOpen = false; onReports() })
                             DropdownMenuItem(text = { Text("Rendimiento") }, onClick = { menuOpen = false; onPerformance() })
-                            DropdownMenuItem(text = { Text("Modo clásico") }, onClick = { menuOpen = false; onClassicMode() })
                         }
                     }
                 },

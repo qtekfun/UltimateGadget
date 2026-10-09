@@ -54,7 +54,6 @@ import nodomain.freeyourgadget.gadgetbridge.util.GBPrefs
 import nodomain.freeyourgadget.gadgetbridge.util.PermissionsUtils
 import nodomain.freeyourgadget.gadgetbridge.activities.welcome.WelcomeActivity
 import nodomain.freeyourgadget.gadgetbridge.activities.PermissionsActivity
-import nodomain.freeyourgadget.gadgetbridge.activities.ControlCenterv2
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.dashboard.DashboardScreen
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.dashboard.DashboardViewModel
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.detail.UltimateHealthDetailActivity
@@ -137,7 +136,6 @@ class UltimateHomeActivity : AppCompatActivity() {
                                 onNotifications = { startActivity(nodomain.freeyourgadget.gadgetbridge.activities.ultimate.notifications.UltimateNotificationsActivity.intent(this@UltimateHomeActivity)) },
                                 onReports = { startActivity(nodomain.freeyourgadget.gadgetbridge.activities.ultimate.reports.UltimateReportsActivity.intent(this@UltimateHomeActivity)) },
                                 onPerformance = { startActivity(nodomain.freeyourgadget.gadgetbridge.activities.ultimate.performance.UltimatePerformanceActivity.intent(this@UltimateHomeActivity)) },
-                                onClassicMode = { startActivity(Intent(this@UltimateHomeActivity, ControlCenterv2::class.java)) },
                             )
                         }
                     }
