@@ -4698,6 +4698,10 @@
     <string name="notification_channel_scan_service_name">Scan service</string>
     <string name="unbind_before_pair_title">Already bound</string>
     <string name="unbind_before_pair_message">This device is already bound in Android settings, which can make pairing fail for some devices.\n\nIf adding the device fails, please remove it in Android settings and try again.</string>
+    <string name="discovery_optional_auth_title">Configure authentication?</string>
+    <string name="discovery_optional_auth_message">This device can require authentication to be configured (for example a Huawei account) before pairing. Pairing without it may make the watch unbind and reset to factory settings.\n\nConfigure it now, then tap the device again to pair — or pair anyway.</string>
+    <string name="discovery_optional_auth_configure">Configure</string>
+    <string name="discovery_optional_auth_skip">Pair anyway</string>
     <string name="companion_pairing_request_title">Companion device</string>
     <string name="companion_pairing_request_description">Pair this device as companion?.\n\nThis is recommended for some functions such as find device, and provides a better connection.</string>
     <string name="devicetype_scannable">Scannable device</string>
