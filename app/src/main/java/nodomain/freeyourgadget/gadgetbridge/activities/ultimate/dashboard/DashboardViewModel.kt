@@ -20,14 +20,18 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import nodomain.freeyourgadget.gadgetbridge.GBApplication
+import nodomain.freeyourgadget.gadgetbridge.model.RecordedDataTypes
 
 data class DashboardUiState(
     val loading: Boolean = true,
+    val refreshing: Boolean = false,
     val data: DashboardData? = null,
     val cards: List<CardConfig> = emptyList(),
     val editing: Boolean = false,
@@ -51,6 +55,23 @@ class DashboardViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             val data = withContext(Dispatchers.IO) { repository.load() }
             _state.value = _state.value.copy(loading = false, data = data)
+        }
+    }
+
+    /** Pull-to-refresh: ask the connected device to sync, then reload from the DB. */
+    fun sync() {
+        if (_state.value.refreshing) return
+        _state.value = _state.value.copy(refreshing = true)
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                runCatching {
+                    GBApplication.deviceService().onFetchRecordedData(RecordedDataTypes.TYPE_SYNC)
+                }
+            }
+            // Give the sync a moment to land in the DB, then reload.
+            delay(2500)
+            val data = withContext(Dispatchers.IO) { repository.load() }
+            _state.value = _state.value.copy(refreshing = false, data = data)
         }
     }
 
