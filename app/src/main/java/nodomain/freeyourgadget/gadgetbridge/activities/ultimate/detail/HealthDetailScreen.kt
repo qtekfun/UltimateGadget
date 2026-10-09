@@ -76,7 +76,7 @@ fun HealthDetailScreen(
     workouts: List<WorkoutRow>,
     loading: Boolean,
     onBack: () -> Unit,
-    onOpenWorkout: (Long) -> Unit = {},
+    onOpenWorkout: (WorkoutRow) -> Unit = {},
 ) {
     val scheme = MaterialTheme.colorScheme
     Scaffold(
@@ -195,7 +195,7 @@ private data class WorkoutType(val code: Int, val label: String, val iconRes: In
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun WorkoutsDetail(workouts: List<WorkoutRow>, onOpenWorkout: (Long) -> Unit = {}) {
+private fun WorkoutsDetail(workouts: List<WorkoutRow>, onOpenWorkout: (WorkoutRow) -> Unit = {}) {
     val scheme = MaterialTheme.colorScheme
     if (workouts.isEmpty()) { EmptyCard("Sin entrenos todavía") ; return }
 
@@ -239,7 +239,7 @@ private fun WorkoutsDetail(workouts: List<WorkoutRow>, onOpenWorkout: (Long) -> 
     val shown = if (selected == null) workouts else workouts.filter { it.activityKindCode == selected }
 
     shown.forEach { w ->
-        Box(Modifier.clickable { onOpenWorkout(w.id) }) {
+        Box(Modifier.clickable { onOpenWorkout(w) }) {
             DashboardCard {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     // Type icon in a tinted circle.
@@ -281,7 +281,7 @@ private fun WorkoutsDetail(workouts: List<WorkoutRow>, onOpenWorkout: (Long) -> 
                             dur / 3600, (dur % 3600) / 60, dur % 60,
                         )
                         Text(
-                            "${w.whenLabel} · $durLabel · ver mapa ›",
+                            "${w.whenLabel} · $durLabel · ${if (w.isGolf) "ver ronda" else "ver mapa"} ›",
                             color = scheme.onSurfaceVariant,
                             style = MaterialTheme.typography.bodyMedium,
                         )

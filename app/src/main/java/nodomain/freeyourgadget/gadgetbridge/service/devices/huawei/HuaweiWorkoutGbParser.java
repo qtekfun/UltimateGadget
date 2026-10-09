@@ -559,7 +559,28 @@ public class HuaweiWorkoutGbParser implements ActivitySummaryParser {
         }
     }
 
+    /**
+     * Raw Huawei workout-summary "type" bytes (0-255) that mean golf. Golf is not in the
+     * {@link HuaweiActivityType} table (upstream never mapped it), so without this a golf round
+     * falls through to {@link ActivityKind#UNKNOWN} and shows up as "unknown activity". This is the
+     * single source of truth for the golf type mapping (mirrored, for name-based detection only, by
+     * the new UI's {@code UltimateGolf}).
+     *
+     * NOTE: the exact on-wire byte for the Huawei Watch GT Runner 2 golf round was NOT captured
+     * during the golf spike (only the P2P golf-course mode was exercised; no recorded round was
+     * synced). Huawei's universal sport-type id for golf is 263, but the summary field is a single
+     * byte so that id cannot be the value seen here. Add the real byte once observed — it is printed
+     * as "Tipo Huawei del entreno: N" in the golf detail screen when a golf round is opened. Only
+     * the golf mapping is affected; every other workout type keeps its existing behaviour.
+     */
+    public static final java.util.Set<Integer> HUAWEI_GOLF_WORKOUT_TYPES =
+            java.util.Collections.unmodifiableSet(new java.util.HashSet<>(java.util.Arrays.asList(
+                    // TODO: add the GT Runner 2 golf round's raw summary type byte (0-255) here.
+            )));
+
     public static ActivityKind huaweiTypeToGbType(byte huaweiType) {
+        if (HUAWEI_GOLF_WORKOUT_TYPES.contains(huaweiType & 0xFF))
+            return ActivityKind.GOLF;
         final Optional<HuaweiActivityType> type = HuaweiActivityType.fromByte(huaweiType);
         if (type.isPresent())
             return type.get().getActivityKind();
