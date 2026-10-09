@@ -219,32 +219,23 @@ class UltimatePersistentService : Service() {
                     }
                 }
 
-                val title = "Pasos hoy: ${"%,d".format(Locale.getDefault(), steps)}"
-                val stepsLine = "$title / ${"%,d".format(Locale.getDefault(), goal)}"
+                // Title is the watch's name; the steps live in the body. No connection-state / battery
+                // line and no connect/sync actions — just name + steps.
+                val title = device?.let { it.aliasOrName ?: it.name } ?: "UltimateGadget"
+                val stepsLine = "Pasos: ${"%,d".format(Locale.getDefault(), steps)} / ${"%,d".format(Locale.getDefault(), goal)}"
                 val metrics = buildList {
                     if (distanceKm > 0) add("%.2f km".format(Locale.getDefault(), distanceKm))
                     if (kcal > 0) add("$kcal kcal")
                 }.joinToString(" · ")
 
-                val deviceLine = if (device != null) {
-                    val name = device.aliasOrName ?: device.name ?: ""
-                    val state = device.getStateString(context)
-                    val batt = runCatching { device.getBatteryLevel(0) }.getOrDefault(GBDevice.BATTERY_UNKNOWN)
-                    val battStr = if (batt in 0..100) " · ${batt}%" else ""
-                    "$name — $state$battStr"
-                } else {
-                    "Sin dispositivo"
-                }
-
                 val big = buildString {
                     append(stepsLine)
                     if (metrics.isNotEmpty()) append('\n').append(metrics)
-                    append('\n').append(deviceLine)
                 }
 
                 return Content(
                     title = title,
-                    text = deviceLine,
+                    text = stepsLine,
                     bigText = big,
                     progress = steps,
                     progressMax = goal,

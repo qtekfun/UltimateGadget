@@ -166,6 +166,8 @@ class UltimateHomeActivity : AppCompatActivity() {
         }
         GBApplication.deviceService().requestDeviceInfo()
         autoReconnectKnownDevices()
+        // Keep data fresh: ask the watch to sync every 5 minutes (batched, connected devices only).
+        nodomain.freeyourgadget.gadgetbridge.activities.ultimate.sync.PeriodicSync.schedule(this)
         return false
     }
 
