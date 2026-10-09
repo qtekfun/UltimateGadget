@@ -307,6 +307,7 @@
             android:parentActivityName=".activities.devicesettings.DeviceSettingsActivity" />
         <activity
             android:name=".devices.huawei.ui.HuaweiMapManagementActivity"
+            android:theme="@style/GadgetbridgeThemeDark.NoActionBar"
             android:label="@string/huawei_offline_maps_title"
             android:parentActivityName=".activities.devicesettings.DeviceSettingsActivity" />
         <activity
