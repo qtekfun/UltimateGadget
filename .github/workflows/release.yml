@@ -1,0 +1,82 @@
+# Builds the signed release APK for a version tag and publishes it as a GitHub Release.
+#
+# Tag format: v<versionName> or v<versionName>-<suffix> (e.g. v0.95.0, v0.95.0-rc1, v0.95.0-ui.1),
+# where <versionName> is the one in app/build.gradle.
+#
+# With the UG_KEYSTORE_* secrets set, the APK is signed with the release key. Without them it is
+# signed with the debug key, which is installable but not suitable for distribution, and the
+# release notes say so. Suffixed tags are published as prereleases.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      LC_ALL: en_US.UTF-8
+      JAVA_TOOL_OPTIONS: -Duser.language=en -Duser.country=US
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+
+      - name: Check the tag matches the app version
+        run: |
+          version=$(grep -oE 'versionName "[^"]+"' app/build.gradle | head -1 | sed -E 's/versionName "([^"]+)"/\1/')
+          tag="${GITHUB_REF_NAME#v}"
+          case "$tag" in
+            "$version"|"$version"-*) echo "Tag $GITHUB_REF_NAME matches versionName $version" ;;
+            *) echo "Tag $GITHUB_REF_NAME does not match versionName $version"; exit 1 ;;
+          esac
+
+      - name: Build the release APK
+        env:
+          UG_KEYSTORE_BASE64: ${{ secrets.UG_KEYSTORE_BASE64 }}
+          UG_KEYSTORE_PASSWORD: ${{ secrets.UG_KEYSTORE_PASSWORD }}
+          UG_KEY_ALIAS: ${{ secrets.UG_KEY_ALIAS }}
+          UG_KEY_PASSWORD: ${{ secrets.UG_KEY_PASSWORD }}
+        run: |
+          if [ -n "$UG_KEYSTORE_BASE64" ]; then
+            export UG_KEYSTORE_FILE="$RUNNER_TEMP/release.jks"
+            echo "$UG_KEYSTORE_BASE64" | base64 -d > "$UG_KEYSTORE_FILE"
+            echo "SIGNED=release" >> "$GITHUB_ENV"
+          else
+            echo "SIGNED=debug" >> "$GITHUB_ENV"
+          fi
+          ./gradlew --no-daemon assembleMainlineRelease
+          rm -f "$RUNNER_TEMP/release.jks"
+
+      - name: Publish the GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version=$(grep -oE 'versionName "[^"]+"' app/build.gradle | head -1 | sed -E 's/versionName "([^"]+)"/\1/')
+          # Notes: the "#### <version>" section of CHANGELOG.md, if present.
+          awk -v v="$version" '$0 ~ "^#### " v "( |$)" {found=1; next} found && /^#### / {exit} found {print}' CHANGELOG.md > notes.md || true
+          [ -s notes.md ] || echo "Release $GITHUB_REF_NAME" > notes.md
+          if [ "$SIGNED" = "debug" ]; then
+            printf '\n> **Note:** this APK is signed with the debug key because no release signing key is configured. It is installable for testing, but it is not a distribution build.\n' >> notes.md
+          fi
+          prerelease=""
+          case "${GITHUB_REF_NAME#v}" in *-*) prerelease="--prerelease" ;; esac
+          apk="UltimateGadget-${GITHUB_REF_NAME#v}.apk"
+          cp app/build/outputs/apk/mainline/release/app-mainline-release.apk "$apk"
+          gh release create "$GITHUB_REF_NAME" "$apk" --title "UltimateGadget ${GITHUB_REF_NAME#v}" --notes-file notes.md $prerelease
