@@ -120,6 +120,7 @@ fun DashboardScreen(
                 }
                 items(state.cards.filter { it.enabled }, key = { it.id.name }) { cfg ->
                     when (cfg.id) {
+                        DashboardCardId.READINESS -> ReadinessCard(data.readiness) { onOpenDetail(DashboardCardId.READINESS) }
                         DashboardCardId.STEPS -> StepsCard(data.steps) { onOpenDetail(DashboardCardId.STEPS) }
                         DashboardCardId.LAST_WORKOUT -> WorkoutCard(data.lastWorkout) { onOpenDetail(DashboardCardId.LAST_WORKOUT) }
                         DashboardCardId.HEART -> HeartCard(data.heart) { onOpenDetail(DashboardCardId.HEART) }
@@ -190,6 +191,7 @@ private fun CustomizeList(
 }
 
 private fun cardTitle(id: DashboardCardId) = when (id) {
+    DashboardCardId.READINESS -> "Readiness"
     DashboardCardId.STEPS -> "Steps & activity"
     DashboardCardId.LAST_WORKOUT -> "Last workout"
     DashboardCardId.HEART -> "Heart rate & SpO₂"
@@ -197,6 +199,7 @@ private fun cardTitle(id: DashboardCardId) = when (id) {
 }
 
 private fun cardSubtitle(id: DashboardCardId) = when (id) {
+    DashboardCardId.READINESS -> "Recuperación estimada de hoy"
     DashboardCardId.STEPS -> "Daily steps, distance and goal"
     DashboardCardId.LAST_WORKOUT -> "Your most recent session"
     DashboardCardId.HEART -> "Current, resting and oxygen"

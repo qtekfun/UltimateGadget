@@ -99,6 +99,7 @@ fun HealthDetailScreen(
                 DashboardCardId.HEART -> HeartDetail(data)
                 DashboardCardId.SLEEP_STRESS -> SleepDetail(data)
                 DashboardCardId.LAST_WORKOUT -> WorkoutsDetail(workouts, onOpenWorkout)
+                DashboardCardId.READINESS -> Unit // opens its own ReadinessDetailActivity
             }
             Spacer(Modifier.height(24.dp))
         }
@@ -205,4 +206,5 @@ private fun titleFor(card: DashboardCardId) = when (card) {
     DashboardCardId.HEART -> "Pulso y SpO₂"
     DashboardCardId.SLEEP_STRESS -> "Sueño y estrés"
     DashboardCardId.LAST_WORKOUT -> "Entrenos"
+    DashboardCardId.READINESS -> "Readiness"
 }

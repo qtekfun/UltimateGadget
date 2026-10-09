@@ -16,6 +16,10 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 package nodomain.freeyourgadget.gadgetbridge.activities.ultimate.dashboard
 
+import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.readiness.ReadinessData
+import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.readiness.ReadinessFactor
+import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.readiness.ReadinessFactorId
+
 /**
  * Source of the dashboard's health data.
  *
@@ -54,6 +58,16 @@ class SampleHealthRepository : HealthRepository {
         sleepStress = SleepStressData(
             sleepMinutes = 7 * 60 + 12, deepMinutes = 96, lightMinutes = 258,
             remMinutes = 78, awakeMinutes = 0, stressLevel = 34,
+        ),
+        readiness = ReadinessData(
+            score = 78,
+            factors = listOf(
+                ReadinessFactor(ReadinessFactorId.HRV, 82, 0.30, "rMSSD 58 ms vs media 7d 54 ms"),
+                ReadinessFactor(ReadinessFactorId.RHR, 74, 0.20, "FC reposo 56 vs media 7d 58"),
+                ReadinessFactor(ReadinessFactorId.SLEEP, 90, 0.30, "7,2 h de 8 h objetivo"),
+                ReadinessFactor(ReadinessFactorId.LOAD, 65, 0.20, "ACWR 1,35 (ligero pico)"),
+            ),
+            confidence = 100,
         ),
         isSample = true,
     )

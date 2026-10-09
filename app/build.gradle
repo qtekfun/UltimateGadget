@@ -383,6 +383,7 @@ dependencies {
     implementation libs.searchpreference
 
     implementation libs.bundles.mapsforge
+    implementation libs.maplibre.android
     implementation libs.androidsvg
     implementation libs.jsoup
     implementation libs.kaitai.struct.runtime
