@@ -166,6 +166,18 @@ public abstract class AbstractGBActivity extends AppCompatActivity implements GB
     }
 
     @Override
+    public boolean onSupportNavigateUp() {
+        // UltimateGadget: the new UI (UltimateHomeActivity) is the launcher, but most settings
+        // screens still declare ControlCenterv2 (the old launcher) as their manifest parent. Honoring
+        // Up via that parent makes Android synthesize/clear the task towards ControlCenterv2, which can
+        // finish the current task and look like "the app closed" (especially with gesture navigation or
+        // after process death). Treat the Up affordance exactly like Back, so we always return to the
+        // activity that launched this one — whether that is the new UI or ControlCenterv2 itself.
+        getOnBackPressedDispatcher().onBackPressed();
+        return true;
+    }
+
+    @Override
     protected void onDestroy() {
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mReceiver);
         super.onDestroy();
