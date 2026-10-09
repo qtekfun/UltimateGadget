@@ -39,6 +39,7 @@ junit = "4.13.2"
 kotlin = "2.4.20"
 logback-android = "3.0.0"
 mapsforge = "0.30.0"
+maplibre = "13.6.1"
 material = "1.14.0"
 mockito = "5.24.0"
 mpandroidchart = "v4.0.1"
@@ -110,6 +111,7 @@ json = { group = "org.json", name = "json", version.ref = "json" }
 jsoup = { group = "org.jsoup", name = "jsoup", version.ref = "jsoup" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 logback-android = { group = "com.github.tony19", name = "logback-android", version.ref = "logback-android" }
+maplibre-android = { group = "org.maplibre.gl", name = "android-sdk", version.ref = "maplibre" }
 mapsforge-core = { group = "com.github.mapsforge.mapsforge", name = "mapsforge-core", version.ref = "mapsforge" }
 mapsforge-map = { group = "com.github.mapsforge.mapsforge", name = "mapsforge-map", version.ref = "mapsforge" }
 mapsforge-map-android = { group = "com.github.mapsforge.mapsforge", name = "mapsforge-map-android", version.ref = "mapsforge" }

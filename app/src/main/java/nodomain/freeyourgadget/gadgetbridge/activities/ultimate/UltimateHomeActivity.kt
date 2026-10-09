@@ -57,6 +57,8 @@ import nodomain.freeyourgadget.gadgetbridge.activities.ControlCenterv2
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.dashboard.DashboardScreen
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.dashboard.DashboardViewModel
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.detail.UltimateHealthDetailActivity
+import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.readiness.ReadinessDetailActivity
+import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.dashboard.DashboardCardId
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.theme.LocalUltimatePalette
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.theme.UltimateTheme
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.ui.DeviceCardUi
@@ -194,7 +196,11 @@ private fun HomeDashboardSlot() {
         onToggleCard = vm::toggleCard,
         onMoveCard = vm::moveCard,
         onOpenDetail = { id ->
-            context.startActivity(UltimateHealthDetailActivity.intent(context, id))
+            if (id == DashboardCardId.READINESS) {
+                context.startActivity(ReadinessDetailActivity.intent(context))
+            } else {
+                context.startActivity(UltimateHealthDetailActivity.intent(context, id))
+            }
         },
     )
 }

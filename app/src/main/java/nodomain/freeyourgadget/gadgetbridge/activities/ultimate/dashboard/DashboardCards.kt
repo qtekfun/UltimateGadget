@@ -18,6 +18,7 @@ package nodomain.freeyourgadget.gadgetbridge.activities.ultimate.dashboard
 
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.theme.MetricValueStyle
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -197,6 +198,59 @@ fun SleepStressCard(data: SleepStressData?, onClick: () -> Unit) {
             )
         }
     }
+}
+
+/** READINESS: 0..100 recovery score, coloured by range, with its contributing factors. */
+@Composable
+fun ReadinessCard(
+    data: nodomain.freeyourgadget.gadgetbridge.activities.ultimate.readiness.ReadinessData?,
+    onClick: () -> Unit,
+) {
+    val scheme = MaterialTheme.colorScheme
+    val score = data?.score
+    if (score == null) { DashboardCard(onClick = onClick) { NoData("Readiness") }; return }
+    val color = when {
+        score >= 75 -> scheme.secondary
+        score >= 35 -> scheme.tertiary
+        else -> scheme.error
+    }
+    DashboardCard(onClick = onClick) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            SectionLabel("Readiness")
+            Text("${data.confidence}% conf.", style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
+        }
+        Spacer(Modifier.height(6.dp))
+        Row(verticalAlignment = Alignment.Bottom) {
+            Text("$score", style = MetricValueStyle, color = color)
+            Spacer(Modifier.width(10.dp))
+            Text(
+                nodomain.freeyourgadget.gadgetbridge.activities.ultimate.readiness.ReadinessEngine.label(score),
+                style = MaterialTheme.typography.titleMedium, color = scheme.onSurface,
+                modifier = Modifier.padding(bottom = 6.dp),
+            )
+        }
+        Spacer(Modifier.height(10.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            data.factors.forEach { f ->
+                Text(
+                    "${factorShort(f.id)} ${f.score}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = scheme.onSurfaceVariant,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(999.dp))
+                        .background(scheme.surfaceVariant.copy(alpha = 0.4f))
+                        .padding(horizontal = 9.dp, vertical = 4.dp),
+                )
+            }
+        }
+    }
+}
+
+private fun factorShort(id: nodomain.freeyourgadget.gadgetbridge.activities.ultimate.readiness.ReadinessFactorId) = when (id) {
+    nodomain.freeyourgadget.gadgetbridge.activities.ultimate.readiness.ReadinessFactorId.HRV -> "HRV"
+    nodomain.freeyourgadget.gadgetbridge.activities.ultimate.readiness.ReadinessFactorId.RHR -> "FC"
+    nodomain.freeyourgadget.gadgetbridge.activities.ultimate.readiness.ReadinessFactorId.SLEEP -> "Sueño"
+    nodomain.freeyourgadget.gadgetbridge.activities.ultimate.readiness.ReadinessFactorId.LOAD -> "Carga"
 }
 
 // --- small formatting helpers ---

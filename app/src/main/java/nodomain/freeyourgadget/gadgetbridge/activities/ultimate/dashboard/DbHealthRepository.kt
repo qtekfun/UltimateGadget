@@ -25,6 +25,7 @@ import nodomain.freeyourgadget.gadgetbridge.impl.GBDevice
 import nodomain.freeyourgadget.gadgetbridge.model.ActivityKind
 import nodomain.freeyourgadget.gadgetbridge.model.ActivityUser
 import nodomain.freeyourgadget.gadgetbridge.model.DailyTotals
+import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.readiness.ReadinessRepository
 import org.slf4j.LoggerFactory
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -42,12 +43,13 @@ class DbHealthRepository(private val app: Application) : HealthRepository {
 
     override fun load(): DashboardData {
         val device = pickDevice()
-            ?: return DashboardData(null, null, null, null, isSample = false)
+            ?: return DashboardData(null, null, null, null, null, isSample = false)
         return DashboardData(
             steps = runCatching { loadSteps(device) }.getOrNull(),
             lastWorkout = runCatching { loadLastWorkout(device) }.getOrNull(),
             heart = runCatching { loadHeart(device) }.getOrNull(),
             sleepStress = runCatching { loadSleepStress(device) }.getOrNull(),
+            readiness = runCatching { ReadinessRepository(app).load(device) }.getOrNull(),
             isSample = false,
         )
     }

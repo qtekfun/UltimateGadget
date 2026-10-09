@@ -16,8 +16,11 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 package nodomain.freeyourgadget.gadgetbridge.activities.ultimate.dashboard
 
+import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.readiness.ReadinessData
+
 /** The dashboard cards, each identified for persistence of the user's selection/order. */
 enum class DashboardCardId(val defaultEnabled: Boolean) {
+    READINESS(true),
     STEPS(true),
     LAST_WORKOUT(true),
     HEART(true),
@@ -66,6 +69,7 @@ data class DashboardData(
     val lastWorkout: WorkoutData?,
     val heart: HeartData?,
     val sleepStress: SleepStressData?,
+    val readiness: ReadinessData?,
     /** True while the values are placeholder samples, not real device data. */
     val isSample: Boolean,
 )
