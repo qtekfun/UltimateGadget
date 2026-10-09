@@ -20,6 +20,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -27,9 +28,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -44,6 +49,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -52,6 +58,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
@@ -85,6 +92,9 @@ class UltimateRoutePlannerActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Edge-to-edge so the map fills the screen AND the system-bar insets reach Compose; the
+        // overlaid controls then pad themselves away from the status/navigation bars.
+        enableEdgeToEdge()
 
         setContent {
             UltimateTheme {
@@ -93,6 +103,9 @@ class UltimateRoutePlannerActivity : AppCompatActivity() {
                 var routeName by remember { mutableStateOf("UltimateGadget route") }
                 val count = waypoints.size
                 val distanceKm = remember(count) { totalKm(waypoints) }
+                // Lift the native MapLibre logo/attribution above the gesture/navigation bar.
+                val navBottomPx = WindowInsets.navigationBars.getBottom(LocalDensity.current)
+                LaunchedEffect(navBottomPx) { engine?.setBottomChromeInset(navBottomPx) }
 
                 Box(Modifier.fillMaxSize().background(palette.background)) {
                     UltimateMapView(
@@ -101,6 +114,7 @@ class UltimateRoutePlannerActivity : AppCompatActivity() {
                         theme = MapTheme.DARK,
                         onReady = { eng ->
                             engine = eng
+                            eng.setBottomChromeInset(navBottomPx)
                             eng.setCamera(LatLon(40.4168, -3.7038), 5.0)
                             eng.onMapTap { p -> waypoints.add(p); pushMap() }
                             pushMap()
@@ -108,7 +122,7 @@ class UltimateRoutePlannerActivity : AppCompatActivity() {
                     )
 
                     Row(
-                        Modifier.fillMaxWidth().padding(8.dp),
+                        Modifier.fillMaxWidth().windowInsetsPadding(WindowInsets.statusBars).padding(8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         IconButton(onClick = { finish() }) {
@@ -125,7 +139,7 @@ class UltimateRoutePlannerActivity : AppCompatActivity() {
                         onUnavailable = { msg -> Toast.makeText(this@UltimateRoutePlannerActivity, msg, Toast.LENGTH_SHORT).show() },
                         containerColor = palette.surfaceContainer,
                         contentColor = palette.primary,
-                        modifier = Modifier.align(Alignment.TopEnd).padding(12.dp),
+                        modifier = Modifier.align(Alignment.TopEnd).windowInsetsPadding(WindowInsets.statusBars).padding(12.dp),
                     )
 
                     if (!this@UltimateRoutePlannerActivity.hasBaseMap()) {
@@ -135,7 +149,8 @@ class UltimateRoutePlannerActivity : AppCompatActivity() {
                     }
 
                     Column(
-                        Modifier.align(Alignment.BottomCenter).fillMaxWidth().padding(16.dp),
+                        Modifier.align(Alignment.BottomCenter).fillMaxWidth()
+                            .windowInsetsPadding(WindowInsets.navigationBars).padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
                         Box(
