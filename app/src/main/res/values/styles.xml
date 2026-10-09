@@ -847,21 +847,78 @@
         <item name="grid_tile_bg">@color/stat_tile_bg_amoled</item>
         <item name="bar_shade">@drawable/bar_shade_amoled</item>
     </style>
+    <!-- UltimateGadget: brand dark skin for the preference (settings) screens, so they match the
+         new Compose UI instead of looking like classic Gadgetbridge. The palette mirrors
+         UltimatePalette.Dark in UltimateTheme.kt one-to-one. Because GadgetbridgeThemeDark derives
+         most of its tokens from these foundational attributes via ?attr references (toolbar_bg,
+         accent_color, text colors, …), overriding the foundations here re-skins the whole screen. -->
     <style name="UltimateSettingsThemeDark" parent="GadgetbridgeThemeDark">
-        <item name="colorPrimary">#8AB4FF</item>
-        <item name="colorPrimaryDark">#8AB4FF</item>
-        <item name="colorOnPrimary">#0A2A5E</item>
-        <item name="colorPrimaryContainer">#1F4A8F</item>
-        <item name="colorOnPrimaryContainer">#D6E4FF</item>
-        <item name="colorSecondary">#7DD3C0</item>
-        <item name="colorError">#FF8A80</item>
-        <item name="android:colorBackground">#0F1115</item>
-        <item name="colorSurface">#14171D</item>
-        <item name="colorSurfaceContainer">#1F232E</item>
-        <item name="colorOutline">#3A4050</item>
+        <!-- Surfaces / background -->
+        <item name="android:colorBackground">#FF0F1115</item>
+        <item name="android:windowBackground">#FF0F1115</item>
+        <item name="colorSurface">#FF14171D</item>
+        <item name="colorSurfaceContainerLowest">#FF0F1115</item>
+        <item name="colorSurfaceContainerLow">#FF1A1D26</item>
+        <item name="colorSurfaceContainer">#FF1F232E</item>
+        <item name="colorSurfaceContainerHigh">#FF272B38</item>
+        <item name="colorSurfaceContainerHighest">#FF303544</item>
+        <item name="colorSurfaceVariant">#FF303544</item>
+
+        <!-- Text / content colors -->
+        <item name="colorOnSurface">#FFE6E8EE</item>
+        <item name="colorOnSurfaceVariant">#FFAAB0C0</item>
+        <item name="android:textColorPrimary">#FFE6E8EE</item>
+        <item name="android:textColorSecondary">#FFAAB0C0</item>
+        <item name="colorOutline">#FF7C8396</item>
+        <item name="colorOutlineVariant">#FF3A4050</item>
+
+        <!-- Brand accent -->
+        <item name="colorPrimary">#FF8AB4FF</item>
+        <item name="colorPrimaryDark">#FF8AB4FF</item>
+        <item name="colorOnPrimary">#FF0A2A5E</item>
+        <item name="colorPrimaryContainer">#FF1F4A8F</item>
+        <item name="colorOnPrimaryContainer">#FFD6E4FF</item>
+        <item name="colorSecondary">#FF7DD3C0</item>
+        <item name="colorSecondaryContainer">#FF1B4D44</item>
+        <item name="colorOnSecondaryContainer">#FFC2F2E7</item>
+        <item name="colorTertiary">#FFF5B971</item>
+        <item name="colorError">#FFFF8A80</item>
+        <item name="colorErrorContainer">#FF8C1D18</item>
+        <item name="colorOnErrorContainer">#FFFFDAD6</item>
+
+        <!-- colorAccent drives the preference category header titles (the layout's title reads
+             ?attr/colorAccent) and, through colorControlActivated, the on-state of switches,
+             checkboxes and sliders -->
+        <item name="colorAccent">#FF8AB4FF</item>
+        <item name="colorControlActivated">#FF8AB4FF</item>
+
+        <!-- Re-point the brand "pill"/accent tokens so toolbar, status bar and accents derive from
+             the Ultimate palette rather than the classic Gadgetbridge blue -->
+        <item name="tab_pill">?attr/colorPrimary</item>
+        <item name="tab_pill_on">?attr/colorOnPrimary</item>
+        <item name="subtab_pill">?attr/colorPrimaryContainer</item>
+        <item name="subtab_pill_on">?attr/colorOnPrimaryContainer</item>
+        <item name="subtab_active">?attr/colorPrimary</item>
+        <item name="accent_color">?attr/colorPrimary</item>
+        <item name="summary_tile_label">?attr/colorPrimary</item>
+
+        <!-- Keep the status/navigation bars dark and matched to the surface -->
+        <item name="android:navigationBarColor">#FF0F1115</item>
+
+        <!-- Brand-accented preference categories, on the dark list background -->
+        <item name="preferenceTheme">@style/UltimatePreferenceThemeOverlay</item>
     </style>
     <style name="UltimateSettingsThemeDarkNoActionBar" parent="UltimateSettingsThemeDark">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
+    </style>
+
+    <!-- Preference overlay for the Ultimate dark settings skin: keeps the custom Material switch
+         and accents the category headers with the brand primary color. -->
+    <style name="UltimatePreferenceThemeOverlay" parent="@style/AppPreferenceThemeOverlay">
+        <item name="preferenceCategoryStyle">@style/UltimatePreferenceCategory</item>
+    </style>
+    <style name="UltimatePreferenceCategory" parent="@style/Preference.Category.Material">
+        <item name="android:textColor">?attr/colorPrimary</item>
     </style>
 </resources>
