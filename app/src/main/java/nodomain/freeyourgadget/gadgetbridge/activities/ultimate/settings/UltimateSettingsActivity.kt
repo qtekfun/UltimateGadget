@@ -63,7 +63,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import nodomain.freeyourgadget.gadgetbridge.GBApplication
 import nodomain.freeyourgadget.gadgetbridge.R
-import nodomain.freeyourgadget.gadgetbridge.activities.PermissionsActivity
+import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.onboarding.UltimatePermissionsActivity
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.dataio.UltimateDataIOActivity
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.notifications.UltimateNotificationsActivity
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.phonemaps.PhoneMapsActivity
@@ -257,7 +257,7 @@ fun UltimateSettingsScreen(onBack: () -> Unit) {
                     context.startActivity(Intent(context, PhoneMapsActivity::class.java))
                 }
                 NavRow("Permisos") {
-                    context.startActivity(Intent(context, PermissionsActivity::class.java))
+                    context.startActivity(UltimatePermissionsActivity.intent(context))
                 }
                 NavRow("Acerca de UltimateGadget") {
                     context.startActivity(UltimateAboutActivity.intent(context))
