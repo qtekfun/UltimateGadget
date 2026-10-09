@@ -1048,6 +1048,15 @@ public class HuaweiWorkoutSyncManager {
         }
     }
 
+    /** Golf scorecard sentinel (-1 = "tag absent") mapped to a nullable DB value. */
+    private static Integer golfValue(int value) {
+        return value == -1 ? null : value;
+    }
+
+    private static Long golfValue(long value) {
+        return value == -1 ? null : value;
+    }
+
     public void addWorkoutSectionsDataToDb(Long workoutId, List<Workout.WorkoutSections.Response.Block> sectionsList, short number) {
         if (workoutId == null)
             return;
@@ -1084,10 +1093,24 @@ public class HuaweiWorkoutSyncManager {
                         block.swingAngle,
                         block.eversion,
                         block.avgCadence,
-                        block.divingUnderwaterTime,
+                        block.intervalTrainingType,
                         block.divingMaxDepth,
                         block.divingUnderwaterTime,
-                        block.divingBreakTime
+                        block.divingBreakTime,
+                        // UltimateGadget golf per-hole scorecard (nullable). The parser leaves these at
+                        // -1 for every non-golf workout, which is stored as NULL.
+                        golfValue(block.golfHoleId),
+                        golfValue(block.golfPar),
+                        golfValue(block.golfHoleScore),
+                        golfValue(block.golfHolePutts),
+                        golfValue(block.golfHolePenalty),
+                        golfValue(block.golfFairwayHits),
+                        golfValue(block.golfHandicap),
+                        golfValue(block.golfValidTracks),
+                        golfValue(block.golfBackSwingTime),
+                        golfValue(block.golfDownSwingTime),
+                        golfValue(block.golfHeadSpeed),
+                        golfValue(block.golfSwingTempo)
                 );
                 dao.insertOrReplace(huaweiWorkoutSectionsSample);
             }

@@ -110,7 +110,7 @@ public class GBDaoGenerator {
             outputDir.mkdirs();
         }
 
-        final Schema schema = new Schema(151, MAIN_PACKAGE + ".entities");
+        final Schema schema = new Schema(152, MAIN_PACKAGE + ".entities");
 
         final List<Entity> sampleProvidersToGenerate = new LinkedList<>();
         final List<Entity> batterySampleProvidersToGenerate = new LinkedList<>();
@@ -2569,6 +2569,22 @@ public class GBDaoGenerator {
         workoutSectionsSample.addIntProperty("divingMaxDepth").notNull();
         workoutSectionsSample.addIntProperty("divingUnderwaterTime").notNull();
         workoutSectionsSample.addIntProperty("divingBreakTime").notNull();
+
+        // UltimateGadget golf: per-hole scorecard fields carried in the workout "section" blocks of
+        // a golf round (Huawei type 19). All NULLABLE Integer/Long (no notNull()) so they default to
+        // NULL for every existing row and every non-golf workout; see GadgetbridgeUpdate_152.
+        workoutSectionsSample.addLongProperty("golfHoleId");       // tag 0x2b
+        workoutSectionsSample.addIntProperty("golfPar");           // tag 0x2c
+        workoutSectionsSample.addIntProperty("golfScore");         // tag 0x2d (strokes on the hole)
+        workoutSectionsSample.addIntProperty("golfPutts");         // tag 0x2e
+        workoutSectionsSample.addIntProperty("golfPenalty");       // tag 0x2f
+        workoutSectionsSample.addIntProperty("golfFairwayHits");   // tag 0x30
+        workoutSectionsSample.addIntProperty("golfHandicap");      // tag 0x31
+        workoutSectionsSample.addIntProperty("golfValidTracks");   // tag 0x32
+        workoutSectionsSample.addIntProperty("golfBackSwingTime"); // tag 0x12
+        workoutSectionsSample.addIntProperty("golfDownSwingTime"); // tag 0x13
+        workoutSectionsSample.addIntProperty("golfHeadSpeed");     // tag 0x14
+        workoutSectionsSample.addIntProperty("golfSwingTempo");    // tag 0x15
 
         return workoutSectionsSample;
     }
