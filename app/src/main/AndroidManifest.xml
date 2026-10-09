@@ -338,6 +338,41 @@
         <activity android:name=".activities.ultimate.clock.UltimateTimersActivity" android:exported="false" android:theme="@style/GadgetbridgeThemeDark.NoActionBar" android:parentActivityName=".activities.ultimate.UltimateDeviceActivity" />
         <activity android:name=".activities.ultimate.export.UltimateWorkoutExportActivity" android:exported="false" android:theme="@style/GadgetbridgeThemeDark.NoActionBar" android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
         <activity android:name=".activities.ultimate.sleep.UltimateSleepActivity" android:exported="false" android:theme="@style/GadgetbridgeThemeDark.NoActionBar" android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
+
+        <!-- UltimateGadget home-screen widget + Quick Settings tiles -->
+        <receiver
+            android:name=".external.ultimatewidgets.UltimateStatsWidget"
+            android:label="@string/ultimate_widget_title"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/ultimate_stats_widget_info" />
+        </receiver>
+        <service
+            android:name=".external.ultimatewidgets.UltimateSyncTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_sync"
+            android:label="@string/ultimate_tile_sync_label"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
+            tools:targetApi="24">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+        <service
+            android:name=".external.ultimatewidgets.UltimateFindWatchTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_action_find_lost_device"
+            android:label="@string/ultimate_tile_find_watch_label"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
+            tools:targetApi="24">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
         <activity android:name=".activities.ultimate.UltimateAddDeviceActivity" android:exported="false" android:theme="@style/GadgetbridgeThemeDark.NoActionBar" android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
         <activity
             android:name=".activities.heartratezones.HeartRateSettingsActivity"
