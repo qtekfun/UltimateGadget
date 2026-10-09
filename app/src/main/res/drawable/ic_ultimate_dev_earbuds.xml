@@ -1,0 +1,27 @@
+<!-- UltimateGadget device icon set · earbuds / headphones · monochrome, tint from Compose -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- left bud body -->
+    <path
+        android:fillColor="@android:color/white"
+        android:fillAlpha="0.85"
+        android:pathData="M4.5,5.5 A2.5,2.5 0 1 1 9.5,5.5 L9.5,17.5 A1.5,1.5 0 0 1 8,19 A1.5,1.5 0 0 1 6.5,17.5 L6.5,8 A2.4,2.4 0 0 1 4.5,5.6 Z" />
+    <!-- left ear tip (duotone) -->
+    <path
+        android:fillColor="@android:color/white"
+        android:fillAlpha="0.4"
+        android:pathData="M5.6,5.5 A1.4,1.4 0 1 0 8.4,5.5 A1.4,1.4 0 1 0 5.6,5.5 Z" />
+    <!-- right bud body -->
+    <path
+        android:fillColor="@android:color/white"
+        android:fillAlpha="0.85"
+        android:pathData="M14.5,5.5 A2.5,2.5 0 1 1 19.5,5.5 L19.5,17.5 A1.5,1.5 0 0 1 18,19 A1.5,1.5 0 0 1 16.5,17.5 L16.5,8 A2.4,2.4 0 0 1 14.5,5.6 Z" />
+    <!-- right ear tip (duotone) -->
+    <path
+        android:fillColor="@android:color/white"
+        android:fillAlpha="0.4"
+        android:pathData="M15.6,5.5 A1.4,1.4 0 1 0 18.4,5.5 A1.4,1.4 0 1 0 15.6,5.5 Z" />
+</vector>

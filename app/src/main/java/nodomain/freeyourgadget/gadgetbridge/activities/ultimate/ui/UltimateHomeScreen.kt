@@ -16,9 +16,6 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 package nodomain.freeyourgadget.gadgetbridge.activities.ultimate.ui
 
-import android.graphics.drawable.Drawable
-import androidx.appcompat.content.res.AppCompatResources
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -63,14 +60,9 @@ import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
-import androidx.compose.ui.graphics.nativeCanvas
-import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -214,26 +206,41 @@ fun HeroCard(d: DeviceCardUi, stats: HeroStats?, onClick: () -> Unit) {
                 .padding(18.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(
-                    (if (d.busy) "Sincronizando" else "Conectado").uppercase(),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = palette.secondary,
-                )
-                Text(
-                    d.name,
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = onHero,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    d.model ?: d.typeName,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = onHeroMuted,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(
+                    Modifier
+                        .size(48.dp)
+                        .clip(RoundedCornerShape(15.dp))
+                        .background(Color.White.copy(alpha = 0.12f)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    // Tinted white so it reads on the hero's dark gradient (theme-independent here).
+                    DeviceIcon(d.category, tint = onHero, size = 30.dp)
+                }
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(
+                        (if (d.busy) "Sincronizando" else "Conectado").uppercase(),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = palette.secondary,
+                    )
+                    Text(
+                        d.name,
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = onHero,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Text(
+                        d.model ?: d.typeName,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = onHeroMuted,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
             }
             Row(
                 Modifier.fillMaxWidth(),
@@ -321,7 +328,7 @@ fun DeviceCard(d: DeviceCardUi, onClick: () -> Unit) {
                 .background(palette.surfaceHigh),
             contentAlignment = Alignment.Center,
         ) {
-            DeviceIcon(d.iconRes, tint = palette.onSurfaceVariant)
+            DeviceIcon(d.category, tint = palette.primary)
         }
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
             Text(
@@ -340,47 +347,21 @@ fun DeviceCard(d: DeviceCardUi, onClick: () -> Unit) {
 }
 
 /**
- * Device badge icon. The Gadgetbridge device drawables (e.g. [R.drawable.ic_device_default]) are
- * multi-colour vectors whose fills use `?attr/deviceIcon*` theme colours. Compose's
- * `painterResource` does not reliably resolve those theme attributes (fills come back transparent,
- * and `Icon`'s SrcIn tint then preserves that transparency), which is why the icons disappeared.
- * We instead inflate the drawable through the Android resource system against the themed Activity
- * context (so the theme colours resolve) and draw it full-colour, falling back to the generic
- * device icon, then to a Material glyph.
+ * Device badge icon. Draws the Ultimate per-[DeviceIconCategory] vector
+ * ([R.drawable.ic_ultimate_dev_watch_round] and siblings). These vectors are monochrome (white
+ * fills with per-path alpha for a light duotone), so `Icon`'s SrcIn [tint] recolours them with the
+ * theme accent while preserving the duotone — they read correctly in light, dark, AMOLED and
+ * dynamic colour. This replaces the legacy multi-colour GB drawables, whose `?attr/deviceIcon*`
+ * fills did not resolve under Compose `painterResource` and came back transparent.
  */
 @Composable
-fun DeviceIcon(iconRes: Int, tint: Color) {
-    val context = LocalContext.current
-    val res = if (iconRes != 0) iconRes else R.drawable.ic_device_default
-    val drawable = remember(res) {
-        runCatching { AppCompatResources.getDrawable(context, res) }.getOrNull()
-    }
-    if (drawable != null) {
-        Image(
-            painter = remember(drawable) { DrawablePainter(drawable) },
-            contentDescription = null,
-            modifier = Modifier.size(30.dp),
-        )
-    } else {
-        Icon(Icons.Filled.Watch, contentDescription = null, tint = tint, modifier = Modifier.size(24.dp))
-    }
-}
-
-/** Minimal [Painter] that renders an Android [Drawable] (keeps full colour; no extra dependency). */
-private class DrawablePainter(private val drawable: Drawable) : Painter() {
-    override val intrinsicSize: Size =
-        if (drawable.intrinsicWidth > 0 && drawable.intrinsicHeight > 0) {
-            Size(drawable.intrinsicWidth.toFloat(), drawable.intrinsicHeight.toFloat())
-        } else {
-            Size.Unspecified
-        }
-
-    override fun DrawScope.onDraw() {
-        drawIntoCanvas { canvas ->
-            drawable.setBounds(0, 0, size.width.toInt(), size.height.toInt())
-            drawable.draw(canvas.nativeCanvas)
-        }
-    }
+fun DeviceIcon(category: DeviceIconCategory, tint: Color, size: androidx.compose.ui.unit.Dp = 28.dp) {
+    Icon(
+        painter = painterResource(category.iconRes),
+        contentDescription = null,
+        tint = tint,
+        modifier = Modifier.size(size),
+    )
 }
 
 @Composable
@@ -468,9 +449,9 @@ private fun EmptyState(modifier: Modifier = Modifier) {
 @Composable
 private fun HomePreview() {
     val sample = listOf(
-        DeviceCardUi("A", "HUAWEI WATCH GT Runner 2", "Huawei", "Conectado", true, false, 82, "GT Runner 2", R.drawable.ic_device_default, 0),
-        DeviceCardUi("B", "HUAWEI WATCH GT 7", "Huawei", "Desconectado", false, false, -1, "GT 7", R.drawable.ic_device_default, 1),
-        DeviceCardUi("C", "Amazfit Bip", "Huami", "Desconectado", false, false, 40, "Bip", R.drawable.ic_device_default, 2),
+        DeviceCardUi("A", "HUAWEI WATCH GT Runner 2", "Huawei", "Conectado", true, false, 82, "GT Runner 2", R.drawable.ic_device_default, 0, category = DeviceIconCategory.WATCH_ROUND),
+        DeviceCardUi("B", "HUAWEI Band 9", "Huawei", "Desconectado", false, false, -1, "Band 9", R.drawable.ic_device_default, 1, category = DeviceIconCategory.BAND),
+        DeviceCardUi("C", "HUAWEI FreeBuds 6", "Huawei", "Desconectado", false, false, 40, "FreeBuds 6", R.drawable.ic_device_default, 2, category = DeviceIconCategory.EARBUDS),
     )
     UltimateTheme {
         UltimateHomeScreen(sample, onOpenDevice = {}, onAddDevice = {})

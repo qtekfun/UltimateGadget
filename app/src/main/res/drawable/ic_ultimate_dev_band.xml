@@ -1,0 +1,25 @@
+<!-- UltimateGadget device icon set · fitness band / pulsera · monochrome, tint from Compose -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- band body fill (duotone) -->
+    <path
+        android:fillColor="@android:color/white"
+        android:fillAlpha="0.14"
+        android:pathData="M8.5,5.5 A3,3 0 0 1 11.5,2.5 L12.5,2.5 A3,3 0 0 1 15.5,5.5 L15.5,18.5 A3,3 0 0 1 12.5,21.5 L11.5,21.5 A3,3 0 0 1 8.5,18.5 Z" />
+    <!-- band outline -->
+    <path
+        android:strokeColor="@android:color/white"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000"
+        android:pathData="M8.5,5.5 A3,3 0 0 1 11.5,2.5 L12.5,2.5 A3,3 0 0 1 15.5,5.5 L15.5,18.5 A3,3 0 0 1 12.5,21.5 L11.5,21.5 A3,3 0 0 1 8.5,18.5 Z" />
+    <!-- screen (duotone) -->
+    <path
+        android:fillColor="@android:color/white"
+        android:fillAlpha="0.55"
+        android:pathData="M9.7,8.5 A1.5,1.5 0 0 1 11.2,7 L12.8,7 A1.5,1.5 0 0 1 14.3,8.5 L14.3,13.5 A1.5,1.5 0 0 1 12.8,15 L11.2,15 A1.5,1.5 0 0 1 9.7,13.5 Z" />
+</vector>

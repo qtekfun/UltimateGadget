@@ -62,6 +62,7 @@ import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.dashboard.Dashbo
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.theme.LocalUltimatePalette
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.theme.UltimateTheme
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.ui.DeviceCardUi
+import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.ui.DeviceIconCategory
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.ui.HeroStats
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.ui.UltimateHomeScreen
 import nodomain.freeyourgadget.gadgetbridge.impl.GBDevice
@@ -305,6 +306,16 @@ fun GBDevice.toCardUi(context: Context): DeviceCardUi {
         coordinator?.deviceNameResource?.takeIf { it != 0 }?.let { context.getString(it) }
     }.getOrNull() ?: (coordinator?.manufacturer ?: "")
     val battery = runCatching { getBatteryLevel(0) }.getOrDefault(-1)
+    // Categorise the device from its coordinator class (the package segment names the device
+    // family) plus name/model, so the card can draw an Ultimate icon instead of the legacy
+    // per-model GB drawable. The GT Runner 2 (HuaweiWatchGTRunner2Coordinator) resolves to
+    // WATCH_ROUND; anything unrecognised falls back to GENERIC.
+    val model = runCatching { model }.getOrNull()
+    val category = DeviceIconCategory.of(
+        coordinatorFqcn = coordinator?.javaClass?.name,
+        name = aliasOrName ?: name,
+        model = model,
+    )
     return DeviceCardUi(
         address = address,
         name = aliasOrName ?: name ?: address,
@@ -314,8 +325,9 @@ fun GBDevice.toCardUi(context: Context): DeviceCardUi {
         connecting = !isConnected && state != GBDevice.State.NOT_CONNECTED,
         busy = isBusy,
         batteryLevel = if (battery in 0..100) battery else -1,
-        model = runCatching { model }.getOrNull(),
+        model = model,
         iconRes = iconRes,
         accentSeed = address.hashCode(),
+        category = category,
     )
 }
