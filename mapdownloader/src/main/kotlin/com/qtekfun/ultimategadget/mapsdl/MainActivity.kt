@@ -59,7 +59,16 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent { MaterialTheme(colorScheme = Scheme) { Screen() } }
+        setContent { MaterialTheme(colorScheme = Scheme) { App() } }
+    }
+}
+
+@Composable
+private fun App() {
+    var screen by remember { mutableStateOf("maps") }
+    when (screen) {
+        "authkey" -> AuthKeyScreen(onBack = { screen = "maps" })
+        else -> Screen(onOpenAuthKey = { screen = "authkey" })
     }
 }
 
@@ -78,7 +87,7 @@ private fun fmt(bytes: Long): String {
 
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
-private fun Screen() {
+private fun Screen(onOpenAuthKey: () -> Unit) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val scope = rememberCoroutineScope()
 
@@ -118,6 +127,9 @@ private fun Screen() {
         topBar = {
             TopAppBar(
                 title = { Text("Descargar mapas", fontWeight = FontWeight.Bold) },
+                actions = {
+                    androidx.compose.material3.TextButton(onClick = onOpenAuthKey) { Text("Auth key") }
+                },
                 colors = androidx.compose.material3.TopAppBarDefaults.topAppBarColors(
                     containerColor = Scheme.background, titleContentColor = Scheme.onBackground,
                 ),
@@ -207,6 +219,128 @@ private fun Screen() {
                                 },
                             ) { Text(if (folder == null) "Elige carpeta" else "Descargar") }
                         }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(
+    androidx.compose.material3.ExperimentalMaterial3Api::class,
+    androidx.compose.foundation.layout.ExperimentalLayoutApi::class,
+)
+@Composable
+private fun AuthKeyScreen(onBack: () -> Unit) {
+    val scope = rememberCoroutineScope()
+    val clipboard = androidx.compose.ui.platform.LocalClipboardManager.current
+
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var region by remember { mutableStateOf(HuamiRegion.GLOBAL) }
+    var loading by remember { mutableStateOf(false) }
+    var status by remember { mutableStateOf("") }
+    var devices by remember { mutableStateOf<List<HuamiDevice>>(emptyList()) }
+
+    Scaffold(
+        containerColor = Scheme.background,
+        topBar = {
+            TopAppBar(
+                title = { Text("Auth key (Amazfit/Zepp)", fontWeight = FontWeight.Bold) },
+                navigationIcon = {
+                    androidx.compose.material3.TextButton(onClick = onBack) { Text("Atrás") }
+                },
+                colors = androidx.compose.material3.TopAppBarDefaults.topAppBarColors(
+                    containerColor = Scheme.background, titleContentColor = Scheme.onBackground,
+                ),
+            )
+        },
+    ) { inner ->
+        Column(
+            Modifier.padding(inner).fillMaxSize().padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text(
+                "Obtén la clave Bluetooth de tus relojes Amazfit/Zepp desde los servidores de Huami, " +
+                    "para emparejarlos en UltimateGadget sin la app Zepp. Luego pega la clave en " +
+                    "UltimateGadget (mantén pulsado el dispositivo al descubrir → Auth key).",
+                style = MaterialTheme.typography.bodyMedium, color = Scheme.onSurfaceVariant,
+            )
+            Text(
+                "Tu email y contraseña se usan solo para el login contra Huami/Zepp (HTTPS) y no se " +
+                    "guardan en ningún sitio. Las cuentas de regiones fuera de EE. UU. pueden fallar.",
+                style = MaterialTheme.typography.bodySmall, color = Scheme.onSurfaceVariant,
+            )
+
+            androidx.compose.material3.OutlinedTextField(
+                value = email, onValueChange = { email = it },
+                label = { Text("Email de la cuenta Zepp/Amazfit") },
+                singleLine = true,
+                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                    keyboardType = androidx.compose.ui.text.input.KeyboardType.Email,
+                ),
+                modifier = Modifier.fillMaxWidth(),
+            )
+            androidx.compose.material3.OutlinedTextField(
+                value = password, onValueChange = { password = it },
+                label = { Text("Contraseña") },
+                singleLine = true,
+                visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
+                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                    keyboardType = androidx.compose.ui.text.input.KeyboardType.Password,
+                ),
+                modifier = Modifier.fillMaxWidth(),
+            )
+
+            Text(
+                "Región de la cuenta (si no aparecen dispositivos, prueba otra):",
+                style = MaterialTheme.typography.bodySmall, color = Scheme.onSurfaceVariant,
+            )
+            androidx.compose.foundation.layout.FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                HuamiRegion.entries.forEach { r ->
+                    androidx.compose.material3.FilterChip(
+                        selected = region == r,
+                        onClick = { region = r },
+                        label = { Text(r.label) },
+                    )
+                }
+            }
+
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Button(
+                    enabled = !loading && email.isNotBlank() && password.isNotBlank(),
+                    onClick = {
+                        loading = true; status = ""; devices = emptyList()
+                        val e = email.trim(); val p = password; val reg = region
+                        scope.launch {
+                            runCatching { withContext(Dispatchers.IO) { HuamiToken.fetchAuthKeys(e, p, reg) } }
+                                .onSuccess { devices = it; status = "${it.size} dispositivo(s) encontrados" }
+                                .onFailure { status = it.message ?: "Error" }
+                            loading = false
+                        }
+                    },
+                ) { Text("Obtener claves") }
+                if (loading) CircularProgressIndicator(Modifier.padding(start = 4.dp))
+            }
+            if (status.isNotBlank()) Text(status, style = MaterialTheme.typography.bodySmall, color = Scheme.onSurfaceVariant)
+
+            devices.forEach { d ->
+                Card(Modifier.fillMaxWidth()) {
+                    Row(
+                        Modifier.padding(12.dp).fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        Column(Modifier.weight(1f)) {
+                            Text(d.mac, color = Scheme.onSurface)
+                            Text(d.pasteKey, style = MaterialTheme.typography.bodySmall, color = Scheme.secondary)
+                        }
+                        OutlinedButton(onClick = {
+                            clipboard.setText(androidx.compose.ui.text.AnnotatedString(d.pasteKey))
+                            status = "Clave copiada"
+                        }) { Text("Copiar") }
                     }
                 }
             }

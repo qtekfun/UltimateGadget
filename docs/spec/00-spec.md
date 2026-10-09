@@ -50,6 +50,20 @@ La opción B encaja mejor con "cero Huawei en el móvil" y con el modelo de repo
 - La ingeniería inversa se hace sobre tu propio reloj y tu propia cuenta, por interoperabilidad. Usa preferiblemente una cuenta de Huawei secundaria: hay riesgo de bloqueo por incumplir sus condiciones de uso.
 - No se redistribuyen binarios, mapas ni claves de Huawei en el repositorio.
 
+### Servicios de terceros en la app compañera de mapas
+
+La app principal mantiene "cero HMS y cero servicios de terceros". La app compañera de descarga de
+mapas (`mapdownloader`, la única con acceso a internet) incluye además una utilidad **opcional** para
+obtener la clave Bluetooth (auth key) de relojes Amazfit/Zepp y Xiaomi directamente de los servidores
+de Huami/Zepp, replicando el método huami-token al que remite la guía oficial de Gadgetbridge. Decisión
+acordada:
+
+- Vive solo en la app de mapas, nunca en la app principal.
+- El email y la contraseña de la cuenta Zepp/Amazfit se usan únicamente para el login (HTTPS contra
+  Huami/Zepp) y **no se almacenan** en ningún sitio ni se registran en logs.
+- Es de uso voluntario y solo sobre la cuenta propia, por interoperabilidad; el host de listado de
+  dispositivos es seleccionable por región.
+
 ## 5. Fases
 
 - **Fase 0 — Spike de protocolo (en el equipo de Z, con el reloj por adb).** Ver `01-prompt-fase0-spike.md`. Entregable: informe con la conclusión sobre cómo se activa el golf y cómo se transfieren los mapas, y la decisión A/B/C.
