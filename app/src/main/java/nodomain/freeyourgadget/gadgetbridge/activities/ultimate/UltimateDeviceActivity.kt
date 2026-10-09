@@ -133,6 +133,8 @@ class UltimateDeviceActivity : AppCompatActivity() {
             if (runCatching { coordinator.getWorldClocksSlotCount() }.getOrDefault(0) > 0) {
                 options += DeviceOptionUi("worldclocks", "Relojes mundiales", "Otras zonas horarias", section = sWatch)
             }
+            // Phone-side countdown timer (the watch has no timer protocol); always available.
+            options += DeviceOptionUi("timers", "Temporizadores", "Cuenta atrás en el teléfono", section = sWatch)
             if (cap { coordinator.supportsWatchfaceManagement(device) }) {
                 options += DeviceOptionUi("watchfaces", "Esferas", "Ver, activar y borrar esferas del reloj", section = sWatch)
             }
@@ -195,6 +197,9 @@ class UltimateDeviceActivity : AppCompatActivity() {
             )
             "music" -> startActivity(
                 nodomain.freeyourgadget.gadgetbridge.activities.ultimate.music.UltimateMusicActivity.intent(this, device),
+            )
+            "timers" -> startActivity(
+                nodomain.freeyourgadget.gadgetbridge.activities.ultimate.clock.UltimateTimersActivity.intent(this, device),
             )
             "agps" -> {
                 agpsDevice = device
