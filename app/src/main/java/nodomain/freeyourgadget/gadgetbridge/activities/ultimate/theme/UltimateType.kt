@@ -18,17 +18,30 @@ package nodomain.freeyourgadget.gadgetbridge.activities.ultimate.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import nodomain.freeyourgadget.gadgetbridge.R
 
 /**
- * Centralised type. Design intent: display = Bricolage Grotesque (700), body = Figtree.
- * To keep the build self-contained we use the platform default families here; swap these two
- * vals for downloadable GoogleFont families (ui-text-google-fonts) to get the exact faces.
+ * Centralised type: display = Bricolage Grotesque, body = Figtree (bundled OFL variable fonts in
+ * res/font). The weight variation axis is applied per face so the variable fonts render at the
+ * intended weights (API 26+; below that the default instance is used).
  */
-val DisplayFamily: FontFamily = FontFamily.Default
-val BodyFamily: FontFamily = FontFamily.Default
+private fun wght(w: Int) = FontVariation.Settings(FontVariation.weight(w))
+
+val DisplayFamily: FontFamily = FontFamily(
+    Font(R.font.bricolage_grotesque, FontWeight.SemiBold, variationSettings = wght(600)),
+    Font(R.font.bricolage_grotesque, FontWeight.Bold, variationSettings = wght(700)),
+)
+val BodyFamily: FontFamily = FontFamily(
+    Font(R.font.figtree, FontWeight.Normal, variationSettings = wght(400)),
+    Font(R.font.figtree, FontWeight.Medium, variationSettings = wght(500)),
+    Font(R.font.figtree, FontWeight.SemiBold, variationSettings = wght(600)),
+    Font(R.font.figtree, FontWeight.Bold, variationSettings = wght(700)),
+)
 
 val UltimateTypography = Typography(
     displaySmall = TextStyle(fontFamily = DisplayFamily, fontWeight = FontWeight.Bold, fontSize = 32.sp, letterSpacing = (-0.5).sp),
