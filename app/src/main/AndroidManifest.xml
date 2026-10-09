@@ -181,13 +181,6 @@
             android:theme="@style/SplashTheme"
             android:launchMode="singleTop"
             android:exported="true">
-            <intent-filter>
-                <category android:name="android.intent.category.DEFAULT" />
-
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
         <activity
             android:name=".activities.welcome.WelcomeActivity"
@@ -314,7 +307,14 @@
             android:name=".activities.ultimate.UltimateHomeActivity"
             android:label="@string/app_name"
             android:exported="true"
-            android:theme="@style/GadgetbridgeThemeDark.NoActionBar" />
+            android:launchMode="singleTop"
+            android:theme="@style/SplashTheme">
+            <intent-filter>
+                <category android:name="android.intent.category.DEFAULT" />
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".activities.ultimate.UltimateDeviceActivity"
             android:exported="false"
