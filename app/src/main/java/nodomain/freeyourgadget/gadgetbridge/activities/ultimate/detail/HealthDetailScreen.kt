@@ -16,6 +16,7 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 package nodomain.freeyourgadget.gadgetbridge.activities.ultimate.detail
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -61,6 +62,7 @@ fun HealthDetailScreen(
     workouts: List<WorkoutRow>,
     loading: Boolean,
     onBack: () -> Unit,
+    onOpenWorkout: (Long) -> Unit = {},
 ) {
     val scheme = MaterialTheme.colorScheme
     Scaffold(
@@ -96,7 +98,7 @@ fun HealthDetailScreen(
                 DashboardCardId.STEPS -> StepsDetail(data)
                 DashboardCardId.HEART -> HeartDetail(data)
                 DashboardCardId.SLEEP_STRESS -> SleepDetail(data)
-                DashboardCardId.LAST_WORKOUT -> WorkoutsDetail(workouts)
+                DashboardCardId.LAST_WORKOUT -> WorkoutsDetail(workouts, onOpenWorkout)
             }
             Spacer(Modifier.height(24.dp))
         }
@@ -174,16 +176,18 @@ private fun SleepDetail(data: DashboardData?) {
 }
 
 @Composable
-private fun WorkoutsDetail(workouts: List<WorkoutRow>) {
+private fun WorkoutsDetail(workouts: List<WorkoutRow>, onOpenWorkout: (Long) -> Unit = {}) {
     val scheme = MaterialTheme.colorScheme
     if (workouts.isEmpty()) { EmptyCard("Sin entrenos todavía") ; return }
     workouts.forEach { w ->
-        DashboardCard {
-            Text(w.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = scheme.onSurface)
-            Spacer(Modifier.height(4.dp))
-            val dur = w.durationSeconds
-            val durLabel = String.format(Locale.getDefault(), "%d:%02d:%02d", dur / 3600, (dur % 3600) / 60, dur % 60)
-            Text("${w.whenLabel} · $durLabel", color = scheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
+        Box(Modifier.clickable { onOpenWorkout(w.id) }) {
+            DashboardCard {
+                Text(w.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = scheme.onSurface)
+                Spacer(Modifier.height(4.dp))
+                val dur = w.durationSeconds
+                val durLabel = String.format(Locale.getDefault(), "%d:%02d:%02d", dur / 3600, (dur % 3600) / 60, dur % 60)
+                Text("${w.whenLabel} · $durLabel · ver mapa ›", color = scheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
+            }
         }
     }
 }

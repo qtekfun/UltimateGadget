@@ -305,6 +305,17 @@ class HuaweiMapManagementActivity : AppCompatActivity() {
                     fontWeight = FontWeight.Bold,
                 )
             }
+            Box(
+                Modifier
+                    .background(palette.surfaceHigh, RoundedCornerShape(16.dp))
+                    .clickable {
+                        startActivity(android.content.Intent(this@HuaweiMapManagementActivity,
+                            nodomain.freeyourgadget.gadgetbridge.activities.ultimate.route.UltimateRoutePlannerActivity::class.java))
+                    }
+                    .padding(horizontal = 20.dp, vertical = 12.dp),
+            ) {
+                Text("Planificar ruta en el mapa", color = palette.onSurface, fontWeight = FontWeight.Bold)
+            }
             if (device?.isInitialized != true) {
                 Text(getString(R.string.huawei_offline_maps_not_connected), color = palette.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
             }
