@@ -83,12 +83,18 @@ class UltimateMapEngine(context: Context, tilesDir: File) {
     private var pendingMarkers: List<LatLon> = emptyList()
     private var pendingUser: LatLon? = null
 
+    // Native MapLibre logo + attribution are lifted above a bottom system inset (gesture/nav bar).
+    private var bottomChromeInsetPx: Int = 0
+    private var baseLogoBottom = -1
+    private var baseAttrBottom = -1
+
     init {
         MapLibre.getInstance(appContext)
         view = MapView(appContext)
         view.getMapAsync { m ->
             if (closed) return@getMapAsync
             map = m
+            applyChromeInset(m)
             m.addOnMapClickListener { p ->
                 tapListener?.invoke(LatLon(p.latitude, p.longitude))
                 tapListener != null
@@ -98,6 +104,27 @@ class UltimateMapEngine(context: Context, tilesDir: File) {
     }
 
     fun onMapTap(cb: ((LatLon) -> Unit)?) { tapListener = cb }
+
+    /**
+     * Lift the native MapLibre logo + attribution above a bottom system inset (e.g. the
+     * navigation/gesture bar), in pixels. The map keeps rendering edge-to-edge; only the attribution
+     * widgets move so they are not covered by system chrome.
+     */
+    fun setBottomChromeInset(px: Int) {
+        if (bottomChromeInsetPx == px) return
+        bottomChromeInsetPx = px
+        map?.let { applyChromeInset(it) }
+    }
+
+    private fun applyChromeInset(m: MapLibreMap) {
+        val ui = m.uiSettings
+        if (baseLogoBottom < 0) {
+            baseLogoBottom = ui.logoMarginBottom
+            baseAttrBottom = ui.attributionMarginBottom
+        }
+        ui.setLogoMargins(ui.logoMarginLeft, ui.logoMarginTop, ui.logoMarginRight, baseLogoBottom + bottomChromeInsetPx)
+        ui.setAttributionMargins(ui.attributionMarginLeft, ui.attributionMarginTop, ui.attributionMarginRight, baseAttrBottom + bottomChromeInsetPx)
+    }
 
     fun setTheme(newTheme: MapTheme) {
         if (theme == newTheme) return
