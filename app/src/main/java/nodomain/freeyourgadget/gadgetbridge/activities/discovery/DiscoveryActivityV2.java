@@ -725,9 +725,37 @@ public class DiscoveryActivityV2 extends AbstractGBActivity implements AdapterVi
         if (coordinator.requiresAuthKey()) {
             final Intent authIntent = AuthKeyActivity.Companion.newIntent(this, deviceCandidate);
             authKeyLauncher.launch(authIntent);
+        } else if (coordinator.getSupportedDeviceSpecificAuthenticationSettings().length > 0) {
+            // UltimateGadget: devices that are not forced through the auth-key screen (e.g. Huawei,
+            // which authenticates against a Huawei account) still have authentication settings, and
+            // pairing before configuring them can make the watch unbind and factory-reset. Upstream
+            // only exposes this via a long-press, which is easy to miss, so offer a reachable,
+            // skippable step that opens those existing auth settings before bonding.
+            offerOptionalAuthSettings(deviceCandidate, coordinator);
         } else {
             startPair(deviceCandidate, coordinator);
         }
+    }
+
+    private void offerOptionalAuthSettings(final GBDeviceCandidate deviceCandidate, final DeviceCoordinator coordinator) {
+        final GBDevice device = DeviceHelper.getInstance().toSupportedDevice(deviceCandidate);
+        if (device == null) {
+            startPair(deviceCandidate, coordinator);
+            return;
+        }
+        new MaterialAlertDialogBuilder(getContext())
+                .setTitle(R.string.discovery_optional_auth_title)
+                .setMessage(R.string.discovery_optional_auth_message)
+                .setIcon(R.drawable.ic_vpn_key)
+                .setPositiveButton(R.string.discovery_optional_auth_configure, (dialog, which) -> {
+                    final Intent startIntent = new Intent(DiscoveryActivityV2.this, DeviceSettingsActivity.class);
+                    startIntent.putExtra(GBDevice.EXTRA_DEVICE, device);
+                    startIntent.putExtra(DeviceSettingsActivity.MENU_ENTRY_POINT, DeviceSettingsActivity.MENU_ENTRY_POINTS.AUTH_SETTINGS);
+                    startActivity(startIntent);
+                })
+                .setNegativeButton(R.string.discovery_optional_auth_skip, (dialog, which) -> startPair(deviceCandidate, coordinator))
+                .setNeutralButton(android.R.string.cancel, null)
+                .show();
     }
 
     private void startPair(final GBDeviceCandidate deviceCandidate, final DeviceCoordinator coordinator) {
