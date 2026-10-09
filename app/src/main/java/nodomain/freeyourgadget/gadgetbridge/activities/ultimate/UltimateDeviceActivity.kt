@@ -214,9 +214,7 @@ class UltimateDeviceActivity : AppCompatActivity() {
             }
             "find" -> toast("Buscar dispositivo — próximamente")
             "remove" -> startActivity(
-                Intent(this, nodomain.freeyourgadget.gadgetbridge.activities.DeviceDeleteActivity::class.java).apply {
-                    putExtra(GBDevice.EXTRA_DEVICE, device)
-                },
+                nodomain.freeyourgadget.gadgetbridge.activities.ultimate.install.UltimateRemoveDeviceActivity.intent(this, device),
             )
         }
     }

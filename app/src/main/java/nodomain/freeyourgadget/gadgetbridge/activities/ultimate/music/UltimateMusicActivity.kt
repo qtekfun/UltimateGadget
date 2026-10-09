@@ -87,7 +87,6 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import nodomain.freeyourgadget.gadgetbridge.GBApplication
-import nodomain.freeyourgadget.gadgetbridge.activities.install.FwAppInstallerActivity
 import nodomain.freeyourgadget.gadgetbridge.activities.musicmanager.MusicManagerActivity
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.theme.LocalUltimatePalette
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.theme.SectionLabelStyle
@@ -301,15 +300,12 @@ private fun MusicScreen(device: GBDevice, onBack: () -> Unit) {
 
     val importPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) {
-            // Route through the installer so the Huawei handler validates format/metadata and shows
-            // progress, exactly like the legacy music manager. The list refreshes on ON_START return.
-            val startIntent = Intent(context, FwAppInstallerActivity::class.java).apply {
-                putExtra(GBDevice.EXTRA_DEVICE, device)
-                action = Intent.ACTION_VIEW
-                setDataAndType(uri, null)
-            }
-            context.startActivity(startIntent)
-            Toast.makeText(context, "Subiendo música…", Toast.LENGTH_SHORT).show()
+            // Route through the Ultimate install screen so the Huawei handler validates format/metadata
+            // and shows progress. The list refreshes on ON_START return.
+            context.startActivity(
+                nodomain.freeyourgadget.gadgetbridge.activities.ultimate.install.UltimateInstallActivity
+                    .forUri(context, uri, device),
+            )
         }
     }
 

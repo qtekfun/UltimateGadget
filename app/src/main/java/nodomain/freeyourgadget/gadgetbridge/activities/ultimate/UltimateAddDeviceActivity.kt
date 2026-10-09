@@ -30,7 +30,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.core.content.ContextCompat
-import nodomain.freeyourgadget.gadgetbridge.activities.discovery.DiscoveryActivityV2
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.theme.UltimateTheme
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.ui.AddDeviceScreen
 
@@ -93,7 +92,7 @@ class UltimateAddDeviceActivity : AppCompatActivity() {
     }
 
     private fun launchDiscovery() {
-        startActivity(Intent(this, DiscoveryActivityV2::class.java))
+        startActivity(nodomain.freeyourgadget.gadgetbridge.activities.ultimate.pairing.UltimateDiscoveryActivity.intent(this))
         finish()
     }
 }

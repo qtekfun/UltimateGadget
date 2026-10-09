@@ -69,7 +69,6 @@ import androidx.core.content.FileProvider
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import nodomain.freeyourgadget.gadgetbridge.GBApplication
 import nodomain.freeyourgadget.gadgetbridge.R
-import nodomain.freeyourgadget.gadgetbridge.activities.install.GpxRouteInstallerActivity
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.route.PhoneRouteStore
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.route.SavedRoute
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.route.UltimateRoutePlannerActivity
@@ -157,11 +156,8 @@ class HuaweiMapManagementActivity : AppCompatActivity() {
         }
         val uri = FileProvider.getUriForFile(this, "$packageName.screenshot_provider", route.file)
         startActivity(
-            Intent(this, GpxRouteInstallerActivity::class.java).apply {
-                data = uri
-                putExtra(GBDevice.EXTRA_DEVICE, d)
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            },
+            nodomain.freeyourgadget.gadgetbridge.activities.ultimate.install.UltimateInstallActivity
+                .forUri(this, uri, d),
         )
     }
 
