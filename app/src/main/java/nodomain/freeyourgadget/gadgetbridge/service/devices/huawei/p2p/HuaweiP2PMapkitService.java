@@ -1,6 +1,10 @@
 package nodomain.freeyourgadget.gadgetbridge.service.devices.huawei.p2p;
 
+import android.content.Context;
+import android.content.Intent;
 import android.widget.Toast;
+
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +32,12 @@ public class HuaweiP2PMapkitService extends HuaweiBaseP2PService {
     private final Logger LOG = LoggerFactory.getLogger(HuaweiP2PMapkitService.class);
 
     public static final String MODULE = "hw.unitedevice.mapkit";
+
+    /** Broadcast with the list of offline maps currently stored on the watch. */
+    public static final String ACTION_MAP_LIST = "nodomain.freeyourgadget.gadgetbridge.huawei.action.OFFLINE_MAP_LIST";
+    public static final String EXTRA_MAP_IDS = "map_ids";       // long[]
+    public static final String EXTRA_MAP_TYPES = "map_types";   // int[] (0 regular, 1 contour, 2 global)
+    public static final String EXTRA_MAP_VERSIONS = "map_versions"; // int[]
 
     public HuaweiP2PMapkitService(HuaweiP2PManager manager) {
         super(manager);
@@ -333,8 +343,9 @@ public class HuaweiP2PMapkitService extends HuaweiBaseP2PService {
         int msgId = tlv.getAsInteger(0x13, -1);
 
         LOG.info("handleMapList totalFrames: {} currentFrame: {} TotalNum: {} MsgId: {}", totalFrames, currentFrame, totalNum, msgId);
+
+        ArrayList<MapInfo> list = new ArrayList<>();
         if (totalNum > 0) {
-            ArrayList<MapInfo> list = new ArrayList<>();
             HuaweiTLV ArrTlv = tlv.getObject(0x87);
             for (HuaweiTLV subTlv : ArrTlv.getObjects(0x88)) {
                 long mapId = subTlv.getAsLong(0x09);
@@ -343,27 +354,67 @@ public class HuaweiP2PMapkitService extends HuaweiBaseP2PService {
                 LOG.info("MapId: {} MapType: {} Version: {}", mapId, mapType, version);
                 list.add(new MapInfo(mapId, mapType, version));
             }
-
-            if (totalFrames == 1) {
-                // all done, nothing to do, call callback.
-                return;
-            }
-
-            if (this.responses.get(msgId) == null) {
-                this.responses.put(msgId, list);
-            } else {
-                this.responses.get(msgId).addAll(list);
-            }
-            if (this.responses.get(msgId).size() == totalNum) {
-                // all done, nothing to do, call callback.
-                this.responses.remove(msgId);
-            } else if (this.responses.get(msgId).size() > totalNum) {
-                //Error
-                this.responses.remove(msgId);
-            } else {
-                LOG.info("HuaweiP2PMapkitService handleMapList wait next");
-            }
         }
+
+        if (totalFrames == 1) {
+            // Single frame: the whole list is here, publish it as is (even when empty).
+            broadcastMapList(list);
+            return;
+        }
+
+        ArrayList<MapInfo> aggregated = this.responses.get(msgId);
+        if (aggregated == null) {
+            aggregated = new ArrayList<>();
+            this.responses.put(msgId, aggregated);
+        }
+        aggregated.addAll(list);
+        if (aggregated.size() >= totalNum) {
+            this.responses.remove(msgId);
+            broadcastMapList(aggregated);
+        } else {
+            LOG.info("HuaweiP2PMapkitService handleMapList wait next");
+        }
+    }
+
+    private void broadcastMapList(List<MapInfo> list) {
+        final Context context = manager.getSupportProvider().getContext();
+        if (context == null) {
+            LOG.warn("broadcastMapList: no context");
+            return;
+        }
+        long[] ids = new long[list.size()];
+        int[] types = new int[list.size()];
+        int[] versions = new int[list.size()];
+        for (int i = 0; i < list.size(); i++) {
+            ids[i] = list.get(i).getMapId();
+            types[i] = list.get(i).getMapType();
+            versions[i] = list.get(i).getVersion();
+        }
+        Intent intent = new Intent(ACTION_MAP_LIST);
+        intent.putExtra(EXTRA_MAP_IDS, ids);
+        intent.putExtra(EXTRA_MAP_TYPES, types);
+        intent.putExtra(EXTRA_MAP_VERSIONS, versions);
+        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+    }
+
+    /** Ask the watch for the list of stored offline maps. Result arrives via {@link #ACTION_MAP_LIST}. */
+    public void requestMapList() {
+        queryUploadedMaps();
+    }
+
+    /** Delete a single offline map from the watch, then refresh the list. */
+    public void deleteMap(long mapId, byte mapType) {
+        List<MapInfo> items = new ArrayList<>();
+        items.add(new MapInfo(mapId, mapType));
+        deleteMapsList((byte) 1, (byte) 0, items.size(), nextId(), items);
+        // Give the watch a moment, then refresh.
+        final Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            public void run() {
+                queryUploadedMaps();
+                timer.cancel();
+            }
+        }, 1500);
     }
 
     private void handleStartUploadResponse(HuaweiTLV tlv) throws HuaweiPacket.MissingTagException {

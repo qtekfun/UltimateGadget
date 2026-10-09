@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <Preference
+        android:icon="@drawable/ic_offlinemap"
+        android:key="pref_huawei_offline_maps_manage"
+        android:persistent="false"
+        android:title="@string/huawei_offline_maps_manage_title"
+        android:summary="@string/huawei_offline_maps_manage_summary" />
+</androidx.preference.PreferenceScreen>

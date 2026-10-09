@@ -1326,6 +1326,32 @@ public class HuaweiSupportProvider {
 
     public void onSendConfiguration(String config) {
         try {
+            // Offline map management (UltimateGadget): query / delete maps on the watch.
+            if (config.equals(HuaweiConstants.PREF_HUAWEI_OFFLINE_MAP_QUERY)) {
+                HuaweiP2PMapkitService mapkit = HuaweiP2PMapkitService.getRegisteredInstance(huaweiP2PManager);
+                if (mapkit != null) {
+                    mapkit.requestMapList();
+                }
+                return;
+            }
+            if (config.startsWith(HuaweiConstants.PREF_HUAWEI_OFFLINE_MAP_DELETE_PREFIX)) {
+                HuaweiP2PMapkitService mapkit = HuaweiP2PMapkitService.getRegisteredInstance(huaweiP2PManager);
+                if (mapkit != null) {
+                    // format: <prefix><mapId>:<mapType>
+                    String args = config.substring(HuaweiConstants.PREF_HUAWEI_OFFLINE_MAP_DELETE_PREFIX.length());
+                    int sep = args.lastIndexOf(':');
+                    if (sep > 0) {
+                        try {
+                            long mapId = Long.parseLong(args.substring(0, sep));
+                            byte mapType = Byte.parseByte(args.substring(sep + 1));
+                            mapkit.deleteMap(mapId, mapType);
+                        } catch (NumberFormatException e) {
+                            LOG.error("Invalid offline map delete request: {}", config);
+                        }
+                    }
+                }
+                return;
+            }
             switch (config) {
                 case DeviceSettingsPreferenceConst.PREF_DATEFORMAT:
                 case DeviceSettingsPreferenceConst.PREF_TIMEFORMAT: {
