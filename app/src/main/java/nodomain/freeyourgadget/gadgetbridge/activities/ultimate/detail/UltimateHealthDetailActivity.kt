@@ -36,6 +36,8 @@ import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.dashboard.DbHeal
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.theme.UltimateTheme
 import nodomain.freeyourgadget.gadgetbridge.database.DBHelper
 import nodomain.freeyourgadget.gadgetbridge.entities.BaseActivitySummaryDao
+import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.golf.UltimateGolf
+import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.golf.UltimateGolfActivity
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.workout.UltimateWorkoutMapActivity
 import nodomain.freeyourgadget.gadgetbridge.impl.GBDevice
 import nodomain.freeyourgadget.gadgetbridge.model.ActivityKind
@@ -70,9 +72,14 @@ class UltimateHealthDetailActivity : AppCompatActivity() {
                     workouts = workouts,
                     loading = loading,
                     onBack = { finish() },
-                    onOpenWorkout = { id ->
-                        activeDevice(this@UltimateHealthDetailActivity)?.let { dev ->
-                            startActivity(UltimateWorkoutMapActivity.intent(this@UltimateHealthDetailActivity, id, dev))
+                    onOpenWorkout = { row ->
+                        if (row.isGolf) {
+                            // Golf rounds have no GPS map worth showing; open the golf scorecard.
+                            startActivity(UltimateGolfActivity.intent(this@UltimateHealthDetailActivity, row.id))
+                        } else {
+                            activeDevice(this@UltimateHealthDetailActivity)?.let { dev ->
+                                startActivity(UltimateWorkoutMapActivity.intent(this@UltimateHealthDetailActivity, row.id, dev))
+                            }
                         }
                     },
                 )
@@ -117,9 +124,16 @@ class UltimateHealthDetailActivity : AppCompatActivity() {
                             // Use the application context: the Ultimate Compose activities do not
                             // extend AbstractGBActivity, so only the application context carries
                             // the language override Gadgetbridge applies at startup.
-                            val kind = runCatching {
+                            val rawKind = runCatching {
                                 ActivityKind.fromCode(s.activityKind ?: ActivityKind.UNKNOWN.code)
                             }.getOrDefault(ActivityKind.UNKNOWN)
+                            // Golf reaches us with a workout type upstream never mapped, so it would
+                            // otherwise show as "unknown". Detect it and resolve it to GOLF so the
+                            // list row and the type filter chip get the right name and icon.
+                            val isGolf = UltimateGolf.isGolf(
+                                rawKind.code, UltimateGolf.rawHuaweiType(s), s.name,
+                            )
+                            val kind = if (isGolf) ActivityKind.GOLF else rawKind
                             val typeLabel = runCatching { kind.getLabel(localizedContext) }.getOrNull().orEmpty()
                             WorkoutRow(
                                 id = s.id ?: -1L,
@@ -130,6 +144,7 @@ class UltimateHealthDetailActivity : AppCompatActivity() {
                                 iconRes = kind.getIcon(),
                                 whenLabel = start?.let { FMT.format(it) } ?: "",
                                 durationSeconds = dur,
+                                isGolf = isGolf,
                             )
                         }
                 }
@@ -152,4 +167,6 @@ data class WorkoutRow(
     val iconRes: Int,
     val whenLabel: String,
     val durationSeconds: Long,
+    /** True when this workout is a golf round (opens the golf scorecard instead of the map). */
+    val isGolf: Boolean = false,
 )
