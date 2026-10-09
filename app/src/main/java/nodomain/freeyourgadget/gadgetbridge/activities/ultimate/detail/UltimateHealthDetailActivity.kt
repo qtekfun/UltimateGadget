@@ -36,6 +36,7 @@ import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.dashboard.DbHeal
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.theme.UltimateTheme
 import nodomain.freeyourgadget.gadgetbridge.database.DBHelper
 import nodomain.freeyourgadget.gadgetbridge.entities.BaseActivitySummaryDao
+import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.workout.UltimateWorkoutMapActivity
 import nodomain.freeyourgadget.gadgetbridge.impl.GBDevice
 import nodomain.freeyourgadget.gadgetbridge.model.ActivityKind
 import java.text.SimpleDateFormat
@@ -69,6 +70,11 @@ class UltimateHealthDetailActivity : AppCompatActivity() {
                     workouts = workouts,
                     loading = loading,
                     onBack = { finish() },
+                    onOpenWorkout = { id ->
+                        activeDevice(this@UltimateHealthDetailActivity)?.let { dev ->
+                            startActivity(UltimateWorkoutMapActivity.intent(this@UltimateHealthDetailActivity, id, dev))
+                        }
+                    },
                 )
             }
         }
@@ -81,10 +87,14 @@ class UltimateHealthDetailActivity : AppCompatActivity() {
             Intent(context, UltimateHealthDetailActivity::class.java).putExtra(EXTRA_CARD, card.name)
 
         /** Recent workouts for the active device, newest first. */
+        /** The device whose data the dashboard shows: the initialized one, else the first paired. */
+        fun activeDevice(context: Context): GBDevice? {
+            val dm = (context.applicationContext as GBApplication).deviceManager
+            return dm.devices.firstOrNull { it.isInitialized } ?: dm.devices.firstOrNull()
+        }
+
         fun loadRecentWorkouts(context: Context, limit: Int): List<WorkoutRow> {
-            val device = (context.applicationContext as GBApplication).deviceManager.devices
-                .firstOrNull { it.isInitialized } ?: (context.applicationContext as GBApplication)
-                .deviceManager.devices.firstOrNull() ?: return emptyList()
+            val device = activeDevice(context) ?: return emptyList()
             return runCatching {
                 GBApplication.acquireDB().use { db ->
                     val session = db.daoSession
@@ -103,6 +113,7 @@ class UltimateHealthDetailActivity : AppCompatActivity() {
                                 runCatching { ActivityKind.fromCode(k).getLabel(context) }.getOrNull()
                             }
                             WorkoutRow(
+                                id = s.id ?: -1L,
                                 title = s.name?.takeIf { it.isNotBlank() } ?: kind ?: "Workout",
                                 type = kind ?: "",
                                 whenLabel = start?.let { FMT.format(it) } ?: "",
@@ -118,6 +129,7 @@ class UltimateHealthDetailActivity : AppCompatActivity() {
 }
 
 data class WorkoutRow(
+    val id: Long,
     val title: String,
     val type: String,
     val whenLabel: String,
