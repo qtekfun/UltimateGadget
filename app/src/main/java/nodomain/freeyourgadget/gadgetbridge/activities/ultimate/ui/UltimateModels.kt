@@ -30,6 +30,7 @@ data class DeviceCardUi(
     val model: String?,
     @DrawableRes val iconRes: Int,
     val accentSeed: Int,            // stable seed for the gradient
+    val connecting: Boolean = false, // mid-connection (connecting/initializing), not yet connected
 )
 
 /** One action tile in the device detail screen. */

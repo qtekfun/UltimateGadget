@@ -122,7 +122,7 @@ class UltimateHomeActivity : AppCompatActivity() {
                             else -> UltimateHomeScreen(
                                 devices = devices,
                                 onOpenDevice = { openDevice(it) },
-                                onAddDevice = { toast("Añadir dispositivo — próximamente") },
+                                onAddDevice = { startActivity(Intent(this@UltimateHomeActivity, UltimateAddDeviceActivity::class.java)) },
                             )
                         }
                     }
@@ -185,6 +185,7 @@ fun GBDevice.toCardUi(context: Context): DeviceCardUi {
         typeName = typeName,
         stateLabel = getStateString(context),
         connected = isConnected,
+        connecting = !isConnected && state != GBDevice.State.NOT_CONNECTED,
         busy = isBusy,
         batteryLevel = if (battery in 0..100) battery else -1,
         model = runCatching { model }.getOrNull(),
