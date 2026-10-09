@@ -566,16 +566,20 @@ public class HuaweiWorkoutGbParser implements ActivitySummaryParser {
      * single source of truth for the golf type mapping (mirrored, for name-based detection only, by
      * the new UI's {@code UltimateGolf}).
      *
-     * NOTE: the exact on-wire byte for the Huawei Watch GT Runner 2 golf round was NOT captured
-     * during the golf spike (only the P2P golf-course mode was exercised; no recorded round was
-     * synced). Huawei's universal sport-type id for golf is 263, but the summary field is a single
-     * byte so that id cannot be the value seen here. Add the real byte once observed — it is printed
-     * as "Tipo Huawei del entreno: N" in the golf detail screen when a golf round is opened. Only
-     * the golf mapping is affected; every other workout type keeps its existing behaviour.
+     * Huawei's universal sport-type id for golf is 263, but the watch workout-summary field is a
+     * single byte, so that id is not the value seen here. The real on-wire byte is 19 (0x13): it was
+     * read from a golf round already synced on the GT Runner 2 (serial 39031FDJH000W1). In the
+     * Gadgetbridge DB the five golf rounds all have HUAWEI_WORKOUT_SUMMARY_SAMPLE.TYPE = 19 and
+     * BASE_ACTIVITY_SUMMARY.ACTIVITY_KIND = 0 (UNKNOWN), with summaryData key
+     * {@code watchface_dialog_widget_type} = 19. It is cross-confirmed by the decompiled Huawei
+     * Health watch (TruSport) activity enum, which defines {@code TS_ACTIVITY_GOLF_COURSE(19)}
+     * (driving range is 18, jump rope 20). 19 is not claimed by any {@link HuaweiActivityType}
+     * entry (the table jumps 14 -> 21), so there is no collision. Only the golf mapping is affected;
+     * every other workout type keeps its existing behaviour.
      */
     public static final java.util.Set<Integer> HUAWEI_GOLF_WORKOUT_TYPES =
             java.util.Collections.unmodifiableSet(new java.util.HashSet<>(java.util.Arrays.asList(
-                    // TODO: add the GT Runner 2 golf round's raw summary type byte (0-255) here.
+                    0x13 // Huawei TS_ACTIVITY_GOLF_COURSE (19): a golf round. See note above.
             )));
 
     public static ActivityKind huaweiTypeToGbType(byte huaweiType) {
