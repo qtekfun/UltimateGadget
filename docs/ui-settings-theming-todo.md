@@ -1,3 +1,12 @@
+# Ajustes: coherencia estética — HECHO
+
+Implementado: estilo `UltimateSettingsThemeDark` (+ `UltimateSettingsThemeDarkNoActionBar`) con los
+acentos de marca, aplicado SOLO a las pantallas de ajustes (subclases de `AbstractSettingsActivityV2`)
+en modo oscuro, mediante un special-case en `AbstractGBActivity.init(...)`. El resto de pantallas
+conserva su tema. Pendiente opcional: variante AMOLED (ahora usan el fondo #0F1115) y modo claro.
+
+---
+
 # Ajustes: coherencia estética (TODO)
 
 Estado: **pendiente, por riesgo**. Explicación y camino seguro para hacerlo bien.
