@@ -2875,6 +2875,18 @@
     <string name="appwidget_setting_alarm">Setting alarm for %1$02d:%2$02d</string>
     <string name="appwidget_sleep_alarm_widget_label">Sleep Alarm</string>
     <string name="widget_listing_label">Status and Alarms</string>
+    <!-- UltimateGadget widgets and Quick Settings tiles -->
+    <string name="ultimate_widget_title">UltimateGadget</string>
+    <string name="ultimate_widget_description">Today\'s steps, watch battery and last heart rate.</string>
+    <string name="ultimate_widget_no_device">No device</string>
+    <string name="ultimate_widget_no_value">—</string>
+    <string name="ultimate_widget_steps_label">Steps</string>
+    <string name="ultimate_widget_battery_label">Battery</string>
+    <string name="ultimate_widget_hr_label">Heart rate</string>
+    <string name="ultimate_tile_sync_label">Sync now</string>
+    <string name="ultimate_tile_find_watch">Finding your watch…</string>
+    <string name="ultimate_tile_find_watch_label">Find my watch</string>
+    <string name="ultimate_tile_find_unsupported">This device can\'t be located</string>
     <string name="widget_set_alarm_after">Set alarm after:</string>
     <string name="widget_5_minutes">5 minutes</string>
     <string name="widget_10_minutes">10 minutes</string>
