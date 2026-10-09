@@ -154,6 +154,18 @@ android {
         ]
     }
 
+    // Ship one small APK per CPU architecture instead of a single ~120 MB universal APK.
+    // The bulk is the MapLibre native libraries, bundled for every ABI. A per-ABI APK is ~30 MB.
+    // universalApk keeps a single all-ABI APK too (used by the release CI / "install anywhere").
+    splits {
+        abi {
+            enable true
+            reset()
+            include "armeabi-v7a", "arm64-v8a", "x86", "x86_64"
+            universalApk true
+        }
+    }
+
     signingConfigs {
         nightly {
             if (System.getProperty("nightly_store_file") != null) {
