@@ -21,21 +21,25 @@ enfoque privacidad-primero / 100% local del proyecto. Marca `[x]` lo hecho, `[~]
 
 ## Siguiente (alto valor, reaprovecha lo hecho)
 - [x] Mapas del móvil: importación de PMTiles + app compañera :mapdownloader que los descarga del catálogo de UltimateMaps-data (la app principal es offline).
+- [~] En curso (agentes): bug atrás-en-ajustes, insets del mapa, export GPX/FIT por entreno, sueño avanzado, gestor de música.
 - [ ] Snap-to-roads en el planificador (OSRM) y edición de waypoints.
-- [ ] Informes semanales/mensuales con gráficas (export a PDF). Objetivos, rachas y medallas.
+- [ ] Reemplazar/retematizar "Ajustes del dispositivo" (aún UI vieja de preferencias).
+- [x] Informes semanales/mensuales con gráficas. Objetivos, rachas y medallas. [ ] export a PDF pendiente.
 - [ ] Puntuaciones derivadas en local: readiness/energía (tipo Body Battery), carga de entreno, VO2max, HRV, PAI.
-- [ ] Sueño avanzado: fases, puntuación, SpO2 nocturno, siestas.
+- [~] Sueño avanzado: fases, puntuación, SpO2 nocturno, siestas (agente en curso).
 
 ## Datos y privacidad (diferenciador)
+- [x] Notificaciones: apps que notifican al reloj + No molestar (horario/días) en estética Ultimate.
+- [x] Opciones del dispositivo agrupadas por secciones (coherente con apps comerciales).
 - [ ] Health Connect (compartir salud con otras apps, en local).
 - [ ] Nextcloud (Fase 5 de la spec) y destinos opcionales (Strava/openScale).
 - [x] Export/Import de la copia de la base (local). [ ] GPX/FIT por entreno e import de Huawei Health (pendiente).
 - [ ] Dashboard multi-dispositivo (agregar y comparar).
 
 ## Dispositivo
-- [ ] Vitrina/instalador de esferas (watchfaces) y, más adelante, diseñador básico.
-- [ ] Gestión de apps/widgets del reloj, recordatorios, alarmas, temporizadores, relojes mundiales.
-- [ ] Gestor de música y playlists.
+- [x] Vitrina/instalador de esferas (watchfaces). [ ] Diseñador básico (later).
+- [x] Alarmas, recordatorios y relojes mundiales (estética Ultimate). [ ] Temporizadores y gestión de apps/widgets del reloj.
+- [~] Gestor de música (agente en curso). [ ] Playlists.
 
 ## Golf (nicho propio)
 - [ ] Biblioteca de campos desde OpenStreetMap (golf=*), scorecard, seguimiento de golpes, distancias.
