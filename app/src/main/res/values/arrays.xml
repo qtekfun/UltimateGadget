@@ -27,6 +27,19 @@
         <item>@string/pref_theme_value_dynamic</item>
     </string-array>
 
+    <!-- Light/Dark/System selector for the Ultimate (Compose) UI; dynamic color is a separate
+         toggle there (pref_key_theme_dynamic), so this list omits the "dynamic" value. -->
+    <string-array name="pref_ultimate_theme_options">
+        <item>@string/pref_theme_system</item>
+        <item>@string/pref_theme_light</item>
+        <item>@string/pref_theme_dark</item>
+    </string-array>
+    <string-array name="pref_ultimate_theme_values">
+        <item>@string/pref_theme_value_system</item>
+        <item>@string/pref_theme_value_light</item>
+        <item>@string/pref_theme_value_dark</item>
+    </string-array>
+
     <!-- these must match MapTheme, plus the custom value -->
     <string-array name="maps_themes_names">
         <item>@string/pref_default</item>

@@ -205,12 +205,13 @@ fun UltimateSettingsScreen(onBack: () -> Unit) {
             // --- Interface ---
             SettingsSection("Interfaz") {
                 SelectRow(
-                    title = "Tema (interfaz clásica)",
+                    title = "Tema (claro / oscuro / sistema)",
                     key = "pref_key_theme",
-                    default = context.getString(R.string.pref_theme_value_light),
-                    entriesRes = R.array.pref_theme_options,
-                    valuesRes = R.array.pref_theme_values,
+                    default = context.getString(R.string.pref_theme_value_system),
+                    entriesRes = R.array.pref_ultimate_theme_options,
+                    valuesRes = R.array.pref_ultimate_theme_values,
                 )
+                ToggleRow("Colores dinámicos (Material You)", "pref_key_theme_dynamic", false)
                 ToggleRow("Fondo negro (AMOLED)", "pref_key_theme_amoled_black", false)
                 ToggleRow("Bloquear capturas de pantalla", "block_screenshots", false)
                 ToggleRow("Refrescar al deslizar hacia abajo", "pref_refresh_on_swipe", true)
