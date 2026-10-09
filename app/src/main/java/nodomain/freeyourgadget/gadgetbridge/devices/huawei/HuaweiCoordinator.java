@@ -476,46 +476,47 @@ public abstract class HuaweiCoordinator extends AbstractDeviceCoordinator {
 
         final DeviceSpecificSettings deviceSpecificSettings = new DeviceSpecificSettings();
 
-        // Health
-        if (deviceState.supportsInactivityWarnings())
-            deviceSpecificSettings.addRootScreen(DeviceSpecificSettingsScreen.HEALTH, R.xml.devicesettings_inactivity_sheduled);
-        if (deviceState.supportsTruSleep())
-            deviceSpecificSettings.addRootScreen(DeviceSpecificSettingsScreen.HEALTH, R.xml.devicesettings_trusleep);
-        if (deviceState.supportsHeartRate()) {
-            deviceSpecificSettings.addRootScreen(DeviceSpecificSettingsScreen.HEALTH, R.xml.devicesettings_heartrate_automatic_enable);
-            if (deviceState.supportsRealtimeHeartRate())
-                deviceSpecificSettings.addRootScreen(DeviceSpecificSettingsScreen.HEALTH, R.xml.devicesettings_huawei_heart_rate_realtime);
-            if (deviceState.supportsHighHeartRateAlert())
-                deviceSpecificSettings.addRootScreen(DeviceSpecificSettingsScreen.HEALTH, R.xml.devicesettings_huawei_heart_rate_huawei_high_alert);
-            if (deviceState.supportsLowHeartRateAlert())
-                deviceSpecificSettings.addRootScreen(DeviceSpecificSettingsScreen.HEALTH, R.xml.devicesettings_huawei_heart_rate_huawei_low_alert);
+        // The root settings screen for Huawei devices is organized into user-facing categories
+        // (headers) so that sub-screens (Health, Notifications, Workout...) and loose toggles
+        // (find phone, accept/reject calls, camera...) are grouped with meaning instead of being
+        // shown as one long flat list. The grouping only reorders/labels preferences; it does not
+        // change any preference key, default or handler. A category header is only added when at
+        // least one of its preferences is actually available for this device.
+
+        // ===== General =====
+        // Date & time sub-screen items
+        final List<Integer> dateTimeItems = new ArrayList<>();
+        if (deviceState.supportsDateFormat()) {
+            dateTimeItems.add(R.xml.devicesettings_dateformat);
+            dateTimeItems.add(R.xml.devicesettings_timeformat);
         }
-        if (deviceState.supportsSPo2()) {
-            deviceSpecificSettings.addRootScreen(DeviceSpecificSettingsScreen.HEALTH, R.xml.devicesettings_spo_automatic_enable);
-            if (deviceState.supportsLowSPo2Alert())
-                deviceSpecificSettings.addRootScreen(DeviceSpecificSettingsScreen.HEALTH, R.xml.devicesettings_huawei_spo_low_alert);
+        // Calendar sub-screen items
+        final List<Integer> calendarItems = new ArrayList<>();
+        if (deviceState.supportsP2PService() && deviceState.supportsCalendar()) {
+            calendarItems.add(R.xml.devicesettings_sync_calendar);
         }
-        if (deviceState.supportsTemperature()) {
-            deviceSpecificSettings.addRootScreen(DeviceSpecificSettingsScreen.HEALTH, R.xml.devicesettings_temperature_automatic_enable);
+        // General always contains the find-phone toggles, so it is always shown.
+        deviceSpecificSettings.addRootScreen(R.xml.devicesettings_huawei_header_general);
+        if (!dateTimeItems.isEmpty()) {
+            deviceSpecificSettings.addRootScreen(DeviceSpecificSettingsScreen.DATE_TIME, dateTimeItems);
         }
-        if (deviceState.supportsAutoStress()) {
-            deviceSpecificSettings.addRootScreen(DeviceSpecificSettingsScreen.HEALTH, R.xml.devicesettings_huawei_stress);
+        deviceSpecificSettings.addRootScreen(R.xml.devicesettings_find_phone);
+        deviceSpecificSettings.addRootScreen(R.xml.devicesettings_disable_find_phone_with_dnd);
+        if (!calendarItems.isEmpty()) {
+            deviceSpecificSettings.addRootScreen(DeviceSpecificSettingsScreen.CALENDAR, calendarItems);
         }
-        if (deviceState.supportsArrhythmia() && deviceState.isShowForceCountrySpecificFeatures(device)) {
-            deviceSpecificSettings.addRootScreen(DeviceSpecificSettingsScreen.HEALTH, R.xml.devicesettings_huawei_arrhythmia);
+        if (deviceState.getContactsSlotCount(device) > 0) {
+            deviceSpecificSettings.addRootScreen(R.xml.devicesettings_contacts);
         }
-        if (deviceState.supportsECG() && deviceState.isShowForceCountrySpecificFeatures(device)) {
-            deviceSpecificSettings.addRootScreen(DeviceSpecificSettingsScreen.HEALTH, R.xml.devicesettings_huawei_ecg);
+        if (deviceState.supportsMusicUploading() && deviceState.getMusicInfoParams() != null && device.isConnected()) {
+            deviceSpecificSettings.addRootScreen(R.xml.devicesettings_musicmanagement);
         }
-        if (deviceState.supportsArterialStiffnessDetection() && deviceState.isShowForceCountrySpecificFeatures(device)) {
-            deviceSpecificSettings.addRootScreen(DeviceSpecificSettingsScreen.HEALTH, R.xml.devicesettings_huawei_arterial_stiffness_detection);
-        }
-        if (deviceState.supportsThreeCircle() || deviceState.supportsThreeCircleLite()) {
-            deviceSpecificSettings.addRootScreen(DeviceSpecificSettingsScreen.HEALTH, R.xml.devicesettings_huawei_activity_reminders);
+        if (deviceState.supportsSendCountryCode()) {
+            deviceSpecificSettings.addRootScreen(R.xml.devicesettings_huawei_features);
         }
 
-        // Notifications
-        final List<Integer> notifications = deviceSpecificSettings.addRootScreen(DeviceSpecificSettingsScreen.NOTIFICATIONS);
+        // ===== Notifications and calls =====
+        final List<Integer> notifications = new ArrayList<>();
         notifications.add(R.xml.devicesettings_notifications_enable);
         if (deviceState.supportsNotificationsRepeatedNotify() || deviceState.supportsNotificationsRemoveSingle()) {
             notifications.add(R.xml.devicesettings_autoremove_notifications);
@@ -533,68 +534,93 @@ public abstract class HuaweiCoordinator extends AbstractDeviceCoordinator {
         if (deviceState.supportsNotificationsAddIconTimestamp() && device.isConnected()) {
             notifications.add(R.xml.devicesettings_upload_notifications_app_icon);
         }
-
-        // Workout
-        if (deviceState.supportsSendingGps())
-            deviceSpecificSettings.addRootScreen(DeviceSpecificSettingsScreen.WORKOUT, R.xml.devicesettings_workout_send_gps_to_band);
-
-        if (deviceState.supportsTrack() || deviceState.supportsHeartRateZones())
-            deviceSpecificSettings.addRootScreen(DeviceSpecificSettingsScreen.WORKOUT, R.xml.devicesettings_heartrate_settings);
-        if (deviceState.supportsWheelchairMode())
-            deviceSpecificSettings.addRootScreen(DeviceSpecificSettingsScreen.WORKOUT, R.xml.devicesettings_huawei_wheelchair);
-        if (deviceState.supportsOfflineMap())
-            deviceSpecificSettings.addRootScreen(DeviceSpecificSettingsScreen.WORKOUT, R.xml.devicesettings_huawei_offline_maps);
-
-        // Other
-        deviceSpecificSettings.addRootScreen(R.xml.devicesettings_find_phone);
-        deviceSpecificSettings.addRootScreen(R.xml.devicesettings_disable_find_phone_with_dnd);
+        deviceSpecificSettings.addRootScreen(R.xml.devicesettings_huawei_header_notifications_calls);
+        deviceSpecificSettings.addRootScreen(DeviceSpecificSettingsScreen.NOTIFICATIONS, notifications);
         deviceSpecificSettings.addRootScreen(R.xml.devicesettings_allow_accept_calls);
         deviceSpecificSettings.addRootScreen(R.xml.devicesettings_allow_reject_calls);
 
-        // Camera control
-        if (deviceState.supportsCameraRemote())
-            deviceSpecificSettings.addRootScreen(R.xml.devicesettings_camera_remote);
-
-        //Contacts
-        if (deviceState.getContactsSlotCount(device) > 0) {
-            deviceSpecificSettings.addRootScreen(R.xml.devicesettings_contacts);
+        // ===== Health and activity =====
+        final List<Integer> health = new ArrayList<>();
+        if (deviceState.supportsInactivityWarnings())
+            health.add(R.xml.devicesettings_inactivity_sheduled);
+        if (deviceState.supportsTruSleep())
+            health.add(R.xml.devicesettings_trusleep);
+        if (deviceState.supportsHeartRate()) {
+            health.add(R.xml.devicesettings_heartrate_automatic_enable);
+            if (deviceState.supportsRealtimeHeartRate())
+                health.add(R.xml.devicesettings_huawei_heart_rate_realtime);
+            if (deviceState.supportsHighHeartRateAlert())
+                health.add(R.xml.devicesettings_huawei_heart_rate_huawei_high_alert);
+            if (deviceState.supportsLowHeartRateAlert())
+                health.add(R.xml.devicesettings_huawei_heart_rate_huawei_low_alert);
+        }
+        if (deviceState.supportsSPo2()) {
+            health.add(R.xml.devicesettings_spo_automatic_enable);
+            if (deviceState.supportsLowSPo2Alert())
+                health.add(R.xml.devicesettings_huawei_spo_low_alert);
+        }
+        if (deviceState.supportsTemperature()) {
+            health.add(R.xml.devicesettings_temperature_automatic_enable);
+        }
+        if (deviceState.supportsAutoStress()) {
+            health.add(R.xml.devicesettings_huawei_stress);
+        }
+        if (deviceState.supportsArrhythmia() && deviceState.isShowForceCountrySpecificFeatures(device)) {
+            health.add(R.xml.devicesettings_huawei_arrhythmia);
+        }
+        if (deviceState.supportsECG() && deviceState.isShowForceCountrySpecificFeatures(device)) {
+            health.add(R.xml.devicesettings_huawei_ecg);
+        }
+        if (deviceState.supportsArterialStiffnessDetection() && deviceState.isShowForceCountrySpecificFeatures(device)) {
+            health.add(R.xml.devicesettings_huawei_arterial_stiffness_detection);
+        }
+        if (deviceState.supportsThreeCircle() || deviceState.supportsThreeCircleLite()) {
+            health.add(R.xml.devicesettings_huawei_activity_reminders);
         }
 
-        //Music
-        if (deviceState.supportsMusicUploading() && deviceState.getMusicInfoParams() != null && device.isConnected()) {
-            deviceSpecificSettings.addRootScreen(R.xml.devicesettings_musicmanagement);
+        final List<Integer> workout = new ArrayList<>();
+        if (deviceState.supportsSendingGps())
+            workout.add(R.xml.devicesettings_workout_send_gps_to_band);
+        if (deviceState.supportsTrack() || deviceState.supportsHeartRateZones())
+            workout.add(R.xml.devicesettings_heartrate_settings);
+        if (deviceState.supportsWheelchairMode())
+            workout.add(R.xml.devicesettings_huawei_wheelchair);
+        if (deviceState.supportsOfflineMap())
+            workout.add(R.xml.devicesettings_huawei_offline_maps);
+
+        if (!health.isEmpty() || !workout.isEmpty()) {
+            deviceSpecificSettings.addRootScreen(R.xml.devicesettings_huawei_header_health);
+            if (!health.isEmpty())
+                deviceSpecificSettings.addRootScreen(DeviceSpecificSettingsScreen.HEALTH, health);
+            if (!workout.isEmpty())
+                deviceSpecificSettings.addRootScreen(DeviceSpecificSettingsScreen.WORKOUT, workout);
         }
 
-        if (deviceState.supportsSendCountryCode()) {
-            deviceSpecificSettings.addRootScreen(R.xml.devicesettings_huawei_features);
-        }
-
-        // Time
-        if (deviceState.supportsDateFormat()) {
-            final List<Integer> dateTime = deviceSpecificSettings.addRootScreen(DeviceSpecificSettingsScreen.DATE_TIME);
-            dateTime.add(R.xml.devicesettings_dateformat);
-            dateTime.add(R.xml.devicesettings_timeformat);
-        }
-
-        //Calendar
-        if (deviceState.supportsP2PService() && deviceState.supportsCalendar()) {
-            deviceSpecificSettings.addRootScreen(DeviceSpecificSettingsScreen.CALENDAR, R.xml.devicesettings_sync_calendar);
-        }
-
-        // Display
+        // ===== Display and gestures =====
+        final List<Integer> display = new ArrayList<>();
         if (deviceState.supportsWearLocation(device))
-            deviceSpecificSettings.addRootScreen(DeviceSpecificSettingsScreen.DISPLAY, R.xml.devicesettings_wearlocation);
+            display.add(R.xml.devicesettings_wearlocation);
         if (deviceState.supportsAutoWorkMode())
-            deviceSpecificSettings.addRootScreen(DeviceSpecificSettingsScreen.DISPLAY, R.xml.devicesettings_workmode);
+            display.add(R.xml.devicesettings_workmode);
         if (deviceState.supportsActivateOnLift())
-            deviceSpecificSettings.addRootScreen(DeviceSpecificSettingsScreen.DISPLAY, R.xml.devicesettings_liftwrist_display_noshed);
+            display.add(R.xml.devicesettings_liftwrist_display_noshed);
         if (deviceState.supportsRotateToCycleInfo())
-            deviceSpecificSettings.addRootScreen(DeviceSpecificSettingsScreen.DISPLAY, R.xml.devicesettings_rotatewrist_cycleinfo);
+            display.add(R.xml.devicesettings_rotatewrist_cycleinfo);
         // Currently on main setting menu.
         /*if (deviceState.supportsLanguageSetting())
-            deviceSpecificSettings.addRootScreen(DeviceSpecificSettingsScreen.DISPLAY, R.xml.devicesettings_language_generic);*/
+            display.add(R.xml.devicesettings_language_generic);*/
 
-        // Developer
+        final boolean supportsCamera = deviceState.supportsCameraRemote();
+        if (!display.isEmpty() || supportsCamera) {
+            deviceSpecificSettings.addRootScreen(R.xml.devicesettings_huawei_header_display);
+            if (!display.isEmpty())
+                deviceSpecificSettings.addRootScreen(DeviceSpecificSettingsScreen.DISPLAY, display);
+            if (supportsCamera)
+                deviceSpecificSettings.addRootScreen(R.xml.devicesettings_camera_remote);
+        }
+
+        // ===== Advanced =====
+        deviceSpecificSettings.addRootScreen(R.xml.devicesettings_huawei_header_advanced);
         final List<Integer> developer = deviceSpecificSettings.addRootScreen(DeviceSpecificSettingsScreen.DEVELOPER);
         developer.add(R.xml.devicesettings_force_encryption);
         developer.add(R.xml.devicesettings_huawei_debug);
