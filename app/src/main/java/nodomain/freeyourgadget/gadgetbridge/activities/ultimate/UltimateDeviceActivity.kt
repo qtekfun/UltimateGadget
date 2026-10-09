@@ -23,6 +23,7 @@ import android.content.IntentFilter
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -32,6 +33,7 @@ import androidx.compose.runtime.setValue
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import nodomain.freeyourgadget.gadgetbridge.GBApplication
 import nodomain.freeyourgadget.gadgetbridge.activities.devicesettings.DeviceSettingsActivity
+import nodomain.freeyourgadget.gadgetbridge.activities.install.FwAppInstallerActivity
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.theme.UltimateTheme
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.ui.DeviceOptionUi
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.ui.UltimateDeviceScreen
@@ -43,6 +45,20 @@ import nodomain.freeyourgadget.gadgetbridge.model.RecordedDataTypes
 class UltimateDeviceActivity : AppCompatActivity() {
 
     private lateinit var address: String
+
+    // AGPS file the user picks is handed to Gadgetbridge's existing install pipeline.
+    private var agpsDevice: GBDevice? = null
+    private val agpsPicker = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        val dev = agpsDevice
+        if (uri != null && dev != null) {
+            startActivity(
+                Intent(this, FwAppInstallerActivity::class.java).apply {
+                    setDataAndType(uri, null)
+                    putExtra(GBDevice.EXTRA_DEVICE, dev)
+                },
+            )
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -101,6 +117,9 @@ class UltimateDeviceActivity : AppCompatActivity() {
             options += DeviceOptionUi("maps", "Mapas offline", "Instalar y borrar mapas del reloj")
             options += DeviceOptionUi("routes", "Rutas", "Enviar una ruta GPX")
         }
+        if (supportsAgps(device)) {
+            options += DeviceOptionUi("agps", "Actualizar GPS (A-GNSS)", "Instalar datos de satélites para fijar antes")
+        }
         options += DeviceOptionUi("find", "Buscar dispositivo", "Hacer sonar el dispositivo")
         options += DeviceOptionUi("remove", "Quitar dispositivo", "Desvincular de UltimateGadget", destructive = true)
         return options
@@ -124,6 +143,11 @@ class UltimateDeviceActivity : AppCompatActivity() {
                 Intent(this, HuaweiMapManagementActivity::class.java).apply { putExtra(GBDevice.EXTRA_DEVICE, device) },
             )
             "routes" -> toast("Rutas — próximamente")
+            "agps" -> {
+                agpsDevice = device
+                toast("Elige el fichero A-GNSS descargado")
+                agpsPicker.launch(arrayOf("*/*"))
+            }
             "find" -> toast("Buscar dispositivo — próximamente")
             "remove" -> startActivity(
                 Intent(this, nodomain.freeyourgadget.gadgetbridge.activities.DeviceDeleteActivity::class.java).apply {
@@ -131,6 +155,26 @@ class UltimateDeviceActivity : AppCompatActivity() {
                 },
             )
         }
+    }
+
+    /**
+     * AGPS/ephemeris updates. Gadgetbridge already supports this for several brands (Huami/ZeppOS
+     * Amazfit, Garmin, …) via an install handler for the downloaded AGPS pack. The capability
+     * method is not on the common coordinator interface (no-arg on Huami/ZeppOS, device-arg on
+     * Garmin), so it is looked up reflectively. Huawei is excluded: its format is proprietary and
+     * cannot be produced from open data.
+     */
+    private fun supportsAgps(device: GBDevice): Boolean {
+        val coordinator = runCatching { device.deviceCoordinator }.getOrNull() ?: return false
+        if (coordinator is HuaweiCoordinator) return false
+        runCatching {
+            return coordinator.javaClass.getMethod("supportsAgpsUpdates").invoke(coordinator) as Boolean
+        }
+        runCatching {
+            return coordinator.javaClass.getMethod("supportsAgpsUpdates", GBDevice::class.java)
+                .invoke(coordinator, device) as Boolean
+        }
+        return false
     }
 
     private fun toast(msg: String) = Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
