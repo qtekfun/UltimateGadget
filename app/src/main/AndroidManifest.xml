@@ -310,6 +310,16 @@
             android:label="@string/huawei_offline_maps_title"
             android:parentActivityName=".activities.devicesettings.DeviceSettingsActivity" />
         <activity
+            android:name=".activities.ultimate.UltimateHomeActivity"
+            android:label="@string/app_name"
+            android:exported="true"
+            android:theme="@style/GadgetbridgeThemeDark.NoActionBar" />
+        <activity
+            android:name=".activities.ultimate.UltimateDeviceActivity"
+            android:exported="false"
+            android:theme="@style/GadgetbridgeThemeDark.NoActionBar"
+            android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
+        <activity
             android:name=".activities.heartratezones.HeartRateSettingsActivity"
             android:label="@string/heart_rate_settings"
             android:parentActivityName=".activities.devicesettings.DeviceSettingsActivity" />
