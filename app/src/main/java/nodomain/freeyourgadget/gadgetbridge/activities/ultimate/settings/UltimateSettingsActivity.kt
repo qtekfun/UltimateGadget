@@ -69,6 +69,7 @@ import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.notifications.Ul
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.phonemaps.PhoneMapsActivity
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.theme.LocalUltimatePalette
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.theme.UltimateTheme
+import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.theme.UltimateThemeState
 
 /**
  * Ultimate-styled hub for the app's GLOBAL settings, meant to replace the classic
@@ -98,11 +99,22 @@ class UltimateSettingsActivity : AppCompatActivity() {
 // res/xml/preferences.xml so an unset key shows the same value as the classic UI.
 // ---------------------------------------------------------------------------
 
+/**
+ * Theme preference keys that affect [UltimateTheme]. Writing any of these must bump
+ * [UltimateThemeState] so every live Compose screen recomposes with the new look.
+ */
+private val THEME_PREF_KEYS = setOf(
+    "pref_key_theme",
+    "pref_key_theme_dynamic",
+    "pref_key_theme_amoled_black",
+)
+
 private fun readBool(key: String, def: Boolean): Boolean =
     GBApplication.getPrefs().getBoolean(key, def)
 
 private fun writeBool(key: String, value: Boolean) {
     GBApplication.getPrefs().preferences.edit().putBoolean(key, value).apply()
+    if (key in THEME_PREF_KEYS) UltimateThemeState.bump()
 }
 
 private fun readString(key: String, def: String): String =
@@ -110,6 +122,7 @@ private fun readString(key: String, def: String): String =
 
 private fun writeString(key: String, value: String) {
     GBApplication.getPrefs().preferences.edit().putString(key, value).apply()
+    if (key in THEME_PREF_KEYS) UltimateThemeState.bump()
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

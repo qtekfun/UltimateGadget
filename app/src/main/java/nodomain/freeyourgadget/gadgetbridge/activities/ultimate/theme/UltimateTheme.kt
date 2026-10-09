@@ -26,6 +26,8 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -161,6 +163,28 @@ data class UltimatePalette(
     }
 }
 
+/**
+ * Process-wide, observable "theme changed" signal.
+ *
+ * The three theme preferences live in [SharedPreferences], which Compose cannot observe: reading
+ * them is a plain function call, so a composition that reads them never gets invalidated when they
+ * change. [UltimateTheme] therefore reads [version] (a Compose snapshot state) *before* it reads
+ * the prefs, which subscribes every live [UltimateTheme] composition to this signal. Calling
+ * [bump] after writing a theme preference invalidates all of them, so each one recomposes and
+ * re-reads the prefs — instantly for visible screens, and on resume for stopped Activities.
+ */
+object UltimateThemeState {
+    private val versionState = mutableIntStateOf(0)
+
+    /** Read inside a composable to subscribe to theme changes. */
+    val version: Int get() = versionState.intValue
+
+    /** Call after changing any theme preference so live Compose screens re-read it. */
+    fun bump() {
+        versionState.intValue += 1
+    }
+}
+
 val LocalUltimatePalette = staticCompositionLocalOf { UltimatePalette.Dark }
 
 /** Build a Material [ColorScheme] matching the given palette (light or dark builder). */
@@ -269,7 +293,11 @@ private fun resolveThemeChoice(): ThemeChoice {
 @Composable
 fun UltimateTheme(content: @Composable () -> Unit) {
     val context = LocalContext.current
-    val choice = resolveThemeChoice()
+    // Subscribe to theme-preference changes BEFORE reading the prefs. SharedPreferences reads are
+    // not observable by Compose, so without this snapshot read a pref edit would never recompose
+    // this subtree. Keyed through [key] below so the subscription is never optimised away.
+    val themeVersion = UltimateThemeState.version
+    val choice = key(themeVersion) { resolveThemeChoice() }
     val canUseDynamic = choice.dynamic && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
 
     var palette = when {
