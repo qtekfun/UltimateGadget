@@ -84,6 +84,14 @@ public abstract class AbstractGBActivity extends AppCompatActivity implements GB
     }
 
     public static void init(GBActivity activity, int flags) {
+        // UltimateGadget: brand-accented dark theme for the settings (preference) screens only,
+        // so they match the new UI. Other screens keep their regular theme.
+        if (activity instanceof AbstractSettingsActivityV2 && GBApplication.isDarkThemeEnabled()) {
+            activity.setTheme((flags & NO_ACTIONBAR) != 0
+                    ? R.style.UltimateSettingsThemeDarkNoActionBar
+                    : R.style.UltimateSettingsThemeDark);
+            return;
+        }
         if (GBApplication.areDynamicColorsEnabled()) {
             if (GBApplication.isDarkThemeEnabled()) {
                 if ((flags & NO_ACTIONBAR) != 0) {

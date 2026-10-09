@@ -43,6 +43,12 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -69,7 +75,9 @@ fun UltimateHomeScreen(
     devices: List<DeviceCardUi>,
     onOpenDevice: (DeviceCardUi) -> Unit,
     onAddDevice: () -> Unit,
-    onOverflow: () -> Unit = {},
+    onExportImport: () -> Unit = {},
+    onPhoneMaps: () -> Unit = {},
+    onClassicMode: () -> Unit = {},
 ) {
     val palette = LocalUltimatePalette.current
     val connected = devices.firstOrNull { it.connected }
@@ -87,7 +95,15 @@ fun UltimateHomeScreen(
                 },
                 actions = {
                     IconButton(onClick = {}) { Icon(Icons.Filled.Search, contentDescription = "Search") }
-                    IconButton(onClick = onOverflow) { Icon(Icons.Filled.MoreVert, contentDescription = "More") }
+                    Box {
+                        var menuOpen by remember { mutableStateOf(false) }
+                        IconButton(onClick = { menuOpen = true }) { Icon(Icons.Filled.MoreVert, contentDescription = "More") }
+                        DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                            DropdownMenuItem(text = { Text("Exportar / Importar") }, onClick = { menuOpen = false; onExportImport() })
+                            DropdownMenuItem(text = { Text("Mapas del móvil") }, onClick = { menuOpen = false; onPhoneMaps() })
+                            DropdownMenuItem(text = { Text("Modo clásico") }, onClick = { menuOpen = false; onClassicMode() })
+                        }
+                    }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = palette.background,

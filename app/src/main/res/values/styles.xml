@@ -847,4 +847,21 @@
         <item name="grid_tile_bg">@color/stat_tile_bg_amoled</item>
         <item name="bar_shade">@drawable/bar_shade_amoled</item>
     </style>
+    <style name="UltimateSettingsThemeDark" parent="GadgetbridgeThemeDark">
+        <item name="colorPrimary">#8AB4FF</item>
+        <item name="colorPrimaryDark">#8AB4FF</item>
+        <item name="colorOnPrimary">#0A2A5E</item>
+        <item name="colorPrimaryContainer">#1F4A8F</item>
+        <item name="colorOnPrimaryContainer">#D6E4FF</item>
+        <item name="colorSecondary">#7DD3C0</item>
+        <item name="colorError">#FF8A80</item>
+        <item name="android:colorBackground">#0F1115</item>
+        <item name="colorSurface">#14171D</item>
+        <item name="colorSurfaceContainer">#1F232E</item>
+        <item name="colorOutline">#3A4050</item>
+    </style>
+    <style name="UltimateSettingsThemeDarkNoActionBar" parent="UltimateSettingsThemeDark">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
 </resources>
