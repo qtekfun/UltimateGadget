@@ -41,6 +41,7 @@ import org.maplibre.android.style.layers.CircleLayer
 import org.maplibre.android.style.layers.LineLayer
 import org.maplibre.android.style.layers.Property
 import org.maplibre.android.style.layers.PropertyFactory.circleColor
+import org.maplibre.android.style.layers.PropertyFactory.circleOpacity
 import org.maplibre.android.style.layers.PropertyFactory.circleRadius
 import org.maplibre.android.style.layers.PropertyFactory.circleStrokeColor
 import org.maplibre.android.style.layers.PropertyFactory.circleStrokeWidth
@@ -80,6 +81,7 @@ class UltimateMapEngine(context: Context, tilesDir: File) {
     // Pending data applied once the style is ready (and re-applied after a theme change).
     private var pendingLine: List<LatLon> = emptyList()
     private var pendingMarkers: List<LatLon> = emptyList()
+    private var pendingUser: LatLon? = null
 
     init {
         MapLibre.getInstance(appContext)
@@ -119,6 +121,9 @@ class UltimateMapEngine(context: Context, tilesDir: File) {
 
     /** Small circle markers (e.g. the route waypoints or start/end). */
     fun markers(points: List<LatLon>) { pendingMarkers = points; pushMarkers() }
+
+    /** Show (or clear, with null) the "my location" blue dot. Does not move the camera. */
+    fun setUserLocation(point: LatLon?) { pendingUser = point; pushUser() }
 
     /** Fit the camera to the given points with padding. No-op for fewer than two points. */
     fun fitTo(points: List<LatLon>, paddingPx: Int = 96) {
@@ -173,8 +178,21 @@ class UltimateMapEngine(context: Context, tilesDir: File) {
                     circleStrokeColor(0xFFFFFFFF.toInt()), circleStrokeWidth(2f),
                 ),
             )
+            s.addSource(GeoJsonSource(USER_SRC))
+            s.addLayer(
+                CircleLayer(USER_HALO, USER_SRC).withProperties(
+                    circleRadius(16f), circleColor(USER_COLOR), circleOpacity(0.18f),
+                ),
+            )
+            s.addLayer(
+                CircleLayer(USER_DOT, USER_SRC).withProperties(
+                    circleRadius(7f), circleColor(USER_COLOR),
+                    circleStrokeColor(0xFFFFFFFF.toInt()), circleStrokeWidth(3f),
+                ),
+            )
             pushLine()
             pushMarkers()
+            pushUser()
         }
     }
 
@@ -197,6 +215,16 @@ class UltimateMapEngine(context: Context, tilesDir: File) {
         )
     }
 
+    private fun pushUser() {
+        val src = style?.getSourceAs<GeoJsonSource>(USER_SRC) ?: return
+        val p = pendingUser
+        if (p == null) {
+            src.setGeoJson(FeatureCollection.fromFeatures(emptyArray()))
+        } else {
+            src.setGeoJson(Feature.fromGeometry(Point.fromLngLat(p.lon, p.lat)))
+        }
+    }
+
     // Lifecycle passthrough.
     fun onCreate(bundle: Bundle?) = view.onCreate(bundle)
     fun onStart() = view.onStart()
@@ -215,7 +243,11 @@ class UltimateMapEngine(context: Context, tilesDir: File) {
         const val ROUTE_LAYER = "ug-route-line"
         const val MARKERS_SRC = "ug-markers-src"
         const val MARKERS_LAYER = "ug-markers-layer"
+        const val USER_SRC = "ug-user-src"
+        const val USER_HALO = "ug-user-halo"
+        const val USER_DOT = "ug-user-dot"
         const val ROUTE_COLOR = 0xFF2F6FD6.toInt()
+        const val USER_COLOR = 0xFF2F8FFF.toInt()
     }
 }
 

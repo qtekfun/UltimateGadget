@@ -77,6 +77,7 @@ fun UltimateHomeScreen(
     onAddDevice: () -> Unit,
     onExportImport: () -> Unit = {},
     onPhoneMaps: () -> Unit = {},
+    onNotifications: () -> Unit = {},
     onClassicMode: () -> Unit = {},
 ) {
     val palette = LocalUltimatePalette.current
@@ -101,6 +102,7 @@ fun UltimateHomeScreen(
                         DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
                             DropdownMenuItem(text = { Text("Exportar / Importar") }, onClick = { menuOpen = false; onExportImport() })
                             DropdownMenuItem(text = { Text("Mapas del móvil") }, onClick = { menuOpen = false; onPhoneMaps() })
+                            DropdownMenuItem(text = { Text("Notificaciones") }, onClick = { menuOpen = false; onNotifications() })
                             DropdownMenuItem(text = { Text("Modo clásico") }, onClick = { menuOpen = false; onClassicMode() })
                         }
                     }

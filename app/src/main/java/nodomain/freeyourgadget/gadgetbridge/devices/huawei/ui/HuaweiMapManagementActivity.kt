@@ -65,15 +65,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.core.content.FileProvider
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import nodomain.freeyourgadget.gadgetbridge.GBApplication
 import nodomain.freeyourgadget.gadgetbridge.R
+import nodomain.freeyourgadget.gadgetbridge.activities.install.GpxRouteInstallerActivity
+import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.route.PhoneRouteStore
+import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.route.SavedRoute
+import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.route.UltimateRoutePlannerActivity
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.theme.LocalUltimatePalette
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.theme.UltimateTheme
 import nodomain.freeyourgadget.gadgetbridge.devices.huawei.HuaweiConstants
 import nodomain.freeyourgadget.gadgetbridge.impl.GBDevice
 import nodomain.freeyourgadget.gadgetbridge.service.devices.huawei.p2p.HuaweiP2PMapkitService
 import org.json.JSONObject
+import java.text.DateFormat
+import java.util.Date
 
 /**
  * Offline maps and routes for a Huawei watch, in the UltimateGadget look. Lists the maps stored on
@@ -89,6 +96,7 @@ class HuaweiMapManagementActivity : AppCompatActivity() {
 
     private var items by mutableStateOf<List<MapItem>>(emptyList())
     private var loaded by mutableStateOf(false)
+    private var routes by mutableStateOf<List<SavedRoute>>(emptyList())
 
     private val mapListReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -119,6 +127,7 @@ class HuaweiMapManagementActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         device = intent.getParcelableExtra(GBDevice.EXTRA_DEVICE)
         regions = loadRegions()
+        routes = PhoneRouteStore.list(this)
 
         setContent {
             UltimateTheme {
@@ -131,6 +140,41 @@ class HuaweiMapManagementActivity : AppCompatActivity() {
                 MapRouteScreen()
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // A route may have been planned+saved while we were away; refresh the local list.
+        routes = PhoneRouteStore.list(this)
+    }
+
+    /** Re-send an already-saved route through the proven installer flow. */
+    private fun resendRoute(route: SavedRoute) {
+        val d = device
+        if (d == null) {
+            Toast.makeText(this, R.string.huawei_offline_maps_not_connected, Toast.LENGTH_SHORT).show()
+            return
+        }
+        val uri = FileProvider.getUriForFile(this, "$packageName.screenshot_provider", route.file)
+        startActivity(
+            Intent(this, GpxRouteInstallerActivity::class.java).apply {
+                data = uri
+                putExtra(GBDevice.EXTRA_DEVICE, d)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            },
+        )
+    }
+
+    private fun deleteRoute(route: SavedRoute) {
+        PhoneRouteStore.delete(route.file)
+        routes = PhoneRouteStore.list(this)
+    }
+
+    private fun openPlanner() {
+        startActivity(
+            Intent(this, UltimateRoutePlannerActivity::class.java)
+                .putExtra(GBDevice.EXTRA_DEVICE, device),
+        )
     }
 
     private fun requestMaps() {
@@ -181,7 +225,7 @@ class HuaweiMapManagementActivity : AppCompatActivity() {
     @Composable
     private fun MapRouteScreen() {
         val palette = LocalUltimatePalette.current
-        var tab by remember { mutableStateOf(0) }
+        var tab by remember { mutableStateOf(intent.getIntExtra("ug_tab", 0).coerceIn(0, 1)) }
         var pendingDelete by remember { mutableStateOf<MapItem?>(null) }
 
         Scaffold(
@@ -286,39 +330,114 @@ class HuaweiMapManagementActivity : AppCompatActivity() {
     @Composable
     private fun RoutesTab() {
         val palette = LocalUltimatePalette.current
-        Column(
-            Modifier.fillMaxSize().padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+        var pendingRouteDelete by remember { mutableStateOf<SavedRoute?>(null) }
+        val dateFmt = remember { DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT) }
+
+        LazyColumn(
+            Modifier.fillMaxSize().padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Icon(Icons.Filled.Route, null, tint = palette.secondary, modifier = Modifier.padding(top = 24.dp))
-            Text(getString(R.string.huawei_route_intro), style = MaterialTheme.typography.bodyMedium, color = palette.onSurfaceVariant)
-            Box(
-                Modifier
-                    .background(palette.primary, RoundedCornerShape(16.dp))
-                    .clickable(enabled = device?.isInitialized == true) { pickGpx.launch(arrayOf("*/*")) }
-                    .padding(horizontal = 20.dp, vertical = 12.dp),
-            ) {
+            item {
                 Text(
-                    getString(R.string.huawei_route_pick),
-                    color = palette.onPrimary,
-                    fontWeight = FontWeight.Bold,
+                    getString(R.string.huawei_route_intro),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = palette.onSurfaceVariant,
                 )
             }
-            Box(
-                Modifier
-                    .background(palette.surfaceHigh, RoundedCornerShape(16.dp))
-                    .clickable {
-                        startActivity(android.content.Intent(this@HuaweiMapManagementActivity,
-                            nodomain.freeyourgadget.gadgetbridge.activities.ultimate.route.UltimateRoutePlannerActivity::class.java))
+            // Actions: plan on the map, or send an existing GPX file.
+            item {
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+                    Box(
+                        Modifier
+                            .weight(1f)
+                            .background(palette.primary, RoundedCornerShape(16.dp))
+                            .clickable { openPlanner() }
+                            .padding(vertical = 14.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text("Planificar en el mapa", color = palette.onPrimary, fontWeight = FontWeight.Bold)
                     }
-                    .padding(horizontal = 20.dp, vertical = 12.dp),
-            ) {
-                Text("Planificar ruta en el mapa", color = palette.onSurface, fontWeight = FontWeight.Bold)
+                    Box(
+                        Modifier
+                            .weight(1f)
+                            .background(palette.surfaceHigh, RoundedCornerShape(16.dp))
+                            .clickable(enabled = device?.isInitialized == true) { pickGpx.launch(arrayOf("*/*")) }
+                            .padding(vertical = 14.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(getString(R.string.huawei_route_pick), color = palette.onSurface, fontWeight = FontWeight.Bold)
+                    }
+                }
             }
             if (device?.isInitialized != true) {
-                Text(getString(R.string.huawei_offline_maps_not_connected), color = palette.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+                item {
+                    Text(
+                        getString(R.string.huawei_offline_maps_not_connected),
+                        color = palette.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
             }
+
+            item {
+                Text(
+                    "Mis rutas",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = palette.onSurface,
+                    modifier = Modifier.padding(top = 8.dp),
+                )
+            }
+            if (routes.isEmpty()) {
+                item {
+                    Text(
+                        "Aún no has guardado rutas. Planifícala o envía un GPX y aparecerá aquí para reenviarla o borrarla.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = palette.onSurfaceVariant,
+                    )
+                }
+            } else {
+                items(routes, key = { it.file.path }) { route ->
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .background(palette.surfaceContainer, RoundedCornerShape(16.dp))
+                            .clickable { resendRoute(route) }
+                            .padding(14.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(Icons.Filled.Route, null, tint = palette.secondary, modifier = Modifier.padding(end = 12.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text(route.name, style = MaterialTheme.typography.titleMedium, color = palette.onSurface)
+                            Text(
+                                dateFmt.format(Date(route.epochMillis)),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = palette.onSurfaceVariant,
+                            )
+                        }
+                        TextButton(onClick = { resendRoute(route) }) { Text("Reenviar", color = palette.primary) }
+                        IconButton(onClick = { pendingRouteDelete = route }) {
+                            Icon(Icons.Filled.Delete, contentDescription = "Borrar", tint = palette.error)
+                        }
+                    }
+                }
+            }
+        }
+
+        pendingRouteDelete?.let { route ->
+            AlertDialog(
+                onDismissRequest = { pendingRouteDelete = null },
+                containerColor = palette.surfaceContainer,
+                title = { Text("Borrar ruta") },
+                text = { Text("Se borrará la copia local de «${route.name}». La ruta que ya esté en el reloj se quita desde el propio reloj.") },
+                confirmButton = {
+                    TextButton(onClick = { deleteRoute(route); pendingRouteDelete = null }) {
+                        Text(getString(R.string.huawei_offline_maps_delete), color = palette.error)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { pendingRouteDelete = null }) { Text(getString(android.R.string.cancel)) }
+                },
+            )
         }
     }
 }
