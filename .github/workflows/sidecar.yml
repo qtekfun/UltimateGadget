@@ -1,0 +1,81 @@
+# Builds and publishes the map-downloader companion app (sidecar) as its OWN independent release,
+# pinned to the fixed tag "maps-downloader" (a rolling "latest" for the sidecar). It runs only when
+# the sidecar actually changes (push to main under mapdownloader/**), or on manual dispatch — not
+# with every UltimateGadget app version. The sidecar release is never marked as the repo's "Latest";
+# the app release keeps that badge.
+name: Sidecar (map downloader)
+
+on:
+  push:
+    branches: [master, main]
+    paths:
+      - "mapdownloader/**"
+      - "gradle/libs.versions.toml"
+      - ".github/workflows/sidecar.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sidecar-release
+  cancel-in-progress: true
+
+jobs:
+  sidecar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      LC_ALL: en_US.UTF-8
+      JAVA_TOOL_OPTIONS: -Duser.language=en -Duser.country=US
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+
+      - name: Build the sidecar APK
+        env:
+          UG_KEYSTORE_BASE64: ${{ secrets.UG_KEYSTORE_BASE64 }}
+          UG_KEYSTORE_PASSWORD: ${{ secrets.UG_KEYSTORE_PASSWORD }}
+          UG_KEY_ALIAS: ${{ secrets.UG_KEY_ALIAS }}
+          UG_KEY_PASSWORD: ${{ secrets.UG_KEY_PASSWORD }}
+        run: |
+          if [ -n "$UG_KEYSTORE_BASE64" ]; then
+            export UG_KEYSTORE_FILE="$RUNNER_TEMP/release.jks"
+            echo "$UG_KEYSTORE_BASE64" | base64 -d > "$UG_KEYSTORE_FILE"
+            echo "SIGNED=release" >> "$GITHUB_ENV"
+            ./gradlew --no-daemon :mapdownloader:assembleRelease
+            cp mapdownloader/build/outputs/apk/release/mapdownloader-release.apk UltimateGadget-maps-downloader.apk
+          else
+            echo "SIGNED=debug" >> "$GITHUB_ENV"
+            ./gradlew --no-daemon :mapdownloader:assembleDebug
+            cp mapdownloader/build/outputs/apk/debug/mapdownloader-debug.apk UltimateGadget-maps-downloader.apk
+          fi
+          rm -f "$RUNNER_TEMP/release.jks"
+
+      - name: Publish/update the sidecar release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ver=$(grep -oE 'versionName = "[^"]+"' mapdownloader/build.gradle.kts | head -1 | sed -E 's/.*"([^"]+)"/\1/')
+          sha="${GITHUB_SHA::7}"
+          {
+            echo "App compañera que descarga los mapas offline (PMTiles) a una carpeta para luego importarlos en UltimateGadget. UltimateGadget (mainline) no tiene internet por diseño; esta app sí."
+            echo
+            echo "Versión del sidecar: ${ver} · commit ${sha}"
+            [ "$SIGNED" = "debug" ] && echo && echo "> Nota: firmada con la clave debug (no hay clave de release configurada)."
+          } > sidecar-notes.md
+          # Rolling release on a fixed tag. Recreate it so the single asset URL stays stable, and keep
+          # it OUT of the repo's "Latest" (that belongs to the app).
+          gh release delete maps-downloader --yes --cleanup-tag 2>/dev/null || true
+          gh release create maps-downloader UltimateGadget-maps-downloader.apk \
+            --title "Descargador de mapas (sidecar)" \
+            --notes-file sidecar-notes.md \
+            --latest=false
