@@ -32,9 +32,25 @@ android {
         compose = true
     }
 
+    signingConfigs {
+        // Companion downloader signed with the same UltimateGadget release key as the main app,
+        // driven by the release CI env vars (absent locally -> release is left unsigned).
+        create("release") {
+            System.getenv("UG_KEYSTORE_FILE")?.let { ksFile ->
+                storeFile = file(ksFile)
+                storePassword = System.getenv("UG_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("UG_KEY_ALIAS")
+                keyPassword = System.getenv("UG_KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
+            if (System.getenv("UG_KEYSTORE_FILE") != null) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
 }
