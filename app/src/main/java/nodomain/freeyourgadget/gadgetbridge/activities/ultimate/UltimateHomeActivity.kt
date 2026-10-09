@@ -200,10 +200,13 @@ private fun HomeDashboardSlot() {
         onToggleCard = vm::toggleCard,
         onMoveCard = vm::moveCard,
         onOpenDetail = { id ->
-            if (id == DashboardCardId.READINESS) {
-                context.startActivity(ReadinessDetailActivity.intent(context))
-            } else {
-                context.startActivity(UltimateHealthDetailActivity.intent(context, id))
+            when (id) {
+                DashboardCardId.READINESS ->
+                    context.startActivity(ReadinessDetailActivity.intent(context))
+                DashboardCardId.SLEEP_STRESS ->
+                    context.startActivity(nodomain.freeyourgadget.gadgetbridge.activities.ultimate.sleep.UltimateSleepActivity.intent(context))
+                else ->
+                    context.startActivity(UltimateHealthDetailActivity.intent(context, id))
             }
         },
         onRefresh = { vm.sync() },
