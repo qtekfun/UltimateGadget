@@ -61,7 +61,7 @@ jobs:
           else
             echo "SIGNED=debug" >> "$GITHUB_ENV"
           fi
-          ./gradlew --no-daemon assembleMainlineRelease
+          ./gradlew --no-daemon assembleMainlineRelease :mapdownloader:assembleRelease
           rm -f "$RUNNER_TEMP/release.jks"
 
       - name: Publish the GitHub Release
@@ -91,4 +91,11 @@ jobs:
             f="$out/app-mainline-${abi}-release.apk"
             [ -f "$f" ] && cp "$f" "UltimateGadget-${ver}-${abi}.apk" && assets+=("UltimateGadget-${ver}-${abi}.apk")
           done
+          # Companion map downloader (sidecar): the small app that fetches offline maps to import.
+          dl="mapdownloader/build/outputs/apk/release/mapdownloader-release.apk"
+          if [ -f "$dl" ]; then
+            cp "$dl" "UltimateGadget-maps-downloader-${ver}.apk"
+            assets+=("UltimateGadget-maps-downloader-${ver}.apk")
+            printf '\n**Descargador de mapas (sidecar):** `UltimateGadget-maps-downloader-%s.apk` — app aparte que baja los mapas offline a una carpeta para luego importarlos en UltimateGadget.\n' "$ver" >> notes.md
+          fi
           gh release create "$GITHUB_REF_NAME" "${assets[@]}" --title "UltimateGadget ${ver}" --notes-file notes.md $prerelease
