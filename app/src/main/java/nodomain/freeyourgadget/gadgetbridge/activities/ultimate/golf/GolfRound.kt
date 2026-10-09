@@ -84,6 +84,74 @@ object UltimateGolf {
 data class GolfStat(val label: String, val value: String)
 
 /**
+ * One golf hole, built from a persisted [nodomain.freeyourgadget.gadgetbridge.entities.HuaweiWorkoutSectionsSample]
+ * row. Every per-hole field is nullable because the watch only sends the tags it has; absent tags
+ * stay null and are shown as "—", never invented.
+ */
+data class GolfHole(
+    /** 1-based position in the round (the order the blocks arrived in). */
+    val number: Int,
+    val holeId: Long?,
+    val par: Int?,
+    val score: Int?,
+    val putts: Int?,
+    val penalty: Int?,
+    val fairwayHits: Int?,
+    val headSpeed: Int?,
+    val swingTempo: Int?,
+) {
+    /** Strokes relative to par (score - par), or null if either is missing. */
+    val toPar: Int? get() = if (score != null && par != null) score - par else null
+}
+
+/** The per-hole scorecard of a round, with the totals the card shows. */
+data class GolfScorecard(
+    val holes: List<GolfHole>,
+    val totalPar: Int?,
+    val totalScore: Int?,
+    val totalToPar: Int?,
+    val totalPutts: Int?,
+    val totalPenalty: Int?,
+    val fairwayHit: Int?,
+    val fairwayTracked: Int?,
+    val avgHeadSpeed: Double?,
+    val avgSwingTempo: Double?,
+) {
+    companion object {
+        /** Builds a scorecard from the per-hole rows, summing only the fields that are present. */
+        fun fromHoles(holes: List<GolfHole>): GolfScorecard? {
+            if (holes.isEmpty()) return null
+
+            fun sum(sel: (GolfHole) -> Int?): Int? {
+                val vals = holes.mapNotNull(sel)
+                return if (vals.isEmpty()) null else vals.sum()
+            }
+
+            fun avg(sel: (GolfHole) -> Int?): Double? {
+                val vals = holes.mapNotNull(sel).filter { it > 0 }
+                return if (vals.isEmpty()) null else vals.average()
+            }
+
+            val totalPar = sum { it.par }
+            val totalScore = sum { it.score }
+            val fairwayRows = holes.mapNotNull { it.fairwayHits }
+            return GolfScorecard(
+                holes = holes,
+                totalPar = totalPar,
+                totalScore = totalScore,
+                totalToPar = if (totalScore != null && totalPar != null) totalScore - totalPar else null,
+                totalPutts = sum { it.putts },
+                totalPenalty = sum { it.penalty },
+                fairwayHit = if (fairwayRows.isEmpty()) null else fairwayRows.count { it > 0 },
+                fairwayTracked = if (fairwayRows.isEmpty()) null else fairwayRows.size,
+                avgHeadSpeed = avg { it.headSpeed },
+                avgSwingTempo = avg { it.swingTempo },
+            )
+        }
+    }
+}
+
+/**
  * The honest data of one golf round, built only from the real workout summary. Anything the watch
  * does not send is left null and surfaced as "no disponible" by the UI, never invented.
  */
@@ -99,6 +167,12 @@ data class GolfRound(
      * the UI says so plainly.
      */
     val hasScorecard: Boolean,
+    /**
+     * Per-hole scorecard persisted from the workout section blocks, or null if this round has no
+     * per-hole rows stored yet (e.g. it was synced before golf section parsing existed and needs a
+     * re-fetch). Filled by the activity from the DB, not by [fromSummary].
+     */
+    val scorecard: GolfScorecard? = null,
 ) {
     companion object {
         private fun ActivitySummaryData.num(key: String): Double? =
