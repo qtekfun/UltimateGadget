@@ -20,7 +20,7 @@ enfoque privacidad-primero / 100% local del proyecto. Marca `[x]` lo hecho, `[~]
 
 
 ## Siguiente (alto valor, reaprovecha lo hecho)
-- [x] Mapas del móvil: importación de PMTiles + app compañera :mapdownloader que los descarga del catálogo de UltimateMaps-data (la app principal es offline).
+- [x] Mapas del móvil: importación de PMTiles + app compañera :mapdownloader que los descarga del catálogo de ultimate-maps-data (la app principal es offline).
 - [x] Pantallas nuevas: notificaciones, esferas, informes/objetivos, alarmas/recordatorios/relojes mundiales, sueño avanzado, gestor de música, export GPX/FIT por entreno, rendimiento (PAI/carga/VO2max/HRV), temporizadores (locales del móvil), widgets de inicio + QS tiles.
 - [x] Bugs: atrás-en-ajustes ya no cierra la app; insets del mapa; rutas con coma decimal; activación de esferas (confirm 0x05).
 - [x] Ajustes del dispositivo: piel oscura de marca + categorías (solo Huawei).

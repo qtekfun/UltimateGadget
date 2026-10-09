@@ -24,7 +24,7 @@ import java.io.File
 /**
  * Phone-side offline base maps for the MapLibre viewer: PMTiles files kept in filesDir/maps/
  * (the location the viewer reads). Pure file access, no network: the mainline build has no INTERNET
- * permission by design, so maps are IMPORTED (the user downloads a .pmtiles from the UltimateMaps-data
+ * permission by design, so maps are IMPORTED (the user downloads a .pmtiles from the ultimate-maps-data
  * releases or UltimateMaps and picks it here) rather than fetched in-app.
  */
 data class PhoneMap(val name: String, val sizeBytes: Long)

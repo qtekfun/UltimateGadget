@@ -8,7 +8,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.security.MessageDigest
 
-/** One downloadable base map (PMTiles render asset of a region in the UltimateMaps-data catalog). */
+/** One downloadable base map (PMTiles render asset of a region in the ultimate-maps-data catalog). */
 data class MapRegion(
     val id: String,
     val name: String,
@@ -19,9 +19,9 @@ data class MapRegion(
     val file: String,
 )
 
-/** Default catalog of the UltimateMaps-data releases. The app only ever talks to these hosts. */
+/** Default catalog of the ultimate-maps-data releases. The app only ever talks to these hosts. */
 const val CATALOG_URL =
-    "https://github.com/qtekfun/UltimateMaps-data/releases/latest/download/catalog.json"
+    "https://github.com/qtekfun/ultimate-maps-data/releases/latest/download/catalog.json"
 
 object Downloader {
 
