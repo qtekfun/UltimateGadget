@@ -43,6 +43,8 @@ import nodomain.freeyourgadget.gadgetbridge.service.devices.huawei.requests.GetW
 import nodomain.freeyourgadget.gadgetbridge.service.devices.huawei.requests.GetWatchfacesNames;
 import nodomain.freeyourgadget.gadgetbridge.service.devices.huawei.requests.Request;
 import nodomain.freeyourgadget.gadgetbridge.service.devices.huawei.requests.SendWatchfaceOperation;
+import nodomain.freeyourgadget.gadgetbridge.service.devices.huawei.requests.SetTimeRequest;
+import nodomain.freeyourgadget.gadgetbridge.service.devices.huawei.requests.SetTimeZoneIdRequest;
 
 public class HuaweiWatchfaceManager {
     static Logger LOG = LoggerFactory.getLogger(HuaweiWatchfaceManager.class);
@@ -268,9 +270,27 @@ public class HuaweiWatchfaceManager {
     }
 
     public void setWatchface(UUID uuid) {
+        // Capture the provider in a final local: inside a Request.RequestCallback the bare name
+        // `support` would bind to RequestCallback's own inherited (null) field, not this manager's,
+        // which caused an NPE in a previous attempt. Use `sp` instead.
+        final HuaweiSupportProvider sp = this.support;
+
         Request.RequestCallback finalizeReq = new Request.RequestCallback() {
             @Override
             public void call() {
+                // Switching the watchface from the phone can leave the new face rendered without the
+                // clock until it is re-selected on the watch. Re-pushing the time (and timezone)
+                // re-initialises it so the time shows up without touching the watch.
+                try {
+                    new SetTimeRequest(sp, true).doPerform();
+                } catch (IOException e) {
+                    LOG.error("Could not re-send time after watchface activation", e);
+                }
+                try {
+                    new SetTimeZoneIdRequest(sp).doPerform();
+                } catch (IOException e) {
+                    LOG.error("Could not re-send timezone after watchface activation", e);
+                }
                 requestWatchfaceList();
             }
 

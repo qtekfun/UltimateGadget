@@ -50,6 +50,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import nodomain.freeyourgadget.gadgetbridge.GBApplication
+import nodomain.freeyourgadget.gadgetbridge.util.GBPrefs
 import nodomain.freeyourgadget.gadgetbridge.util.PermissionsUtils
 import nodomain.freeyourgadget.gadgetbridge.activities.welcome.WelcomeActivity
 import nodomain.freeyourgadget.gadgetbridge.activities.PermissionsActivity
@@ -163,7 +164,42 @@ class UltimateHomeActivity : AppCompatActivity() {
             )
         }
         GBApplication.deviceService().requestDeviceInfo()
+        autoReconnectKnownDevices()
         return false
+    }
+
+    /**
+     * On launch, reconnect the last connected watch (and any other known device whose
+     * auto-reconnect preference is enabled) if it isn't already connected or connecting.
+     *
+     * This runs once per activity creation, from [runStartupGate] (called in [onCreate]),
+     * deliberately not from onResume, so returning to the app from the background does not
+     * trigger a reconnect loop.
+     *
+     * The per-device [GBPrefs.DEVICE_AUTO_RECONNECT] preference is honoured: a device the
+     * user disconnected manually and set to not auto-reconnect is skipped. Only devices in
+     * [GBDevice.State.NOT_CONNECTED] are considered, so a device already connected, connecting
+     * or in any intermediate state is left alone (this mirrors Gadgetbridge's own startup scan).
+     */
+    private fun autoReconnectKnownDevices() {
+        val app = application as GBApplication
+        val prefs = GBApplication.getPrefs()
+
+        val candidates = app.deviceManager.devices.filter { device ->
+            device.state == GBDevice.State.NOT_CONNECTED &&
+                device.deviceCoordinator.isConnectable &&
+                prefs.getAutoReconnect(device)
+        }
+        if (candidates.isEmpty()) return
+
+        // Prioritise the most recently connected device, so the "last watch" comes up first.
+        val prioritized = candidates.sortedByDescending { device ->
+            GBApplication.getDeviceSpecificSharedPrefs(device.address)
+                .getLong(GBPrefs.LAST_CONNECTED_TS, 0L)
+        }
+        for (device in prioritized) {
+            GBApplication.deviceService(device).connect()
+        }
     }
 
     private fun openDevice(d: DeviceCardUi) {
