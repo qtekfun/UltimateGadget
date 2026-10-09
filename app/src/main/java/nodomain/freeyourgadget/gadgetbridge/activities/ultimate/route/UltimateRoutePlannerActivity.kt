@@ -252,8 +252,10 @@ class UltimateRoutePlannerActivity : AppCompatActivity() {
             sb.append("<gpx version=\"1.1\" creator=\"UltimateGadget\" xmlns=\"http://www.topografix.com/GPX/1/1\">\n")
             sb.append(" <trk>\n  <name>").append(name.replace("<", "").replace("&", "")).append("</name>\n  <trkseg>\n")
             for (p in points) {
-                sb.append("   <trkpt lat=\"").append("%.6f".format(p.lat))
-                    .append("\" lon=\"").append("%.6f".format(p.lon)).append("\"></trkpt>\n")
+                // GPX coordinates MUST use '.' as decimal separator; force Locale.US (es_ES would emit commas,
+                // which the parser reads as 0.0 → a route of (0,0) points that never lands on the watch).
+                sb.append("   <trkpt lat=\"").append(String.format(java.util.Locale.US, "%.6f", p.lat))
+                    .append("\" lon=\"").append(String.format(java.util.Locale.US, "%.6f", p.lon)).append("\"></trkpt>\n")
             }
             sb.append("  </trkseg>\n </trk>\n</gpx>\n")
             return sb.toString()
