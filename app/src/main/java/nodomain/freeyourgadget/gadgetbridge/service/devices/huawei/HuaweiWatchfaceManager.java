@@ -47,6 +47,10 @@ import nodomain.freeyourgadget.gadgetbridge.service.devices.huawei.requests.Send
 public class HuaweiWatchfaceManager {
     static Logger LOG = LoggerFactory.getLogger(HuaweiWatchfaceManager.class);
 
+    /** Sentinel placed in GBDeviceApp.creator to flag the currently-active watchface (the model has
+     *  no dedicated "current" field). The UltimateGadget watchface screen reads this. */
+    public static final String CURRENT_MARKER = "__ultimate_current__";
+
     public static class Resolution {
 
         Map<String, String> map = new HashMap<>();
@@ -199,12 +203,20 @@ public class HuaweiWatchfaceManager {
 
         for (final Watchface.InstalledWatchfaceInfo watchfaceInfo : installedWatchfaceInfoList) {
             final UUID uuid = toWatchfaceUUID(watchfaceInfo.fileName);
+            // Propagate the watch-reported flags to the app list the UI consumes:
+            //  - factory presets map to WATCHFACE_SYSTEM (not user-deletable),
+            //  - the currently-active watchface is flagged via the "creator" field (CURRENT_MARKER)
+            //    since GBDeviceApp has no dedicated "current" flag.
+            final GBDeviceApp.Type type = watchfaceInfo.isFactory()
+                    ? GBDeviceApp.Type.WATCHFACE_SYSTEM
+                    : GBDeviceApp.Type.WATCHFACE;
+            final String creator = watchfaceInfo.isCurrent() ? CURRENT_MARKER : "";
             GBDeviceApp gbDeviceApp = new GBDeviceApp(
                     uuid,
                     watchfacesNames.get(watchfaceInfo.fileName),
+                    creator,
                     "",
-                    "",
-                    GBDeviceApp.Type.WATCHFACE
+                    type
             );
             gbDeviceApps.add(gbDeviceApp);
         }

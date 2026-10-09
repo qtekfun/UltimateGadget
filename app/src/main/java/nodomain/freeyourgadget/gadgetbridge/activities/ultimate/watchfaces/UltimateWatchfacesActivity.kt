@@ -79,6 +79,7 @@ import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.theme.SectionLab
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.theme.UltimateTheme
 import nodomain.freeyourgadget.gadgetbridge.impl.GBDevice
 import nodomain.freeyourgadget.gadgetbridge.impl.GBDeviceApp
+import nodomain.freeyourgadget.gadgetbridge.service.devices.huawei.HuaweiWatchfaceManager
 import java.util.UUID
 
 /**
@@ -138,12 +139,19 @@ private fun WatchfacesScreen(device: GBDevice, onBack: () -> Unit) {
                     requestList()
                     return
                 }
-                watchfaces = parcelables
+                val list = parcelables
                     .filterIsInstance<GBDeviceApp>()
                     .filter {
                         it.type == GBDeviceApp.Type.WATCHFACE ||
                             it.type == GBDeviceApp.Type.WATCHFACE_SYSTEM
                     }
+                watchfaces = list
+                // The watch reports the active watchface via the creator sentinel (set in
+                // HuaweiWatchfaceManager.handleWatchfaceList). Trust it when present; otherwise keep
+                // whatever we optimistically set on activation.
+                list.firstOrNull { it.creator == HuaweiWatchfaceManager.CURRENT_MARKER }?.let {
+                    activeUuid = it.uuid
+                }
             }
         }
         val lbm = LocalBroadcastManager.getInstance(context)
@@ -315,7 +323,7 @@ private fun WatchfaceCard(
                     overflow = TextOverflow.Ellipsis,
                 )
                 val subtitle = buildString {
-                    if (app.creator.isNotBlank()) append(app.creator)
+                    if (app.creator.isNotBlank() && app.creator != HuaweiWatchfaceManager.CURRENT_MARKER) append(app.creator)
                     if (app.version.isNotBlank()) {
                         if (isNotEmpty()) append(" · ")
                         append(app.version)
