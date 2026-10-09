@@ -48,6 +48,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -84,6 +85,7 @@ fun UltimateHomeScreen(
     onReports: () -> Unit = {},
     onPerformance: () -> Unit = {},
     onSettings: () -> Unit = {},
+    onQuit: () -> Unit = {},
     loadHeroStats: suspend (String) -> HeroStats? = { null },
 ) {
     val palette = LocalUltimatePalette.current
@@ -110,6 +112,7 @@ fun UltimateHomeScreen(
                         onReports = onReports,
                         onPerformance = onPerformance,
                         onSettings = onSettings,
+                        onQuit = onQuit,
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -171,6 +174,7 @@ fun UltimateOverflowMenu(
     onReports: () -> Unit,
     onPerformance: () -> Unit,
     onSettings: () -> Unit,
+    onQuit: () -> Unit = {},
 ) {
     Box {
         var menuOpen by remember { mutableStateOf(false) }
@@ -183,6 +187,8 @@ fun UltimateOverflowMenu(
             DropdownMenuItem(text = { Text("Informes y objetivos") }, onClick = { menuOpen = false; onReports() })
             DropdownMenuItem(text = { Text("Rendimiento") }, onClick = { menuOpen = false; onPerformance() })
             DropdownMenuItem(text = { Text("Ajustes") }, onClick = { menuOpen = false; onSettings() })
+            HorizontalDivider()
+            DropdownMenuItem(text = { Text("Salir (detener la app)") }, onClick = { menuOpen = false; onQuit() })
         }
     }
 }
