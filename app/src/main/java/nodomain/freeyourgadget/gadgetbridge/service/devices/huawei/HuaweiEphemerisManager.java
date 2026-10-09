@@ -408,6 +408,8 @@ public class HuaweiEphemerisManager {
     }
 
     void handleFileConsultIncomingRequest(int responseCode, String protocolVersion, byte bitmapEnable, short transferSize, int maxDataSize, short timeOut, byte fileType) {
+        LOG.info("Ephemeris file consult: responseCode {} protocolVersion {} bitmapEnable {} transferSize {} maxDataSize {} timeOut {} fileType {}",
+                responseCode, protocolVersion, bitmapEnable, transferSize, maxDataSize, timeOut, fileType);
         if (currentRequest == null) {
             return;
         }
