@@ -329,6 +329,11 @@
         <activity android:name=".activities.ultimate.dataio.UltimateDataIOActivity" android:exported="false" android:theme="@style/GadgetbridgeThemeDark.NoActionBar" android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
         <activity android:name=".activities.ultimate.notifications.UltimateNotificationsActivity" android:exported="false" android:theme="@style/GadgetbridgeThemeDark.NoActionBar" android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
         <activity android:name=".activities.ultimate.watchfaces.UltimateWatchfacesActivity" android:exported="false" android:theme="@style/GadgetbridgeThemeDark.NoActionBar" android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
+        <activity android:name=".activities.ultimate.reports.UltimateReportsActivity" android:exported="false" android:theme="@style/GadgetbridgeThemeDark.NoActionBar" android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
+        <activity android:name=".activities.ultimate.reports.UltimateGoalsActivity" android:exported="false" android:theme="@style/GadgetbridgeThemeDark.NoActionBar" android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
+        <activity android:name=".activities.ultimate.clock.UltimateAlarmsActivity" android:exported="false" android:theme="@style/GadgetbridgeThemeDark.NoActionBar" android:parentActivityName=".activities.ultimate.UltimateDeviceActivity" />
+        <activity android:name=".activities.ultimate.clock.UltimateRemindersActivity" android:exported="false" android:theme="@style/GadgetbridgeThemeDark.NoActionBar" android:parentActivityName=".activities.ultimate.UltimateDeviceActivity" />
+        <activity android:name=".activities.ultimate.clock.UltimateWorldClocksActivity" android:exported="false" android:theme="@style/GadgetbridgeThemeDark.NoActionBar" android:parentActivityName=".activities.ultimate.UltimateDeviceActivity" />
         <activity android:name=".activities.ultimate.UltimateAddDeviceActivity" android:exported="false" android:theme="@style/GadgetbridgeThemeDark.NoActionBar" android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
         <activity
             android:name=".activities.heartratezones.HeartRateSettingsActivity"

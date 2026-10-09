@@ -104,15 +104,29 @@ class UltimateDeviceActivity : AppCompatActivity() {
 
     private fun buildOptions(device: GBDevice): List<DeviceOptionUi> {
         val options = mutableListOf<DeviceOptionUi>()
+        val connecting = !device.isConnected && !device.isInitialized && device.state != GBDevice.State.NOT_CONNECTED
         if (device.isConnected || device.isInitialized) {
             options += DeviceOptionUi("disconnect", "Desconectar", "Cortar la conexión")
             options += DeviceOptionUi("sync", "Sincronizar actividad", "Descargar datos nuevos")
+        } else if (connecting) {
+            options += DeviceOptionUi("disconnect", "Cancelar conexión", "Detener el intento de conexión")
         } else {
             options += DeviceOptionUi("connect", "Conectar", "Conectar con el dispositivo")
         }
         options += DeviceOptionUi("settings", "Ajustes del dispositivo", "Notificaciones, alarmas, pantallas…")
 
         val coordinator = runCatching { device.deviceCoordinator }.getOrNull()
+        if (coordinator != null) {
+            if (runCatching { coordinator.getAlarmSlotCount(device) }.getOrDefault(0) > 0) {
+                options += DeviceOptionUi("alarms", "Alarmas", "Despertadores del reloj")
+            }
+            if (runCatching { coordinator.getReminderSlotCount(device) }.getOrDefault(0) > 0) {
+                options += DeviceOptionUi("reminders", "Recordatorios", "Avisos con fecha y hora")
+            }
+            if (runCatching { coordinator.getWorldClocksSlotCount() }.getOrDefault(0) > 0) {
+                options += DeviceOptionUi("worldclocks", "Relojes mundiales", "Otras zonas horarias")
+            }
+        }
         if (coordinator is HuaweiCoordinator) {
             options += DeviceOptionUi("maps", "Mapas offline", "Instalar y borrar mapas del reloj")
             options += DeviceOptionUi("routes", "Rutas", "Enviar una ruta GPX")
@@ -153,6 +167,15 @@ class UltimateDeviceActivity : AppCompatActivity() {
             )
             "watchfaces" -> startActivity(
                 nodomain.freeyourgadget.gadgetbridge.activities.ultimate.watchfaces.UltimateWatchfacesActivity.intent(this, device),
+            )
+            "alarms" -> startActivity(
+                nodomain.freeyourgadget.gadgetbridge.activities.ultimate.clock.UltimateAlarmsActivity.intent(this, device),
+            )
+            "reminders" -> startActivity(
+                nodomain.freeyourgadget.gadgetbridge.activities.ultimate.clock.UltimateRemindersActivity.intent(this, device),
+            )
+            "worldclocks" -> startActivity(
+                nodomain.freeyourgadget.gadgetbridge.activities.ultimate.clock.UltimateWorldClocksActivity.intent(this, device),
             )
             "agps" -> {
                 agpsDevice = device

@@ -134,6 +134,7 @@ class UltimateHomeActivity : AppCompatActivity() {
                                 onExportImport = { startActivity(Intent(this@UltimateHomeActivity, nodomain.freeyourgadget.gadgetbridge.activities.ultimate.dataio.UltimateDataIOActivity::class.java)) },
                                 onPhoneMaps = { startActivity(Intent(this@UltimateHomeActivity, nodomain.freeyourgadget.gadgetbridge.activities.ultimate.phonemaps.PhoneMapsActivity::class.java)) },
                                 onNotifications = { startActivity(nodomain.freeyourgadget.gadgetbridge.activities.ultimate.notifications.UltimateNotificationsActivity.intent(this@UltimateHomeActivity)) },
+                                onReports = { startActivity(nodomain.freeyourgadget.gadgetbridge.activities.ultimate.reports.UltimateReportsActivity.intent(this@UltimateHomeActivity)) },
                                 onClassicMode = { startActivity(Intent(this@UltimateHomeActivity, ControlCenterv2::class.java)) },
                             )
                         }
