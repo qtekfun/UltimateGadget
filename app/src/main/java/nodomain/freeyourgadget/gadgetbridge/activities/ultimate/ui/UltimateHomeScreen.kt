@@ -16,6 +16,9 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 package nodomain.freeyourgadget.gadgetbridge.activities.ultimate.ui
 
+import android.graphics.drawable.Drawable
+import androidx.appcompat.content.res.AppCompatResources
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -56,11 +59,18 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -81,6 +91,7 @@ fun UltimateHomeScreen(
     onReports: () -> Unit = {},
     onPerformance: () -> Unit = {},
     onSettings: () -> Unit = {},
+    loadHeroStats: suspend (String) -> HeroStats? = { null },
 ) {
     val palette = LocalUltimatePalette.current
     val connected = devices.firstOrNull { it.connected }
@@ -140,7 +151,12 @@ fun UltimateHomeScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             if (connected != null) {
-                item { HeroCard(connected, onClick = { onOpenDevice(connected) }) }
+                item {
+                    val stats by produceState<HeroStats?>(null, connected.address, connected.busy) {
+                        value = loadHeroStats(connected.address)
+                    }
+                    HeroCard(connected, stats, onClick = { onOpenDevice(connected) })
+                }
             }
             item { SectionHeader("Tus dispositivos") }
             items(devices, key = { it.address }) { d ->
@@ -173,52 +189,116 @@ fun accentColors(seed: Int): Pair<Color, Color> {
 }
 
 @Composable
-fun HeroCard(d: DeviceCardUi, onClick: () -> Unit) {
+fun HeroCard(d: DeviceCardUi, stats: HeroStats?, onClick: () -> Unit) {
     val palette = LocalUltimatePalette.current
     val (c1, c2) = accentColors(d.accentSeed)
+    // Hero text sits on a self-contained dark gradient, so white / translucent-white reads well
+    // regardless of the (future) light/dark app theme.
+    val onHero = Color.White
+    val onHeroMuted = Color.White.copy(alpha = 0.72f)
     Box(
         Modifier
             .fillMaxWidth()
-            .height(190.dp)
             .clip(RoundedCornerShape(22.dp))
             .background(Brush.linearGradient(listOf(c1, c2)))
             .clickable(onClick = onClick),
     ) {
         Box(
             Modifier
-                .fillMaxSize()
+                .matchParentSize()
                 .background(Brush.verticalGradient(listOf(Color.Transparent, palette.background.copy(alpha = 0.92f)))),
         )
         Column(
             Modifier
-                .align(Alignment.BottomStart)
+                .fillMaxWidth()
                 .padding(18.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            Text(
-                (if (d.busy) "Sincronizando" else "Conectado").uppercase(),
-                style = MaterialTheme.typography.labelSmall,
-                color = palette.secondary,
-            )
-            Text(
-                d.name,
-                style = MaterialTheme.typography.headlineSmall,
-                color = Color.White,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                if (d.batteryLevel in 0..100) BatteryPill(d.batteryLevel)
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                    (if (d.busy) "Sincronizando" else "Conectado").uppercase(),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = palette.secondary,
+                )
+                Text(
+                    d.name,
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = onHero,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
                 Text(
                     d.model ?: d.typeName,
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xFFD4D8E4),
+                    color = onHeroMuted,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
             }
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.Bottom,
+            ) {
+                HeroMetric(
+                    value = stats?.steps?.let { formatThousands(it) } ?: "--",
+                    label = stats?.stepsGoal?.let { "pasos · " + formatThousands(it) } ?: "pasos",
+                    accent = onHero,
+                    muted = onHeroMuted,
+                )
+                HeroMetric(
+                    value = stats?.heartRate?.toString() ?: "--",
+                    label = "ppm",
+                    accent = onHero,
+                    muted = onHeroMuted,
+                )
+                HeroMetric(
+                    value = if (d.batteryLevel in 0..100) "${d.batteryLevel}%" else "--",
+                    label = "batería",
+                    accent = onHero,
+                    muted = onHeroMuted,
+                )
+            }
         }
     }
+}
+
+/** One metric on the hero card: a large value over a small caption. */
+@Composable
+private fun HeroMetric(value: String, label: String, accent: Color, muted: Color) {
+    Column(
+        Modifier
+            .clip(RoundedCornerShape(14.dp))
+            .background(Color.White.copy(alpha = 0.10f))
+            .padding(horizontal = 14.dp, vertical = 10.dp),
+        verticalArrangement = Arrangement.spacedBy(2.dp),
+    ) {
+        Text(
+            value,
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = accent,
+            maxLines = 1,
+        )
+        Text(
+            label,
+            style = MaterialTheme.typography.labelSmall,
+            color = muted,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
+}
+
+/** 12345 -> "12.345" (thousands separator) without locale-sensitive currency formatting. */
+private fun formatThousands(n: Int): String {
+    val s = kotlin.math.abs(n).toString()
+    val sb = StringBuilder()
+    for ((i, ch) in s.withIndex()) {
+        if (i > 0 && (s.length - i) % 3 == 0) sb.append('.')
+        sb.append(ch)
+    }
+    return (if (n < 0) "-" else "") + sb
 }
 
 @Composable
@@ -259,17 +339,47 @@ fun DeviceCard(d: DeviceCardUi, onClick: () -> Unit) {
     }
 }
 
+/**
+ * Device badge icon. The Gadgetbridge device drawables (e.g. [R.drawable.ic_device_default]) are
+ * multi-colour vectors whose fills use `?attr/deviceIcon*` theme colours. Compose's
+ * `painterResource` does not reliably resolve those theme attributes (fills come back transparent,
+ * and `Icon`'s SrcIn tint then preserves that transparency), which is why the icons disappeared.
+ * We instead inflate the drawable through the Android resource system against the themed Activity
+ * context (so the theme colours resolve) and draw it full-colour, falling back to the generic
+ * device icon, then to a Material glyph.
+ */
 @Composable
 fun DeviceIcon(iconRes: Int, tint: Color) {
-    if (iconRes != 0) {
-        Icon(
-            painter = androidx.compose.ui.res.painterResource(id = iconRes),
+    val context = LocalContext.current
+    val res = if (iconRes != 0) iconRes else R.drawable.ic_device_default
+    val drawable = remember(res) {
+        runCatching { AppCompatResources.getDrawable(context, res) }.getOrNull()
+    }
+    if (drawable != null) {
+        Image(
+            painter = remember(drawable) { DrawablePainter(drawable) },
             contentDescription = null,
-            tint = tint,
-            modifier = Modifier.size(24.dp),
+            modifier = Modifier.size(30.dp),
         )
     } else {
         Icon(Icons.Filled.Watch, contentDescription = null, tint = tint, modifier = Modifier.size(24.dp))
+    }
+}
+
+/** Minimal [Painter] that renders an Android [Drawable] (keeps full colour; no extra dependency). */
+private class DrawablePainter(private val drawable: Drawable) : Painter() {
+    override val intrinsicSize: Size =
+        if (drawable.intrinsicWidth > 0 && drawable.intrinsicHeight > 0) {
+            Size(drawable.intrinsicWidth.toFloat(), drawable.intrinsicHeight.toFloat())
+        } else {
+            Size.Unspecified
+        }
+
+    override fun DrawScope.onDraw() {
+        drawIntoCanvas { canvas ->
+            drawable.setBounds(0, 0, size.width.toInt(), size.height.toInt())
+            drawable.draw(canvas.nativeCanvas)
+        }
     }
 }
 

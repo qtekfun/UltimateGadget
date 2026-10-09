@@ -33,6 +33,17 @@ data class DeviceCardUi(
     val connecting: Boolean = false, // mid-connection (connecting/initializing), not yet connected
 )
 
+/**
+ * Live health snapshot for the connected device, shown on the home "hero" card. All fields are
+ * loaded off the main thread (DB reads) and are null when the device has no such data yet.
+ */
+data class HeroStats(
+    val steps: Int?,          // today's step count
+    val stepsGoal: Int?,      // user step goal (for progress context)
+    val heartRate: Int?,      // most recent heart-rate reading, bpm
+    val distanceKm: Double?,  // today's distance in km
+)
+
 /** One action tile in the device detail screen. [section] groups rows under a header (commercial-app
  * style: Conexión / Reloj / Mapas y navegación / Dispositivo). Sections render in first-seen order. */
 data class DeviceOptionUi(

@@ -62,8 +62,14 @@ import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.dashboard.Dashbo
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.theme.LocalUltimatePalette
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.theme.UltimateTheme
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.ui.DeviceCardUi
+import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.ui.HeroStats
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.ui.UltimateHomeScreen
 import nodomain.freeyourgadget.gadgetbridge.impl.GBDevice
+import nodomain.freeyourgadget.gadgetbridge.model.ActivityUser
+import nodomain.freeyourgadget.gadgetbridge.model.DailyTotals
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.util.Calendar
 
 /**
  * Host for the new UltimateGadget UI. Bottom nav with two sections:
@@ -137,6 +143,7 @@ class UltimateHomeActivity : AppCompatActivity() {
                                 onReports = { startActivity(nodomain.freeyourgadget.gadgetbridge.activities.ultimate.reports.UltimateReportsActivity.intent(this@UltimateHomeActivity)) },
                                 onPerformance = { startActivity(nodomain.freeyourgadget.gadgetbridge.activities.ultimate.performance.UltimatePerformanceActivity.intent(this@UltimateHomeActivity)) },
                                 onSettings = { startActivity(nodomain.freeyourgadget.gadgetbridge.activities.ultimate.settings.UltimateSettingsActivity.intent(this@UltimateHomeActivity)) },
+                                loadHeroStats = { address -> loadHeroStats(this@UltimateHomeActivity, address) },
                             )
                         }
                     }
@@ -214,6 +221,51 @@ class UltimateHomeActivity : AppCompatActivity() {
             val app = context.applicationContext as GBApplication
             return app.deviceManager.devices.map { it.toCardUi(context) }
         }
+
+        /**
+         * Loads the live health snapshot shown on the home hero card for [address]. Runs on the IO
+         * dispatcher: it reads today's step totals and the most recent heart-rate sample straight
+         * from Gadgetbridge's own DB, using the same helpers as the dashboard
+         * ([DailyTotals] and the coordinator sample providers). Any unavailable metric is null.
+         */
+        suspend fun loadHeroStats(context: Context, address: String): HeroStats? =
+            withContext(Dispatchers.IO) {
+                val app = context.applicationContext as GBApplication
+                val device = app.deviceManager.devices.firstOrNull { it.address == address }
+                    ?: return@withContext null
+
+                val totals = runCatching {
+                    DailyTotals.getDailyTotalsForDevice(device, Calendar.getInstance())
+                }.getOrNull()
+                val steps = totals?.steps?.toInt()?.takeIf { it > 0 }
+                val distanceKm = totals?.distance?.takeIf { it > 0 }?.let { it / 1000.0 }
+                val goal = runCatching { ActivityUser().stepsGoal }.getOrNull()?.takeIf { it > 0 }
+
+                val heartRate = runCatching {
+                    GBApplication.acquireDB().use { db ->
+                        val session = db.daoSession
+                        val coordinator = device.deviceCoordinator
+                        val now = System.currentTimeMillis()
+                        val from = now - 6L * 60 * 60 * 1000
+                        val activity = coordinator.getSampleProvider(device, session)
+                        val recent = activity
+                            ?.getAllActivitySamples((from / 1000).toInt(), (now / 1000).toInt())
+                            .orEmpty()
+                            .map { it.heartRate }
+                            .filter { it in 1..250 }
+                        recent.lastOrNull()
+                            ?: coordinator.getHeartRateRestingSampleProvider(device, session)
+                                ?.latestSample?.heartRate?.takeIf { it in 1..250 }
+                    }
+                }.getOrNull()
+
+                HeroStats(
+                    steps = steps,
+                    stepsGoal = goal,
+                    heartRate = heartRate,
+                    distanceKm = distanceKm,
+                )
+            }
     }
 }
 
