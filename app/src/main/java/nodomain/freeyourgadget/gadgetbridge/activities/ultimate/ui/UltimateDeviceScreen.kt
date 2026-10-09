@@ -117,8 +117,12 @@ private fun DeviceHeader(d: DeviceCardUi) {
         ) {
             Text(
                 d.stateLabel.uppercase(),
-                style = MaterialTheme.typography.labelSmall,
-                color = if (d.connected) palette.secondary else Color(0xFFD4D8E4),
+                style = MaterialTheme.typography.labelMedium,
+                color = when {
+                    d.connected -> palette.secondary
+                    d.connecting -> palette.tertiary
+                    else -> Color(0xFFD4D8E4)
+                },
             )
             Text(
                 d.name,

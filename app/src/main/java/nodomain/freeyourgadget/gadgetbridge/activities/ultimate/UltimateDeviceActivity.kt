@@ -26,7 +26,7 @@ import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
@@ -55,12 +55,16 @@ class UltimateDeviceActivity : AppCompatActivity() {
 
         setContent {
             UltimateTheme {
-                var device by remember { mutableStateOf(resolve()) }
+                // The GBDevice instance mutates in place, so reassigning the same reference does
+                // not trigger recomposition. Bump a counter on each ACTION_DEVICE_CHANGED and
+                // recompute the UI model from the live device, so connecting/connected states
+                // show as they happen.
+                var refresh by remember { mutableIntStateOf(0) }
 
                 DisposableEffect(Unit) {
                     val receiver = object : BroadcastReceiver() {
                         override fun onReceive(context: Context, intent: Intent) {
-                            resolve()?.let { device = it }
+                            refresh++
                         }
                     }
                     val lbm = LocalBroadcastManager.getInstance(this@UltimateDeviceActivity)
@@ -68,10 +72,10 @@ class UltimateDeviceActivity : AppCompatActivity() {
                     onDispose { lbm.unregisterReceiver(receiver) }
                 }
 
-                val d = device ?: extra
+                val d = remember(refresh) { resolve() ?: extra }
                 UltimateDeviceScreen(
-                    device = d.toCardUi(this),
-                    options = buildOptions(d),
+                    device = remember(refresh) { d.toCardUi(this) },
+                    options = remember(refresh) { buildOptions(d) },
                     onBack = { finish() },
                     onOption = { onOption(it, d) },
                 )

@@ -41,6 +41,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Watch
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -229,10 +230,8 @@ fun DeviceCard(d: DeviceCardUi, onClick: () -> Unit) {
                 overflow = TextOverflow.Ellipsis,
             )
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                StatusChip(d.stateLabel, d.connected)
-                if (d.batteryLevel in 0..100) {
-                    Text("· ${d.batteryLevel}%", style = MaterialTheme.typography.bodySmall, color = palette.onSurfaceVariant)
-                }
+                StatusChip(d.stateLabel, d.connected, d.connecting)
+                if (d.batteryLevel in 0..100) BatteryPill(d.batteryLevel)
             }
         }
     }
@@ -253,33 +252,60 @@ fun DeviceIcon(iconRes: Int, tint: Color) {
 }
 
 @Composable
-fun StatusChip(label: String, connected: Boolean) {
+fun StatusChip(label: String, connected: Boolean, connecting: Boolean = false) {
     val palette = LocalUltimatePalette.current
-    val bg = if (connected) palette.secondaryContainer else palette.surfaceHigh
-    val fg = if (connected) palette.onSecondaryContainer else palette.onSurfaceVariant
-    Box(
+    val bg = when {
+        connected -> palette.secondaryContainer
+        connecting -> palette.tertiary.copy(alpha = 0.20f)
+        else -> palette.surfaceHigh
+    }
+    val fg = when {
+        connected -> palette.onSecondaryContainer
+        connecting -> palette.tertiary
+        else -> palette.onSurfaceVariant
+    }
+    Row(
         Modifier
             .clip(RoundedCornerShape(999.dp))
             .background(bg)
-            .padding(horizontal = 9.dp, vertical = 3.dp),
+            .padding(horizontal = 10.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        Text(label, style = MaterialTheme.typography.labelSmall, color = fg)
+        if (connecting) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(11.dp),
+                strokeWidth = 2.dp,
+                color = fg,
+            )
+        }
+        Text(label, style = MaterialTheme.typography.labelMedium, color = fg)
     }
 }
 
 @Composable
 fun BatteryPill(level: Int) {
     val palette = LocalUltimatePalette.current
+    val tint = when {
+        level <= 15 -> palette.error
+        level <= 35 -> palette.tertiary
+        else -> palette.secondary
+    }
     Row(
         Modifier
             .clip(RoundedCornerShape(999.dp))
-            .background(Color(0x33000000))
-            .padding(horizontal = 8.dp, vertical = 3.dp),
+            .background(palette.surfaceHigh)
+            .padding(horizontal = 10.dp, vertical = 5.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(5.dp),
     ) {
-        Icon(Icons.Filled.BatteryFull, contentDescription = null, tint = palette.secondary, modifier = Modifier.size(14.dp))
-        Text("$level%", style = MaterialTheme.typography.labelSmall, color = Color.White)
+        Icon(Icons.Filled.BatteryFull, contentDescription = null, tint = tint, modifier = Modifier.size(18.dp))
+        Text(
+            "$level%",
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.SemiBold,
+            color = palette.onSurface,
+        )
     }
 }
 
