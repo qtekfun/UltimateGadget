@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- UltimateGadget: Android 12+ system SplashScreen. On API 31+ the platform draws its own
+         splash from these attributes (the windowBackground drawable only shows briefly afterwards),
+         so they must be set here to keep the brand dark look and the app icon, without any orange. -->
+    <style name="SplashTheme" parent="GadgetbridgeTheme.NoActionBar">
+        <item name="android:statusBarColor">@color/ultimate_splash_background</item>
+        <item name="android:navigationBarColor">@color/ultimate_splash_background</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+        <item name="android:windowBackground">@drawable/splash</item>
+
+        <!-- System splash screen (API 31+) -->
+        <item name="android:windowSplashScreenBackground">@color/ultimate_splash_background</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">@color/ultimate_splash_icon_background</item>
+    </style>
+
+</resources>
