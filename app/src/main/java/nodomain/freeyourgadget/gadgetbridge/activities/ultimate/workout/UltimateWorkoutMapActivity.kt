@@ -20,15 +20,20 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -43,6 +48,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -70,6 +76,9 @@ class UltimateWorkoutMapActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Edge-to-edge so the map fills the screen AND the system-bar insets reach Compose; the
+        // overlaid controls then pad themselves away from the status/navigation bars.
+        enableEdgeToEdge()
         val summaryId = intent.getLongExtra(EXTRA_SUMMARY_ID, -1L)
         val device = intent.getParcelableExtra<GBDevice>(GBDevice.EXTRA_DEVICE)
         val summary: BaseActivitySummary? = runCatching {
@@ -94,6 +103,9 @@ class UltimateWorkoutMapActivity : AppCompatActivity() {
                     val e = engine; val p = points
                     if (e != null && p != null && p.isNotEmpty()) { e.drawTrack(p); e.fitTo(p) }
                 }
+                // Lift the native MapLibre logo/attribution above the gesture/navigation bar.
+                val navBottomPx = WindowInsets.navigationBars.getBottom(LocalDensity.current)
+                LaunchedEffect(engine, navBottomPx) { engine?.setBottomChromeInset(navBottomPx) }
 
                 Box(Modifier.fillMaxSize().background(palette.background)) {
                     UltimateMapView(
@@ -103,7 +115,10 @@ class UltimateWorkoutMapActivity : AppCompatActivity() {
                         onReady = { engine = it },
                     )
 
-                    Column(Modifier.fillMaxWidth().padding(8.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Column(
+                        Modifier.fillMaxWidth().windowInsetsPadding(WindowInsets.statusBars).padding(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(2.dp),
+                    ) {
                         androidx.compose.foundation.layout.Row(verticalAlignment = Alignment.CenterVertically) {
                             IconButton(onClick = { finish() }) {
                                 Icon(Icons.AutoMirrored.Filled.ArrowBack, "back", tint = palette.onSurface)
@@ -113,7 +128,8 @@ class UltimateWorkoutMapActivity : AppCompatActivity() {
                     }
 
                     Box(
-                        Modifier.align(Alignment.BottomStart).padding(16.dp)
+                        Modifier.align(Alignment.BottomStart)
+                            .windowInsetsPadding(WindowInsets.navigationBars).padding(16.dp)
                             .background(palette.surfaceContainer, RoundedCornerShape(14.dp))
                             .padding(horizontal = 14.dp, vertical = 10.dp),
                     ) {
