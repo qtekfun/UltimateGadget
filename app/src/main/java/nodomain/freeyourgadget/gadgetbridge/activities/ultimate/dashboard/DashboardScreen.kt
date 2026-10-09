@@ -58,6 +58,7 @@ fun DashboardScreen(
     onToggleCard: (DashboardCardId) -> Unit,
     onMoveCard: (Int, Int) -> Unit,
     onOpenDetail: (DashboardCardId) -> Unit,
+    onRefresh: () -> Unit = {},
 ) {
     val scheme = MaterialTheme.colorScheme
     Scaffold(
@@ -110,8 +111,13 @@ fun DashboardScreen(
                 modifier = Modifier.padding(inner),
             )
         } else {
+            androidx.compose.material3.pulltorefresh.PullToRefreshBox(
+                isRefreshing = state.refreshing,
+                onRefresh = onRefresh,
+                modifier = Modifier.padding(inner),
+            ) {
             LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(inner),
+                modifier = Modifier.fillMaxSize(),
                 contentPadding = DashboardContentPadding,
                 verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
@@ -128,6 +134,7 @@ fun DashboardScreen(
                     }
                 }
                 item { Spacer(Modifier.height(24.dp)) }
+            }
             }
         }
     }

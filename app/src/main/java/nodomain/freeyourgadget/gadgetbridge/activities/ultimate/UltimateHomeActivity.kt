@@ -202,6 +202,7 @@ private fun HomeDashboardSlot() {
                 context.startActivity(UltimateHealthDetailActivity.intent(context, id))
             }
         },
+        onRefresh = { vm.sync() },
     )
 }
 
