@@ -137,7 +137,6 @@ class UltimateHomeActivity : AppCompatActivity() {
                                 onNotifications = { startActivity(nodomain.freeyourgadget.gadgetbridge.activities.ultimate.notifications.UltimateNotificationsActivity.intent(this@UltimateHomeActivity)) },
                                 onReports = { startActivity(nodomain.freeyourgadget.gadgetbridge.activities.ultimate.reports.UltimateReportsActivity.intent(this@UltimateHomeActivity)) },
                                 onPerformance = { startActivity(nodomain.freeyourgadget.gadgetbridge.activities.ultimate.performance.UltimatePerformanceActivity.intent(this@UltimateHomeActivity)) },
-                                onPersistentNotification = { startActivity(nodomain.freeyourgadget.gadgetbridge.activities.ultimate.persistent.UltimatePersistentActivity.intent(this@UltimateHomeActivity)) },
                                 onClassicMode = { startActivity(Intent(this@UltimateHomeActivity, ControlCenterv2::class.java)) },
                             )
                         }

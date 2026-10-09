@@ -222,11 +222,15 @@ public class GB {
         } else if(devices.size() == 1) {
             GBDevice device = devices.get(0);
             String deviceName = device.getAliasOrName();
-            String text = device.getStateString(context);
+            boolean connected = device.isInitialized();
 
+            // UltimateGadget: the ongoing notification shows today's steps (watch name as title),
+            // falling back to the connection state when steps aren't available, and carries no
+            // action buttons (connect/sync/disconnect) by request.
+            String steps = buildStepsString(context, device);
+            String text = (steps != null) ? steps : device.getStateString(context);
             text += buildDeviceBatteryString(context, device);
 
-            boolean connected = device.isInitialized();
             builder.setContentTitle(deviceName)
                     .setTicker(deviceName + " - " + text)
                     .setContentText(text)
@@ -237,40 +241,6 @@ public class GB {
 
             if (!GBApplication.isRunningTwelveOrLater()) {
                 builder.setColor(ContextCompat.getColor(context, R.color.accent));
-            }
-
-            Intent deviceCommunicationServiceIntent = new Intent(context, DeviceCommunicationService.class);
-            deviceCommunicationServiceIntent.setPackage(BuildConfig.APPLICATION_ID);
-            if (connected) {
-                deviceCommunicationServiceIntent.setAction(DeviceService.ACTION_DISCONNECT);
-                PendingIntent disconnectPendingIntent = PendingIntent.getService(
-                        context,
-                        0,
-                        deviceCommunicationServiceIntent,
-                        PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE
-                );
-                builder.addAction(R.drawable.ic_notification_disconnected, context.getString(R.string.controlcenter_disconnect), disconnectPendingIntent);
-                if (device.getDeviceCoordinator().supportsDataFetching(device)) {
-                    deviceCommunicationServiceIntent.setAction(DeviceService.ACTION_FETCH_RECORDED_DATA);
-                    deviceCommunicationServiceIntent.putExtra(EXTRA_RECORDED_DATA_TYPES, RecordedDataTypes.TYPE_SYNC);
-                    PendingIntent fetchPendingIntent = PendingIntent.getService(
-                            context,
-                            1,
-                            deviceCommunicationServiceIntent,
-                            PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE
-                    );
-                    builder.addAction(R.drawable.ic_refresh, context.getString(R.string.controlcenter_fetch_activity_data), fetchPendingIntent);
-                }
-            } else if (device.getState().equals(GBDevice.State.WAITING_FOR_RECONNECT) || device.getState().equals(GBDevice.State.NOT_CONNECTED)) {
-                deviceCommunicationServiceIntent.setAction(DeviceService.ACTION_CONNECT);
-                deviceCommunicationServiceIntent.putExtra(GBDevice.EXTRA_DEVICE, device);
-                PendingIntent reconnectPendingIntent = PendingIntent.getService(
-                        context,
-                        2,
-                        deviceCommunicationServiceIntent,
-                        PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
-                );
-                builder.addAction(R.drawable.ic_notification, context.getString(R.string.controlcenter_connect), reconnectPendingIntent);
             }
         }else{
             StringBuilder contentText = new StringBuilder();
@@ -306,20 +276,7 @@ public class GB {
             if (!GBApplication.isRunningTwelveOrLater()) {
                 builder.setColor(ContextCompat.getColor(context, R.color.accent));
             }
-
-            if (anyDeviceSupportsActivityDataFetching) {
-                Intent deviceCommunicationServiceIntent = new Intent(context, DeviceCommunicationService.class);
-                deviceCommunicationServiceIntent.setPackage(BuildConfig.APPLICATION_ID);
-                deviceCommunicationServiceIntent.setAction(DeviceService.ACTION_FETCH_RECORDED_DATA);
-                deviceCommunicationServiceIntent.putExtra(EXTRA_RECORDED_DATA_TYPES, RecordedDataTypes.TYPE_SYNC);
-                PendingIntent fetchPendingIntent = PendingIntent.getService(
-                        context,
-                        1,
-                        deviceCommunicationServiceIntent,
-                        PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE
-                );
-                builder.addAction(R.drawable.ic_refresh, context.getString(R.string.controlcenter_fetch_activity_data), fetchPendingIntent);
-            }
+            // UltimateGadget: no action buttons on the ongoing notification.
         }
 
         builder.setVisibility(NotificationCompat.VISIBILITY_PUBLIC);
@@ -351,6 +308,30 @@ public class GB {
         }
 
         return sb.toString();
+    }
+
+    /**
+     * UltimateGadget: today's steps for the ongoing notification, as "Pasos: N / goal", or null when
+     * no step data is available (so the caller falls back to the connection state). Best-effort and
+     * exception-safe; a quick daily aggregate query.
+     */
+    private static String buildStepsString(final Context context, final GBDevice device) {
+        try {
+            final nodomain.freeyourgadget.gadgetbridge.model.DailyTotals totals =
+                    nodomain.freeyourgadget.gadgetbridge.model.DailyTotals.getDailyTotalsForDevice(device, java.util.Calendar.getInstance());
+            final long steps = totals.getSteps();
+            if (steps <= 0) {
+                return null;
+            }
+            final int goal = new nodomain.freeyourgadget.gadgetbridge.model.ActivityUser().getStepsGoal();
+            final java.util.Locale loc = java.util.Locale.getDefault();
+            if (goal > 0) {
+                return "Pasos: " + String.format(loc, "%,d", steps) + " / " + String.format(loc, "%,d", goal);
+            }
+            return "Pasos: " + String.format(loc, "%,d", steps);
+        } catch (final Exception e) {
+            return null;
+        }
     }
 
     public static Notification createNotification(CharSequence text, Context context) {
