@@ -63,7 +63,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import nodomain.freeyourgadget.gadgetbridge.GBApplication
-import nodomain.freeyourgadget.gadgetbridge.activities.install.GpxRouteInstallerActivity
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.theme.LocalUltimatePalette
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.theme.UltimateTheme
 import nodomain.freeyourgadget.gadgetbridge.impl.GBDevice
@@ -229,12 +228,10 @@ class UltimateRoutePlannerActivity : AppCompatActivity() {
             val file = File(dir, "planned_${System.currentTimeMillis()}.gpx")
             file.writeText(gpx)
             val uri = FileProvider.getUriForFile(this, "$packageName.screenshot_provider", file)
-            val intent = Intent(this, GpxRouteInstallerActivity::class.java).apply {
-                data = uri
-                putExtra(GBDevice.EXTRA_DEVICE, device)
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            }
-            startActivity(intent)
+            startActivity(
+                nodomain.freeyourgadget.gadgetbridge.activities.ultimate.install.UltimateInstallActivity
+                    .forUri(this, uri, device),
+            )
             finish()
         } catch (e: Exception) {
             Toast.makeText(this, "No se pudo preparar la ruta: ${e.message}", Toast.LENGTH_LONG).show()

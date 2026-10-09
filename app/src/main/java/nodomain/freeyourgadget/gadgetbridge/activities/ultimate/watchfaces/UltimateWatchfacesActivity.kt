@@ -162,8 +162,10 @@ private fun WatchfacesScreen(device: GBDevice, onBack: () -> Unit) {
 
     val importPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) {
-            GBApplication.deviceService(device).onInstallApp(uri, Bundle.EMPTY)
-            Toast.makeText(context, "Instalando esfera…", Toast.LENGTH_SHORT).show()
+            context.startActivity(
+                nodomain.freeyourgadget.gadgetbridge.activities.ultimate.install.UltimateInstallActivity
+                    .forUri(context, uri, device),
+            )
             requestList()
         }
     }

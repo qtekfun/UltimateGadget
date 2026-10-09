@@ -341,6 +341,9 @@
         <activity android:name=".activities.ultimate.sleep.UltimateSleepActivity" android:exported="false" android:theme="@style/GadgetbridgeThemeDark.NoActionBar" android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
         <activity android:name=".activities.ultimate.performance.UltimatePerformanceActivity" android:exported="false" android:theme="@style/GadgetbridgeThemeDark.NoActionBar" android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
         <receiver android:name=".activities.ultimate.sync.UltimateSyncReceiver" android:exported="false" />
+        <activity android:name=".activities.ultimate.install.UltimateInstallActivity" android:exported="false" android:theme="@style/GadgetbridgeThemeDark.NoActionBar" android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
+        <activity android:name=".activities.ultimate.install.UltimateRemoveDeviceActivity" android:exported="false" android:theme="@style/GadgetbridgeThemeDark.NoActionBar" android:parentActivityName=".activities.ultimate.UltimateDeviceActivity" />
+        <activity android:name=".activities.ultimate.pairing.UltimateDiscoveryActivity" android:exported="false" android:theme="@style/GadgetbridgeThemeDark.NoActionBar" android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
 
         <!-- UltimateGadget home-screen widget + Quick Settings tiles -->
         <receiver
