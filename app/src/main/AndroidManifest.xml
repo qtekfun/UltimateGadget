@@ -176,24 +176,9 @@
         android:requestLegacyExternalStorage="true"
         android:theme="@style/GadgetbridgeTheme">
         <activity
-            android:name=".activities.ControlCenterv2"
-            android:label="@string/title_activity_controlcenter"
-            android:theme="@style/SplashTheme"
-            android:launchMode="singleTop"
-            android:exported="true">
-        </activity>
-        <activity
-            android:name=".activities.welcome.WelcomeActivity"
-            android:label="@string/first_start_welcome_title"
-            android:parentActivityName=".activities.ControlCenterv2" />
-        <activity
-            android:name=".activities.PermissionsActivity"
-            android:label="@string/first_start_permissions_title"
-            android:parentActivityName=".activities.ControlCenterv2" />
-        <activity
             android:name=".activities.SettingsActivity"
             android:label="@string/title_activity_settings"
-            android:parentActivityName=".activities.ControlCenterv2" />
+            android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
         <activity
             android:name=".activities.DashboardPreferencesActivity"
             android:label="@string/dashboard_settings"
@@ -262,7 +247,7 @@
         <activity
             android:name=".activities.files.FileManagerActivity"
             android:label="@string/activity_data_management_directory_content_title"
-            android:parentActivityName=".activities.DataManagementActivity" />
+            android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
         <activity
             android:name=".activities.files.FtpFileBrowserActivity"
             android:label="@string/ftp_file_browser" />
@@ -273,7 +258,7 @@
         <activity
             android:name=".activities.BackupRestoreProgressActivity"
             android:label="@string/activity_db_management_backup_restore_label"
-            android:parentActivityName=".activities.DataManagementActivity" />
+            android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
         <activity
             android:name=".activities.discovery.DiscoveryPairingPreferenceActivity"
             android:label="@string/activity_prefs_discovery_pairing"
@@ -415,12 +400,12 @@
         <activity
             android:name=".activities.workouts.WorkoutListActivity"
             android:label="@string/activity_summaries"
-            android:parentActivityName=".activities.ControlCenterv2" />
+            android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
         <activity
             android:name=".activities.appmanager.AppManagerActivity"
             android:label="@string/title_activity_appmanager"
             android:launchMode="singleTop"
-            android:parentActivityName=".activities.ControlCenterv2" />
+            android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
         <activity
             android:name=".activities.appmanager.config.DynamicAppConfigActivity"
             android:label="@string/app_configure"
@@ -445,7 +430,7 @@
         <activity
             android:name=".devices.vesc.VescControlActivity"
             android:label="@string/devicetype_vesc"
-            android:parentActivityName=".activities.ControlCenterv2" />
+            android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
         <activity
             android:name=".activities.UsbAccessoryConnectActivity"
             android:label="@string/usb_connect_title"
@@ -453,31 +438,31 @@
         <activity
             android:name=".devices.idasen.IdasenControlActivity"
             android:label="@string/devicetype_idasen"
-            android:parentActivityName=".activities.ControlCenterv2" />
+            android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
         <activity
             android:name=".devices.ultrahuman.UltrahumanBreathingActivity"
             android:label="@string/devicetype_ultrahuma_ring_air"
-            android:parentActivityName=".activities.ControlCenterv2" />
+            android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
         <activity
             android:name=".devices.generic_scale.GenericWeightScaleMeasurementActivity"
             android:label="@string/devicetype_generic_weight_scale"
-            android:parentActivityName=".activities.ControlCenterv2" />
+            android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
         <activity
             android:name=".devices.thermalprinter.SendToPrinterActivity"
             android:label="@string/devicetype_generic_thermal_printer"
-            android:parentActivityName=".activities.ControlCenterv2" />
+            android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
         <activity
             android:name=".activities.install.FwAppInstallerActivity"
             android:label="@string/title_activity_fw_app_insaller"
-            android:parentActivityName=".activities.ControlCenterv2" />
+            android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
         <activity
             android:name=".activities.install.GpxRouteInstallerActivity"
             android:label="@string/title_activity_gps_track_installer"
-            android:parentActivityName=".activities.ControlCenterv2" />
+            android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
         <activity
             android:name=".activities.install.FileInstallerActivity"
             android:label="@string/title_activity_file_installer"
-            android:parentActivityName=".activities.ControlCenterv2"
+            android:parentActivityName=".activities.ultimate.UltimateHomeActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -844,7 +829,7 @@
         <activity
             android:name=".activities.debug.DebugActivityV2"
             android:label="@string/title_activity_debug"
-            android:parentActivityName=".activities.ControlCenterv2"
+            android:parentActivityName=".activities.ultimate.UltimateHomeActivity"
             android:windowSoftInputMode="stateHidden" />
         <activity
             android:name=".activities.debug.preferences.PreferenceManagerActivity"
@@ -852,29 +837,24 @@
             android:parentActivityName=".activities.debug.DebugActivityV2"
             android:windowSoftInputMode="stateHidden" />
         <activity
-            android:name=".activities.AboutActivity"
-            android:label="@string/about_activity_title"
-            android:parentActivityName=".activities.ControlCenterv2"
-            android:windowSoftInputMode="stateHidden" />
-        <activity
             android:name=".activities.licenses.LicensesActivity"
             android:label="@string/open_source_licenses"
-            android:parentActivityName=".activities.AboutActivity"
+            android:parentActivityName=".activities.ultimate.UltimateHomeActivity"
             android:windowSoftInputMode="stateHidden" />
         <activity
             android:name=".activities.OpenFwAppInstallerActivity"
             android:label="@string/open_fw_installer_info_text_title"
-            android:parentActivityName=".activities.ControlCenterv2"
+            android:parentActivityName=".activities.ultimate.UltimateHomeActivity"
             android:windowSoftInputMode="stateHidden" />
         <activity
             android:name=".activities.BatteryInfoActivity"
             android:label="@string/battery_detail_activity_title"
-            android:parentActivityName=".activities.ControlCenterv2" />
+            android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
         <activity
             android:exported="false"
             android:name=".activities.DeviceDeleteActivity"
             android:label="@string/controlcenter_delete_device"
-            android:parentActivityName=".activities.ControlCenterv2" />
+            android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
         <activity
             android:name=".activities.workouts.WorkoutDetailsActivity"
             android:label="@string/activity_summary_detail"
@@ -886,19 +866,14 @@
             android:parentActivityName=".activities.workouts.WorkoutListActivity"
             android:excludeFromRecents="true"/>
         <activity
-            android:name=".activities.DataManagementActivity"
-            android:label="@string/title_activity_db_management"
-            android:parentActivityName=".activities.ControlCenterv2"
-            android:windowSoftInputMode="stateHidden" />
-        <activity
             android:name=".activities.NotificationManagementActivity"
             android:label="@string/title_activity_notification_management"
-            android:parentActivityName=".activities.ControlCenterv2"
+            android:parentActivityName=".activities.ultimate.UltimateHomeActivity"
             android:windowSoftInputMode="stateHidden" />
         <activity
             android:name=".activities.discovery.DiscoveryActivityV2"
             android:label="@string/title_activity_discovery"
-            android:parentActivityName=".activities.ControlCenterv2" />
+            android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
         <activity
             android:name=".activities.AuthKeyActivity"
             android:label="@string/pref_title_authkey"
@@ -911,13 +886,13 @@
             android:label="@string/title_activity_appmanager"
             android:launchMode="singleTop"
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize|layoutDirection|uiMode"
-            android:parentActivityName=".activities.ControlCenterv2" />
+            android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
         <activity
             android:name=".activities.multipoint.MultipointPairingActivity"
             android:label="@string/bluetooth_multipoint_pairing"
             android:launchMode="singleTop"
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize|layoutDirection|uiMode"
-            android:parentActivityName=".activities.ControlCenterv2" />
+            android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
         <activity
             android:name=".activities.aawireless.AAWirelessPairedPhonesActivity"
             android:label="@string/paired_phones"
@@ -953,39 +928,39 @@
         <activity
             android:name=".activities.charts.ActivityChartsActivity"
             android:label="@string/title_activity_charts"
-            android:parentActivityName=".activities.ControlCenterv2" />
+            android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
         <activity
             android:name=".activities.ConfigureAlarms"
             android:label="@string/title_activity_set_alarm"
-            android:parentActivityName=".activities.ControlCenterv2" />
+            android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
         <activity
             android:name=".activities.ConfigureReminders"
             android:label="@string/title_activity_set_reminders"
-            android:parentActivityName=".activities.ControlCenterv2" />
+            android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
         <activity
             android:name=".activities.ConfigureContacts"
             android:label="@string/title_activity_set_contacts"
-            android:parentActivityName=".activities.ControlCenterv2" />
+            android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
         <activity
             android:name=".activities.widgets.WidgetScreensListActivity"
             android:label="@string/menuitem_widgets"
-            android:parentActivityName=".activities.ControlCenterv2" />
+            android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
         <activity
             android:name=".activities.xiaomi.XiaomiVibrationPatternsActivity"
             android:label="@string/pref_xiaomi_vibration_patterns_title"
-            android:parentActivityName=".activities.ControlCenterv2" />
+            android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
         <activity
             android:name=".activities.casio.CasioIntervalTimerActivity"
             android:label="@string/pref_casio_interval_timer_title"
-            android:parentActivityName=".activities.ControlCenterv2" />
+            android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
         <activity
             android:name=".activities.ConfigureWorldClocks"
             android:label="@string/pref_world_clocks_title"
-            android:parentActivityName=".activities.ControlCenterv2" />
+            android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
         <activity
             android:name=".activities.devicesettings.DeviceSettingsActivity"
             android:label="@string/title_activity_device_specific_settings"
-            android:parentActivityName=".activities.ControlCenterv2" />
+            android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
         <activity
             android:name=".activities.AlarmDetails"
             android:label="@string/title_activity_alarm_details"
@@ -1018,7 +993,7 @@
         <activity
             android:name=".activities.VibrationActivity"
             android:label="@string/title_activity_vibration"
-            android:parentActivityName=".activities.ControlCenterv2" />
+            android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
         <activity
             android:name=".activities.NotificationFilterActivity"
             android:label="@string/title_activity_notification_filter"
@@ -1100,7 +1075,7 @@
             android:exported="true">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="nodomain.freeyourgadget.gadgetbridge.activities.ControlCenterv2" />
+                android:value="nodomain.freeyourgadget.gadgetbridge.activities.ultimate.UltimateHomeActivity" />
 
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -1126,7 +1101,7 @@
             android:name=".devices.qhybrid.HRConfigActivity"
             android:label="@string/qhybrid_title_watchface"
             android:exported="true"
-            android:parentActivityName=".activities.ControlCenterv2" />
+            android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
         <activity android:name=".devices.qhybrid.WidgetSettingsActivity"
             android:label="@string/add_widget"
             android:parentActivityName=".devices.qhybrid.HRConfigActivity" />
@@ -1234,7 +1209,7 @@
         <activity
             android:name=".activities.dashboard.DashboardCalendarActivity"
             android:label="@string/menuitem_calendar"
-            android:parentActivityName=".activities.ControlCenterv2" />
+            android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
 
         <activity
             android:name=".activities.dashboard.DashboardWidgetsActivity"

@@ -144,7 +144,7 @@ class UsbAccessoryConnectActivity : AbstractGBActivity() {
     private fun connectAndFinish(device: GBDevice) {
         GBApplication.deviceService(device).connect(true)
 
-        val mainScreenIntent = Intent(this, ControlCenterv2::class.java).apply {
+        val mainScreenIntent = Intent(this, nodomain.freeyourgadget.gadgetbridge.activities.ultimate.UltimateHomeActivity::class.java).apply {
             addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         startActivity(mainScreenIntent)

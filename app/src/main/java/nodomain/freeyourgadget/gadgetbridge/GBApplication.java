@@ -70,7 +70,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-import nodomain.freeyourgadget.gadgetbridge.activities.ControlCenterv2;
+import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.UltimateHomeActivity;
 import nodomain.freeyourgadget.gadgetbridge.activities.endurain.PeriodicEndurainTokenRefresher;
 import nodomain.freeyourgadget.gadgetbridge.database.DBHandler;
 import nodomain.freeyourgadget.gadgetbridge.database.DBHelper;
@@ -151,7 +151,7 @@ public class GBApplication extends Application {
 
         GBDatabaseManager.closeDatabase();
 
-        final Intent startActivity = new Intent(context, ControlCenterv2.class);
+        final Intent startActivity = new Intent(context, UltimateHomeActivity.class);
         final PendingIntent pendingIntent = PendingIntent.getActivity(
                 context,
                 1337,

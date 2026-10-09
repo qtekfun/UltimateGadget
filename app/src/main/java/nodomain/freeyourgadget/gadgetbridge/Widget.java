@@ -39,7 +39,7 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.concurrent.TimeUnit;
 
-import nodomain.freeyourgadget.gadgetbridge.activities.ControlCenterv2;
+import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.UltimateHomeActivity;
 import nodomain.freeyourgadget.gadgetbridge.activities.WidgetAlarmsActivity;
 import nodomain.freeyourgadget.gadgetbridge.activities.charts.ActivityChartsActivity;
 import nodomain.freeyourgadget.gadgetbridge.impl.GBDevice;
@@ -99,7 +99,7 @@ public class Widget extends AppWidgetProvider {
         views.setOnClickPendingIntent(R.id.todaywidget_header_container, refreshDataIntent);
 
         //open GB main window
-        Intent startMainIntent = new Intent(context, ControlCenterv2.class);
+        Intent startMainIntent = new Intent(context, UltimateHomeActivity.class);
         startMainIntent.setPackage(BuildConfig.APPLICATION_ID);
         PendingIntent startMainPIntent = PendingIntent.getActivity(
                 context,
