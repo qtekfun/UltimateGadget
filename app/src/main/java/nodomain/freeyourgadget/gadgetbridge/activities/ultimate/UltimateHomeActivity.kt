@@ -136,6 +136,7 @@ class UltimateHomeActivity : AppCompatActivity() {
                                 onNotifications = { startActivity(nodomain.freeyourgadget.gadgetbridge.activities.ultimate.notifications.UltimateNotificationsActivity.intent(this@UltimateHomeActivity)) },
                                 onReports = { startActivity(nodomain.freeyourgadget.gadgetbridge.activities.ultimate.reports.UltimateReportsActivity.intent(this@UltimateHomeActivity)) },
                                 onPerformance = { startActivity(nodomain.freeyourgadget.gadgetbridge.activities.ultimate.performance.UltimatePerformanceActivity.intent(this@UltimateHomeActivity)) },
+                                onSettings = { startActivity(nodomain.freeyourgadget.gadgetbridge.activities.ultimate.settings.UltimateSettingsActivity.intent(this@UltimateHomeActivity)) },
                             )
                         }
                     }
@@ -151,14 +152,14 @@ class UltimateHomeActivity : AppCompatActivity() {
     private fun runStartupGate(): Boolean {
         val prefs = GBApplication.getPrefs()
         if (prefs.getBoolean("first_run", true)) {
-            startActivity(Intent(this, WelcomeActivity::class.java))
+            startActivity(nodomain.freeyourgadget.gadgetbridge.activities.ultimate.onboarding.UltimateWelcomeActivity.intent(this))
             finish()
             return true
         }
         if (prefs.getBoolean("permission_pestering", true) && !PermissionsUtils.checkAllPermissions(this)) {
             startActivity(
-                Intent(this, PermissionsActivity::class.java)
-                    .putExtra(PermissionsActivity.ARG_SHOW_DO_NOT_ASK_BUTTON, true),
+                nodomain.freeyourgadget.gadgetbridge.activities.ultimate.onboarding.UltimatePermissionsActivity
+                    .intent(this, showDoNotAskButton = true),
             )
         }
         GBApplication.deviceService().requestDeviceInfo()

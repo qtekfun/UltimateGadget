@@ -172,10 +172,7 @@ class UltimateDeviceActivity : AppCompatActivity() {
                 toast("Sincronizando…")
             }
             "settings" -> startActivity(
-                Intent(this, DeviceSettingsActivity::class.java).apply {
-                    putExtra(GBDevice.EXTRA_DEVICE, device)
-                    putExtra(DeviceSettingsActivity.MENU_ENTRY_POINT, DeviceSettingsActivity.MENU_ENTRY_POINTS.DEVICE_SETTINGS)
-                },
+                nodomain.freeyourgadget.gadgetbridge.activities.ultimate.devsettings.UltimateDeviceSettingsActivity.intent(this, device),
             )
             "maps" -> startActivity(
                 Intent(this, HuaweiMapManagementActivity::class.java).apply { putExtra(GBDevice.EXTRA_DEVICE, device) },
