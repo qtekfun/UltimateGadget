@@ -74,7 +74,7 @@ class UltimateHomeActivity : AppCompatActivity() {
         setContent {
             UltimateTheme {
                 val palette = LocalUltimatePalette.current
-                var tab by remember { mutableStateOf(1) } // start on Devices until dashboard lands
+                var tab by remember { mutableStateOf(0) } // start on the health dashboard
                 var devices by remember { mutableStateOf(loadDevices(this)) }
 
                 DisposableEffect(Unit) {
