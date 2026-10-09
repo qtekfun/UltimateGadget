@@ -169,37 +169,31 @@ class UltimateHomeActivity : AppCompatActivity() {
     }
 
     /**
-     * On launch, reconnect the last connected watch (and any other known device whose
-     * auto-reconnect preference is enabled) if it isn't already connected or connecting.
+     * On launch, reconnect ONLY the single most-recently-connected watch (not every known device),
+     * and only if nothing is already connected/connecting.
      *
      * This runs once per activity creation, from [runStartupGate] (called in [onCreate]),
      * deliberately not from onResume, so returning to the app from the background does not
-     * trigger a reconnect loop.
-     *
-     * The per-device [GBPrefs.DEVICE_AUTO_RECONNECT] preference is honoured: a device the
-     * user disconnected manually and set to not auto-reconnect is skipped. Only devices in
-     * [GBDevice.State.NOT_CONNECTED] are considered, so a device already connected, connecting
-     * or in any intermediate state is left alone (this mirrors Gadgetbridge's own startup scan).
+     * trigger a reconnect loop. The per-device [GBPrefs.DEVICE_AUTO_RECONNECT] preference is honoured.
      */
     private fun autoReconnectKnownDevices() {
         val app = application as GBApplication
         val prefs = GBApplication.getPrefs()
 
-        val candidates = app.deviceManager.devices.filter { device ->
-            device.state == GBDevice.State.NOT_CONNECTED &&
-                device.deviceCoordinator.isConnectable &&
-                prefs.getAutoReconnect(device)
-        }
-        if (candidates.isEmpty()) return
+        // If something is already connected or mid-connection, don't pull in another device.
+        val busy = app.deviceManager.devices.any { it.state != GBDevice.State.NOT_CONNECTED }
+        if (busy) return
 
-        // Prioritise the most recently connected device, so the "last watch" comes up first.
-        val prioritized = candidates.sortedByDescending { device ->
-            GBApplication.getDeviceSpecificSharedPrefs(device.address)
-                .getLong(GBPrefs.LAST_CONNECTED_TS, 0L)
-        }
-        for (device in prioritized) {
-            GBApplication.deviceService(device).connect()
-        }
+        val last = app.deviceManager.devices
+            .filter { it.deviceCoordinator.isConnectable && prefs.getAutoReconnect(it) }
+            .maxByOrNull {
+                GBApplication.getDeviceSpecificSharedPrefs(it.address)
+                    .getLong(GBPrefs.LAST_CONNECTED_TS, 0L)
+            }
+            ?: return
+
+        // Connect just the last-used watch.
+        GBApplication.deviceService(last).connect()
     }
 
     private fun openDevice(d: DeviceCardUi) {
