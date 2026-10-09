@@ -66,6 +66,7 @@ fun DashboardScreen(
     onReports: () -> Unit = {},
     onPerformance: () -> Unit = {},
     onSettings: () -> Unit = {},
+    onQuit: () -> Unit = {},
 ) {
     val scheme = MaterialTheme.colorScheme
     Scaffold(
@@ -101,6 +102,7 @@ fun DashboardScreen(
                             onReports = onReports,
                             onPerformance = onPerformance,
                             onSettings = onSettings,
+                            onQuit = onQuit,
                         )
                     }
                 },

@@ -2,6 +2,11 @@
 
 <!-- For contributors: do not modify this file - the project maintainers will update it as needed -->
 
+#### 0.99.2
+
+* Dispositivos: la lista se refresca al volver a la app (p. ej. tras borrar un dispositivo, ya no se queda el que acabas de quitar)
+* Menú: nueva opción "Salir (detener la app)" para cerrar UltimateGadget y parar sus servicios
+
 #### 0.99.1
 
 * Emparejado: el paso de autenticación opcional (cuenta Huawei) ahora aparece también en la pantalla de añadir dispositivo de la interfaz nueva, no solo en la antigua; diálogo en español y botón "Emparejar" cuando el dispositivo ya tiene la autenticación configurada
