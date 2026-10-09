@@ -16,6 +16,7 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 package nodomain.freeyourgadget.gadgetbridge.activities.ultimate.dataio
 
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.compose.setContent
@@ -56,6 +57,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import nodomain.freeyourgadget.gadgetbridge.GBDatabaseManager
+import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.UltimateHomeActivity
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.theme.LocalUltimatePalette
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.theme.UltimateTheme
 import java.text.SimpleDateFormat
@@ -76,6 +78,12 @@ class UltimateDataIOActivity : AppCompatActivity() {
     private var busy by mutableStateOf(false)
     private var pendingImport by mutableStateOf<Uri?>(null)
 
+    /** Set after a successful import: the running process still holds the old DB session and
+     *  all the in-memory caches (device service, loaded workout lists, …), so the restored data
+     *  only becomes visible after a clean process restart. */
+    private var importDone by mutableStateOf(false)
+    private var confirmRestart by mutableStateOf(false)
+
     private val exportPicker = registerForActivityResult(
         ActivityResultContracts.CreateDocument("application/octet-stream"),
     ) { uri -> if (uri != null) doExport(uri) }
@@ -92,6 +100,8 @@ class UltimateDataIOActivity : AppCompatActivity() {
                     status = status,
                     busy = busy,
                     confirmImportUri = pendingImport,
+                    importDone = importDone,
+                    confirmRestart = confirmRestart,
                     onBack = { finish() },
                     onExport = {
                         val name = "ultimategadget-" +
@@ -101,6 +111,9 @@ class UltimateDataIOActivity : AppCompatActivity() {
                     onPickImport = { importPicker.launch(arrayOf("application/octet-stream", "*/*")) },
                     onConfirmImport = { uri -> pendingImport = null; doImport(uri) },
                     onCancelImport = { pendingImport = null },
+                    onRestartRequest = { confirmRestart = true },
+                    onConfirmRestart = { confirmRestart = false; restartApp() },
+                    onCancelRestart = { confirmRestart = false },
                 )
             }
         }
@@ -135,11 +148,43 @@ class UltimateDataIOActivity : AppCompatActivity() {
                 }
             }
             busy = false
-            status = result.fold(
-                { "Base de datos importada. Reinicia la app para aplicar los cambios." },
-                { "Error al importar: ${it.localizedMessage}" },
+            result.fold(
+                {
+                    importDone = true
+                    status = "Base de datos importada (todos los datos: actividad, sueño, pulso y " +
+                        "entrenos). Reinicia la app para que los cambios sean visibles."
+                },
+                {
+                    importDone = false
+                    status = "Error al importar: ${it.localizedMessage}"
+                },
             )
         }
+    }
+
+    /**
+     * Clean process restart so the freshly imported database is reopened from scratch.
+     *
+     * We launch the app's main entry point ([UltimateHomeActivity], the LAUNCHER activity, which
+     * reconnects the last watch on start) as a fresh task and then kill the process. When Android
+     * relaunches the task, [nodomain.freeyourgadget.gadgetbridge.GBApplication] re-initialises and
+     * [GBDatabaseManager] opens the new database file, so every in-memory cache is rebuilt from the
+     * imported data. This is the library-free ProcessPhoenix pattern (no extra dependencies).
+     */
+    private fun restartApp() {
+        val launchComponent = packageManager
+            .getLaunchIntentForPackage(packageName)
+            ?.component
+        val restartIntent = if (launchComponent != null) {
+            Intent.makeRestartActivityTask(launchComponent)
+        } else {
+            Intent(this, UltimateHomeActivity::class.java).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+            }
+        }
+        startActivity(restartIntent)
+        // Tear down the current process; the task above is relaunched by the system with a fresh VM.
+        Runtime.getRuntime().exit(0)
     }
 }
 
@@ -149,11 +194,16 @@ private fun DataIOScreen(
     status: String?,
     busy: Boolean,
     confirmImportUri: Uri?,
+    importDone: Boolean,
+    confirmRestart: Boolean,
     onBack: () -> Unit,
     onExport: () -> Unit,
     onPickImport: () -> Unit,
     onConfirmImport: (Uri) -> Unit,
     onCancelImport: () -> Unit,
+    onRestartRequest: () -> Unit,
+    onConfirmRestart: () -> Unit,
+    onCancelRestart: () -> Unit,
 ) {
     val palette = LocalUltimatePalette.current
     Scaffold(
@@ -187,9 +237,23 @@ private fun DataIOScreen(
             }
             SectionCard(
                 title = "Importar copia",
-                body = "Restaura una copia de seguridad exportada antes. SOBRESCRIBE la base de datos actual.",
+                body = "Restaura una copia de seguridad exportada antes. SOBRESCRIBE la base de datos " +
+                    "actual (todas las tablas, incluidos los entrenos). Tras importar hay que " +
+                    "reiniciar la app para que los datos restaurados se vean.",
             ) {
                 OutlinedButton(onClick = onPickImport, enabled = !busy) { Text("Elegir fichero…") }
+            }
+
+            SectionCard(
+                title = "Reiniciar app",
+                body = if (importDone) {
+                    "Importación lista. Reinicia la app para aplicar los cambios y ver los datos " +
+                        "restaurados. Al volver se reconectará tu reloj automáticamente."
+                } else {
+                    "Cierra y vuelve a abrir la app de forma limpia. Útil tras importar una copia."
+                },
+            ) {
+                Button(onClick = onRestartRequest, enabled = !busy) { Text("Reiniciar app") }
             }
 
             if (busy) {
@@ -211,6 +275,19 @@ private fun DataIOScreen(
             text = { Text("Esto reemplazará todos los datos actuales por los de la copia. ¿Continuar?") },
             confirmButton = { Button(onClick = { onConfirmImport(confirmImportUri) }) { Text("Importar") } },
             dismissButton = { OutlinedButton(onClick = onCancelImport) { Text("Cancelar") } },
+            containerColor = palette.surfaceContainer,
+            titleContentColor = palette.onSurface,
+            textContentColor = palette.onSurfaceVariant,
+        )
+    }
+
+    if (confirmRestart) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = onCancelRestart,
+            title = { Text("Reiniciar la app") },
+            text = { Text("La app se cerrará y se reiniciará para aplicar la importación. ¿Continuar?") },
+            confirmButton = { Button(onClick = onConfirmRestart) { Text("Reiniciar") } },
+            dismissButton = { OutlinedButton(onClick = onCancelRestart) { Text("Cancelar") } },
             containerColor = palette.surfaceContainer,
             titleContentColor = palette.onSurface,
             textContentColor = palette.onSurfaceVariant,
