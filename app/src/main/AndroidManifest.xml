@@ -320,6 +320,7 @@
             android:exported="false"
             android:theme="@style/GadgetbridgeThemeDark.NoActionBar"
             android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
+        <activity android:name=".activities.ultimate.detail.UltimateHealthDetailActivity" android:exported="false" android:theme="@style/GadgetbridgeThemeDark.NoActionBar" android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
         <activity android:name=".activities.ultimate.UltimateAddDeviceActivity" android:exported="false" android:theme="@style/GadgetbridgeThemeDark.NoActionBar" android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
         <activity
             android:name=".activities.heartratezones.HeartRateSettingsActivity"

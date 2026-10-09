@@ -52,6 +52,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import nodomain.freeyourgadget.gadgetbridge.GBApplication
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.dashboard.DashboardScreen
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.dashboard.DashboardViewModel
+import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.detail.UltimateHealthDetailActivity
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.theme.LocalUltimatePalette
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.theme.UltimateTheme
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.ui.DeviceCardUi
@@ -166,7 +167,7 @@ private fun HomeDashboardSlot() {
         onToggleCard = vm::toggleCard,
         onMoveCard = vm::moveCard,
         onOpenDetail = { id ->
-            Toast.makeText(context, "Abrir ${id.name} — próximamente", Toast.LENGTH_SHORT).show()
+            context.startActivity(UltimateHealthDetailActivity.intent(context, id))
         },
     )
 }

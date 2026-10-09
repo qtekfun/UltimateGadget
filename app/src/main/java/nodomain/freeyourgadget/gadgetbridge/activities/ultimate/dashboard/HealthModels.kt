@@ -60,12 +60,12 @@ data class SleepStressData(
     val stressLevel: Int,   // 0..100
 )
 
-/** Everything the dashboard shows, loaded in one pass. */
+/** Everything the dashboard shows, loaded in one pass. A null metric means "no data yet". */
 data class DashboardData(
-    val steps: StepsData,
+    val steps: StepsData?,
     val lastWorkout: WorkoutData?,
-    val heart: HeartData,
-    val sleepStress: SleepStressData,
+    val heart: HeartData?,
+    val sleepStress: SleepStressData?,
     /** True while the values are placeholder samples, not real device data. */
     val isSample: Boolean,
 )

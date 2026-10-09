@@ -34,11 +34,10 @@ data class DashboardUiState(
     val amoled: Boolean = false,
 )
 
-// Application-only constructor so the default AndroidViewModel factory (viewModel()) can create it;
-// a defaulted second param does not expose an (Application) constructor to the reflective factory.
+// Application-only constructor so the default AndroidViewModel factory (viewModel()) can create it.
 class DashboardViewModel(app: Application) : AndroidViewModel(app) {
 
-    private val repository: HealthRepository = SampleHealthRepository()
+    private val repository: HealthRepository = DbHealthRepository(app)
     private val store = DashboardConfigStore(app)
     private val _state = MutableStateFlow(DashboardUiState(cards = store.load(), amoled = store.amoled))
     val state: StateFlow<DashboardUiState> = _state.asStateFlow()

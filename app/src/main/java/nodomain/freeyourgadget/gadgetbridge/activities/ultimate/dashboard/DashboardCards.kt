@@ -45,10 +45,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.util.Locale
 
+/** Shown inside a card when the device has no data for that metric yet. */
+@Composable
+private fun NoData(label: String) {
+    val scheme = MaterialTheme.colorScheme
+    SectionLabel(label)
+    Spacer(Modifier.height(8.dp))
+    Text("Sin datos todavía", style = MaterialTheme.typography.titleMedium, color = scheme.onSurfaceVariant)
+}
+
 /** STEPS: big count, weekly bar sparkline, goal progress. */
 @Composable
-fun StepsCard(data: StepsData, onClick: () -> Unit) {
+fun StepsCard(data: StepsData?, onClick: () -> Unit) {
     val scheme = MaterialTheme.colorScheme
+    if (data == null) { DashboardCard(onClick = onClick) { NoData("Steps today") }; return }
     DashboardCard(onClick = onClick) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             SectionLabel("Steps today")
@@ -124,8 +134,9 @@ fun WorkoutCard(data: WorkoutData?, onClick: () -> Unit) {
 
 /** HEART & SpO2: two metrics side by side with a trend line. */
 @Composable
-fun HeartCard(data: HeartData, onClick: () -> Unit) {
+fun HeartCard(data: HeartData?, onClick: () -> Unit) {
     val scheme = MaterialTheme.colorScheme
+    if (data == null) { DashboardCard(onClick = onClick) { NoData("Heart rate & SpO₂") }; return }
     DashboardCard(onClick = onClick) {
         SectionLabel("Heart rate & SpO₂")
         Spacer(Modifier.height(8.dp))
@@ -150,8 +161,9 @@ fun HeartCard(data: HeartData, onClick: () -> Unit) {
 
 /** SLEEP & STRESS: sleep duration + phase bar, stress level. */
 @Composable
-fun SleepStressCard(data: SleepStressData, onClick: () -> Unit) {
+fun SleepStressCard(data: SleepStressData?, onClick: () -> Unit) {
     val scheme = MaterialTheme.colorScheme
+    if (data == null) { DashboardCard(onClick = onClick) { NoData("Sleep & stress") }; return }
     DashboardCard(onClick = onClick) {
         SectionLabel("Sleep & stress")
         Spacer(Modifier.height(8.dp))
