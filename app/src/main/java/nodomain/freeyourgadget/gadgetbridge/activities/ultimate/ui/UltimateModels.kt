@@ -33,11 +33,13 @@ data class DeviceCardUi(
     val connecting: Boolean = false, // mid-connection (connecting/initializing), not yet connected
 )
 
-/** One action tile in the device detail screen. */
+/** One action tile in the device detail screen. [section] groups rows under a header (commercial-app
+ * style: Conexión / Reloj / Mapas y navegación / Dispositivo). Sections render in first-seen order. */
 data class DeviceOptionUi(
     val id: String,
     val title: String,
     val subtitle: String?,
     val enabled: Boolean = true,
     val destructive: Boolean = false,
+    val section: String = "",
 )
