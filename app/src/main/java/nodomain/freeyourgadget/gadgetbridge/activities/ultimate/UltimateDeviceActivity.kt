@@ -141,6 +141,9 @@ class UltimateDeviceActivity : AppCompatActivity() {
             if (cap { coordinator.supportsMusicInfo(device) }) {
                 options += DeviceOptionUi("music", "Música", "Ver, subir y borrar música del reloj", section = sWatch)
             }
+            if (cap { coordinator.supportsInstalledAppManagement(device) }) {
+                options += DeviceOptionUi("watchapps", "Apps", "Ver, borrar e instalar apps del reloj", section = sWatch)
+            }
         }
 
         // --- Mapas y navegación ---
@@ -197,6 +200,9 @@ class UltimateDeviceActivity : AppCompatActivity() {
             )
             "music" -> startActivity(
                 nodomain.freeyourgadget.gadgetbridge.activities.ultimate.music.UltimateMusicActivity.intent(this, device),
+            )
+            "watchapps" -> startActivity(
+                nodomain.freeyourgadget.gadgetbridge.activities.ultimate.apps.UltimateWatchAppsActivity.intent(this, device),
             )
             "timers" -> startActivity(
                 nodomain.freeyourgadget.gadgetbridge.activities.ultimate.clock.UltimateTimersActivity.intent(this, device),

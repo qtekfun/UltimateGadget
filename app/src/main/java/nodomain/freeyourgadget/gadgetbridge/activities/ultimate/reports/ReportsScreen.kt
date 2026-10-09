@@ -16,6 +16,8 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 package nodomain.freeyourgadget.gadgetbridge.activities.ultimate.reports
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -31,6 +33,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.SaveAlt
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -42,7 +46,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -55,6 +61,9 @@ import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.dashboard.Dashbo
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.dashboard.SectionLabel
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.theme.MetricValueStyle
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.theme.UltimateTheme
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -66,6 +75,29 @@ fun ReportsScreen(
     onOpenGoals: () -> Unit,
 ) {
     val scheme = MaterialTheme.colorScheme
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    val data = state.data
+    val summary = when (state.period) {
+        ReportPeriod.WEEK -> data?.weekly
+        ReportPeriod.MONTH -> data?.monthly
+    }
+    val exportable = summary != null && summary.daysWithData > 0
+
+    val saveLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("application/pdf")
+    ) { uri ->
+        val s = summary
+        if (uri != null && s != null) {
+            scope.launch(Dispatchers.IO) {
+                runCatching {
+                    context.contentResolver.openOutputStream(uri)?.use { ReportPdfExporter.writeTo(it, s) }
+                }
+            }
+        }
+    }
+
     Scaffold(
         containerColor = scheme.background,
         topBar = {
@@ -77,6 +109,24 @@ fun ReportsScreen(
                     }
                 },
                 actions = {
+                    if (exportable) {
+                        val s = summary
+                        IconButton(onClick = {
+                            scope.launch {
+                                val file = withContext(Dispatchers.IO) {
+                                    runCatching { ReportPdfExporter.export(context, s) }.getOrNull()
+                                }
+                                if (file != null) ReportPdfExporter.shareFile(context, file)
+                            }
+                        }) {
+                            Icon(Icons.Filled.Share, contentDescription = "Compartir informe en PDF")
+                        }
+                        IconButton(onClick = {
+                            runCatching { saveLauncher.launch(ReportPdfExporter.suggestedName(s)) }
+                        }) {
+                            Icon(Icons.Filled.SaveAlt, contentDescription = "Guardar informe en PDF")
+                        }
+                    }
                     IconButton(onClick = onOpenGoals) {
                         Icon(Icons.Filled.EmojiEvents, contentDescription = "Objetivos y medallas")
                     }
@@ -95,11 +145,6 @@ fun ReportsScreen(
                 CircularProgressIndicator(color = scheme.primary)
             }
             return@Scaffold
-        }
-        val data = state.data
-        val summary = when (state.period) {
-            ReportPeriod.WEEK -> data?.weekly
-            ReportPeriod.MONTH -> data?.monthly
         }
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(inner),
