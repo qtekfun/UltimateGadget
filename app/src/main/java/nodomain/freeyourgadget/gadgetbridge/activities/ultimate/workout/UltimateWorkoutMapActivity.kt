@@ -37,6 +37,7 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -123,7 +124,17 @@ class UltimateWorkoutMapActivity : AppCompatActivity() {
                             IconButton(onClick = { finish() }) {
                                 Icon(Icons.AutoMirrored.Filled.ArrowBack, "back", tint = palette.onSurface)
                             }
-                            Text(title, style = MaterialTheme.typography.titleLarge, color = palette.onSurface)
+                            Text(title, style = MaterialTheme.typography.titleLarge, color = palette.onSurface, modifier = Modifier.weight(1f))
+                            if (summaryId > 0) {
+                                IconButton(onClick = {
+                                    startActivity(
+                                        nodomain.freeyourgadget.gadgetbridge.activities.ultimate.export.UltimateWorkoutExportActivity
+                                            .intent(this@UltimateWorkoutMapActivity, summaryId, device),
+                                    )
+                                }) {
+                                    Icon(Icons.Filled.Share, "Exportar", tint = palette.onSurface)
+                                }
+                            }
                         }
                     }
 
