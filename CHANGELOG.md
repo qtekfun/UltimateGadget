@@ -2,6 +2,10 @@
 
 <!-- For contributors: do not modify this file - the project maintainers will update it as needed -->
 
+#### 0.99.1
+
+* Emparejado: el paso de autenticación opcional (cuenta Huawei) ahora aparece también en la pantalla de añadir dispositivo de la interfaz nueva, no solo en la antigua; diálogo en español y botón "Emparejar" cuando el dispositivo ya tiene la autenticación configurada
+
 #### 0.99.0
 
 * Emparejado: paso opcional y saltable para configurar la autenticación (p. ej. la cuenta Huawei) antes de vincular, para que el reloj no se desvincule ni se restablezca de fábrica
