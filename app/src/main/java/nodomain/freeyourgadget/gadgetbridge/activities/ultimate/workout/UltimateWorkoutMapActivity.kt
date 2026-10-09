@@ -86,7 +86,11 @@ class UltimateWorkoutMapActivity : AppCompatActivity() {
             GBApplication.acquireDB().use { it.daoSession.baseActivitySummaryDao.load(summaryId) }
         }.getOrNull()
 
-        val kind = summary?.activityKind?.let { k -> runCatching { ActivityKind.fromCode(k).getLabel(this) }.getOrNull() }
+        // Resolve the type name against the application context, which carries Gadgetbridge's
+        // language override (this Compose activity does not extend AbstractGBActivity, so its own
+        // context would follow the system locale instead of the app language).
+        val localizedContext = GBApplication.getContext() ?: applicationContext
+        val kind = summary?.activityKind?.let { k -> runCatching { ActivityKind.fromCode(k).getLabel(localizedContext) }.getOrNull() }
         val title = summary?.name?.takeIf { it.isNotBlank() } ?: kind ?: getString(R.string.ug_workout_map_title)
         val stats = summary?.let { buildStats(it, kind) } ?: ""
         val noRoute = getString(R.string.ug_workout_no_route)

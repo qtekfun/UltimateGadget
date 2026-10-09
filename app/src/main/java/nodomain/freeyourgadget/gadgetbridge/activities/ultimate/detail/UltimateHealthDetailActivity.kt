@@ -95,6 +95,9 @@ class UltimateHealthDetailActivity : AppCompatActivity() {
 
         fun loadRecentWorkouts(context: Context, limit: Int): List<WorkoutRow> {
             val device = activeDevice(context) ?: return emptyList()
+            // Gadgetbridge applies its language override to the application context, not to
+            // these plain AppCompatActivity screens, so resolve localized labels against it.
+            val localizedContext = GBApplication.getContext() ?: context.applicationContext
             return runCatching {
                 GBApplication.acquireDB().use { db ->
                     val session = db.daoSession
@@ -109,13 +112,22 @@ class UltimateHealthDetailActivity : AppCompatActivity() {
                             val end = s.endTime
                             val dur = if (start != null && end != null)
                                 ((end.time - start.time) / 1000).coerceAtLeast(0) else 0L
-                            val kind = s.activityKind?.let { k ->
-                                runCatching { ActivityKind.fromCode(k).getLabel(context) }.getOrNull()
-                            }
+                            // Resolve the ActivityKind so the type name is shown in the app's
+                            // language (via the localized Gadgetbridge string) with its icon.
+                            // Use the application context: the Ultimate Compose activities do not
+                            // extend AbstractGBActivity, so only the application context carries
+                            // the language override Gadgetbridge applies at startup.
+                            val kind = runCatching {
+                                ActivityKind.fromCode(s.activityKind ?: ActivityKind.UNKNOWN.code)
+                            }.getOrDefault(ActivityKind.UNKNOWN)
+                            val typeLabel = runCatching { kind.getLabel(localizedContext) }.getOrNull().orEmpty()
                             WorkoutRow(
                                 id = s.id ?: -1L,
-                                title = s.name?.takeIf { it.isNotBlank() } ?: kind ?: "Workout",
-                                type = kind ?: "",
+                                title = s.name?.takeIf { it.isNotBlank() }
+                                    ?: typeLabel.ifEmpty { "Workout" },
+                                activityKindCode = kind.code,
+                                typeLabel = typeLabel,
+                                iconRes = kind.getIcon(),
                                 whenLabel = start?.let { FMT.format(it) } ?: "",
                                 durationSeconds = dur,
                             )
@@ -130,8 +142,14 @@ class UltimateHealthDetailActivity : AppCompatActivity() {
 
 data class WorkoutRow(
     val id: Long,
+    /** Device-provided name, falling back to the localized type label. */
     val title: String,
-    val type: String,
+    /** ActivityKind code, used to group/filter workouts by type. */
+    val activityKindCode: Int,
+    /** Localized activity type name (via ActivityKind.getLabel). */
+    val typeLabel: String,
+    /** Drawable resource for the type icon (via ActivityKind.getIcon). */
+    val iconRes: Int,
     val whenLabel: String,
     val durationSeconds: Long,
 )
