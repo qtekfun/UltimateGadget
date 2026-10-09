@@ -8,6 +8,12 @@
 
     <color name="accent" type="color">#0091ea</color>
 
+    <!-- UltimateGadget: brand splash screen palette (mirrors UltimatePalette.Dark in
+         UltimateTheme.kt). The splash is intentionally fixed to the dark brand look, never the
+         classic orange accent. -->
+    <color name="ultimate_splash_background" type="color">#FF0F1115</color>
+    <color name="ultimate_splash_icon_background" type="color">#FF0F1115</color>
+
     <color name="primarytext_light" type="color">#000000</color>
     <color name="primarytext_dark" type="color">#ffffff</color>
 

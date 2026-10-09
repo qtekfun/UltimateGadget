@@ -500,10 +500,11 @@
     </style>
     <style name="GadgetbridgeTheme.OverflowMenuStyle" parent="Widget.Material3.PopupMenu.Overflow" />
 
-    <!-- splash screen -->
+    <!-- splash screen — UltimateGadget brand dark look (never the classic orange accent) -->
     <style name="SplashTheme" parent="GadgetbridgeTheme.NoActionBar">
-        <item name="android:statusBarColor">@color/primarydark_dark</item>
-        <item name="android:navigationBarColor">@color/primarydark_dark</item>
+        <item name="android:statusBarColor">@color/ultimate_splash_background</item>
+        <item name="android:navigationBarColor">@color/ultimate_splash_background</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="23">false</item>
         <item name="android:windowLightNavigationBar" tools:targetApi="27">false</item>
         <item name="android:windowBackground">@drawable/splash</item>
     </style>
