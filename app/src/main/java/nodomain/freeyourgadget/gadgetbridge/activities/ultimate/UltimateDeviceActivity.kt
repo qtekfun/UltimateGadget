@@ -136,6 +136,9 @@ class UltimateDeviceActivity : AppCompatActivity() {
             if (cap { coordinator.supportsWatchfaceManagement(device) }) {
                 options += DeviceOptionUi("watchfaces", "Esferas", "Ver, activar y borrar esferas del reloj", section = sWatch)
             }
+            if (cap { coordinator.supportsMusicInfo(device) }) {
+                options += DeviceOptionUi("music", "Música", "Ver, subir y borrar música del reloj", section = sWatch)
+            }
         }
 
         // --- Mapas y navegación ---
@@ -189,6 +192,9 @@ class UltimateDeviceActivity : AppCompatActivity() {
             )
             "worldclocks" -> startActivity(
                 nodomain.freeyourgadget.gadgetbridge.activities.ultimate.clock.UltimateWorldClocksActivity.intent(this, device),
+            )
+            "music" -> startActivity(
+                nodomain.freeyourgadget.gadgetbridge.activities.ultimate.music.UltimateMusicActivity.intent(this, device),
             )
             "agps" -> {
                 agpsDevice = device
