@@ -79,6 +79,7 @@ fun UltimateHomeScreen(
     onPhoneMaps: () -> Unit = {},
     onNotifications: () -> Unit = {},
     onReports: () -> Unit = {},
+    onPerformance: () -> Unit = {},
     onClassicMode: () -> Unit = {},
 ) {
     val palette = LocalUltimatePalette.current
@@ -105,6 +106,7 @@ fun UltimateHomeScreen(
                             DropdownMenuItem(text = { Text("Mapas del móvil") }, onClick = { menuOpen = false; onPhoneMaps() })
                             DropdownMenuItem(text = { Text("Notificaciones") }, onClick = { menuOpen = false; onNotifications() })
                             DropdownMenuItem(text = { Text("Informes y objetivos") }, onClick = { menuOpen = false; onReports() })
+                            DropdownMenuItem(text = { Text("Rendimiento") }, onClick = { menuOpen = false; onPerformance() })
                             DropdownMenuItem(text = { Text("Modo clásico") }, onClick = { menuOpen = false; onClassicMode() })
                         }
                     }

@@ -338,6 +338,7 @@
         <activity android:name=".activities.ultimate.clock.UltimateTimersActivity" android:exported="false" android:theme="@style/GadgetbridgeThemeDark.NoActionBar" android:parentActivityName=".activities.ultimate.UltimateDeviceActivity" />
         <activity android:name=".activities.ultimate.export.UltimateWorkoutExportActivity" android:exported="false" android:theme="@style/GadgetbridgeThemeDark.NoActionBar" android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
         <activity android:name=".activities.ultimate.sleep.UltimateSleepActivity" android:exported="false" android:theme="@style/GadgetbridgeThemeDark.NoActionBar" android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
+        <activity android:name=".activities.ultimate.performance.UltimatePerformanceActivity" android:exported="false" android:theme="@style/GadgetbridgeThemeDark.NoActionBar" android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
 
         <!-- UltimateGadget home-screen widget + Quick Settings tiles -->
         <receiver
