@@ -103,42 +103,55 @@ class UltimateDeviceActivity : AppCompatActivity() {
         (application as GBApplication).deviceManager.devices.firstOrNull { it.address == address }
 
     private fun buildOptions(device: GBDevice): List<DeviceOptionUi> {
+        val coordinator = runCatching { device.deviceCoordinator }.getOrNull()
+        fun cap(block: () -> Boolean) = runCatching { block() }.getOrDefault(false)
+
         val options = mutableListOf<DeviceOptionUi>()
+
+        // --- Conexión: estado y sincronización ---
+        val sConn = "Conexión"
         val connecting = !device.isConnected && !device.isInitialized && device.state != GBDevice.State.NOT_CONNECTED
         if (device.isConnected || device.isInitialized) {
-            options += DeviceOptionUi("disconnect", "Desconectar", "Cortar la conexión")
-            options += DeviceOptionUi("sync", "Sincronizar actividad", "Descargar datos nuevos")
+            options += DeviceOptionUi("disconnect", "Desconectar", "Cortar la conexión", section = sConn)
+            options += DeviceOptionUi("sync", "Sincronizar actividad", "Descargar datos nuevos", section = sConn)
         } else if (connecting) {
-            options += DeviceOptionUi("disconnect", "Cancelar conexión", "Detener el intento de conexión")
+            options += DeviceOptionUi("disconnect", "Cancelar conexión", "Detener el intento de conexión", section = sConn)
         } else {
-            options += DeviceOptionUi("connect", "Conectar", "Conectar con el dispositivo")
+            options += DeviceOptionUi("connect", "Conectar", "Conectar con el dispositivo", section = sConn)
         }
-        options += DeviceOptionUi("settings", "Ajustes del dispositivo", "Notificaciones, alarmas, pantallas…")
 
-        val coordinator = runCatching { device.deviceCoordinator }.getOrNull()
+        // --- Reloj: ajustes y funciones del propio reloj ---
+        val sWatch = "Reloj"
+        options += DeviceOptionUi("settings", "Ajustes del dispositivo", "Notificaciones, pantallas, gestos…", section = sWatch)
         if (coordinator != null) {
             if (runCatching { coordinator.getAlarmSlotCount(device) }.getOrDefault(0) > 0) {
-                options += DeviceOptionUi("alarms", "Alarmas", "Despertadores del reloj")
+                options += DeviceOptionUi("alarms", "Alarmas", "Despertadores del reloj", section = sWatch)
             }
             if (runCatching { coordinator.getReminderSlotCount(device) }.getOrDefault(0) > 0) {
-                options += DeviceOptionUi("reminders", "Recordatorios", "Avisos con fecha y hora")
+                options += DeviceOptionUi("reminders", "Recordatorios", "Avisos con fecha y hora", section = sWatch)
             }
             if (runCatching { coordinator.getWorldClocksSlotCount() }.getOrDefault(0) > 0) {
-                options += DeviceOptionUi("worldclocks", "Relojes mundiales", "Otras zonas horarias")
+                options += DeviceOptionUi("worldclocks", "Relojes mundiales", "Otras zonas horarias", section = sWatch)
+            }
+            if (cap { coordinator.supportsWatchfaceManagement(device) }) {
+                options += DeviceOptionUi("watchfaces", "Esferas", "Ver, activar y borrar esferas del reloj", section = sWatch)
             }
         }
+
+        // --- Mapas y navegación ---
+        val sNav = "Mapas y navegación"
         if (coordinator is HuaweiCoordinator) {
-            options += DeviceOptionUi("maps", "Mapas offline", "Instalar y borrar mapas del reloj")
-            options += DeviceOptionUi("routes", "Rutas", "Enviar una ruta GPX")
-        }
-        if (coordinator != null && runCatching { coordinator.supportsWatchfaceManagement(device) }.getOrDefault(false)) {
-            options += DeviceOptionUi("watchfaces", "Esferas", "Ver, activar y borrar esferas del reloj")
+            options += DeviceOptionUi("maps", "Mapas offline", "Instalar y borrar mapas del reloj", section = sNav)
+            options += DeviceOptionUi("routes", "Rutas", "Planificar y enviar rutas", section = sNav)
         }
         if (supportsAgps(device)) {
-            options += DeviceOptionUi("agps", "Actualizar GPS (A-GNSS)", "Instalar datos de satélites para fijar antes")
+            options += DeviceOptionUi("agps", "Actualizar GPS (A-GNSS)", "Instalar datos de satélites para fijar antes", section = sNav)
         }
-        options += DeviceOptionUi("find", "Buscar dispositivo", "Hacer sonar el dispositivo")
-        options += DeviceOptionUi("remove", "Quitar dispositivo", "Desvincular de UltimateGadget", destructive = true)
+
+        // --- Dispositivo: acciones sobre el emparejamiento ---
+        val sDev = "Dispositivo"
+        options += DeviceOptionUi("find", "Buscar dispositivo", "Hacer sonar el dispositivo", section = sDev)
+        options += DeviceOptionUi("remove", "Quitar dispositivo", "Desvincular de UltimateGadget", destructive = true, section = sDev)
         return options
     }
 

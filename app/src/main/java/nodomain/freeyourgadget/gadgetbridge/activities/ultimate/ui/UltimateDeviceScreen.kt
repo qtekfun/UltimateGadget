@@ -88,9 +88,15 @@ fun UltimateDeviceScreen(
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             item { DeviceHeader(device) }
-            item { SectionHeader("Opciones") }
-            items(options, key = { it.id }) { opt ->
-                OptionRow(opt, onClick = { onOption(opt) })
+            // Group rows by section, keeping the order in which each section first appears.
+            val grouped = options.groupBy { it.section }
+            grouped.keys.forEach { section ->
+                item(key = "hdr_$section") {
+                    SectionHeader(section.ifBlank { "Opciones" })
+                }
+                items(grouped.getValue(section), key = { it.id }) { opt ->
+                    OptionRow(opt, onClick = { onOption(opt) })
+                }
             }
         }
     }
