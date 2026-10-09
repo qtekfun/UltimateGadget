@@ -28,9 +28,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -40,8 +42,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -51,6 +55,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
@@ -65,32 +72,52 @@ import java.util.Date
 import java.util.Locale
 
 /**
- * Local-only data export/import for the new UI. Reuses Gadgetbridge's own database backup
- * ([GBDatabaseManager.exportDB]/[GBDatabaseManager.importDB]); the file is chosen by the user
- * through the Storage Access Framework, so nothing leaves the device.
+ * Local-only backup/restore for the new UI.
  *
- * TODO: per-workout GPX/FIT export (GPXExporter/FitExporter exist, one file per workout) and
- *  importing a Huawei Health export are left for a follow-up.
+ * The primary flow is a FULL, ENCRYPTED, PORTABLE backup ([UltimateBackup]): a single `.ugbak`
+ * file that bundles the Gadgetbridge database, every SharedPreferences file and the saved routes,
+ * encrypted with the user's password (AES-256-GCM, PBKDF2 key derivation; see
+ * [UltimateBackupCrypto]). Restored on a clean phone it brings the app back to the same state
+ * (workouts, settings, paired-device row), except for the Bluetooth bonding which lives in the OS
+ * and requires re-pairing the watch.
+ *
+ * A legacy "database only, unencrypted" export is kept for interoperability with the old format and
+ * with plain Gadgetbridge DB backups. Everything is chosen by the user through the Storage Access
+ * Framework, so nothing ever leaves the device.
  */
 class UltimateDataIOActivity : AppCompatActivity() {
 
     private var status by mutableStateOf<String?>(null)
     private var busy by mutableStateOf(false)
-    private var pendingImport by mutableStateOf<Uri?>(null)
+
+    // Full encrypted backup flow.
+    private var askExportPassword by mutableStateOf(false)
+    private var pendingImportUri by mutableStateOf<Uri?>(null)
+    private var pendingExportPassword: CharArray? = null
 
     /** Set after a successful import: the running process still holds the old DB session and
-     *  all the in-memory caches (device service, loaded workout lists, …), so the restored data
-     *  only becomes visible after a clean process restart. */
+     *  all the in-memory caches (device service, loaded workout lists, prefs, …), so the restored
+     *  data only becomes visible after a clean process restart. */
     private var importDone by mutableStateOf(false)
     private var confirmRestart by mutableStateOf(false)
 
-    private val exportPicker = registerForActivityResult(
+    // Full encrypted backup (.ugbak).
+    private val exportFullPicker = registerForActivityResult(
         ActivityResultContracts.CreateDocument("application/octet-stream"),
-    ) { uri -> if (uri != null) doExport(uri) }
+    ) { uri ->
+        val pwd = pendingExportPassword
+        pendingExportPassword = null
+        if (uri != null && pwd != null) doFullExport(uri, pwd) else pwd?.fill('\u0000')
+    }
 
-    private val importPicker = registerForActivityResult(
+    private val importFullPicker = registerForActivityResult(
         ActivityResultContracts.OpenDocument(),
-    ) { uri -> if (uri != null) pendingImport = uri }
+    ) { uri -> if (uri != null) pendingImportUri = uri }
+
+    // Legacy: database-only, unencrypted.
+    private val exportDbPicker = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("application/octet-stream"),
+    ) { uri -> if (uri != null) doLegacyDbExport(uri) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -99,18 +126,35 @@ class UltimateDataIOActivity : AppCompatActivity() {
                 DataIOScreen(
                     status = status,
                     busy = busy,
-                    confirmImportUri = pendingImport,
+                    askExportPassword = askExportPassword,
+                    askImportPassword = pendingImportUri != null,
                     importDone = importDone,
                     confirmRestart = confirmRestart,
                     onBack = { finish() },
-                    onExport = {
+                    onExportFull = { askExportPassword = true },
+                    onExportPasswordConfirmed = { pwd ->
+                        askExportPassword = false
+                        pendingExportPassword = pwd.toCharArray()
+                        val name = "ultimategadget-" +
+                            SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US).format(Date()) +
+                            "." + UltimateBackup.FILE_EXTENSION
+                        exportFullPicker.launch(name)
+                    },
+                    onExportPasswordCancel = { askExportPassword = false },
+                    onPickImport = {
+                        importFullPicker.launch(arrayOf("application/octet-stream", "*/*"))
+                    },
+                    onImportPasswordConfirmed = { pwd ->
+                        val uri = pendingImportUri
+                        pendingImportUri = null
+                        if (uri != null) doFullImport(uri, pwd.toCharArray())
+                    },
+                    onImportPasswordCancel = { pendingImportUri = null },
+                    onExportDbOnly = {
                         val name = "ultimategadget-" +
                             SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US).format(Date()) + ".db"
-                        exportPicker.launch(name)
+                        exportDbPicker.launch(name)
                     },
-                    onPickImport = { importPicker.launch(arrayOf("application/octet-stream", "*/*")) },
-                    onConfirmImport = { uri -> pendingImport = null; doImport(uri) },
-                    onCancelImport = { pendingImport = null },
                     onRestartRequest = { confirmRestart = true },
                     onConfirmRestart = { confirmRestart = false; restartApp() },
                     onCancelRestart = { confirmRestart = false },
@@ -119,7 +163,63 @@ class UltimateDataIOActivity : AppCompatActivity() {
         }
     }
 
-    private fun doExport(uri: Uri) {
+    private fun doFullExport(uri: Uri, password: CharArray) {
+        busy = true
+        status = null
+        lifecycleScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                runCatching {
+                    contentResolver.openOutputStream(uri)?.use {
+                        UltimateBackup.exportEncrypted(applicationContext, it, password)
+                    } ?: throw Exception("No se pudo abrir el destino")
+                }
+            }
+            password.fill('\u0000')
+            busy = false
+            status = result.fold(
+                {
+                    "Copia completa cifrada creada correctamente. Incluye base de datos " +
+                        "(entrenos, actividad, sueño, pulso), ajustes de la app y por dispositivo, " +
+                        "y rutas guardadas. Guárdala y recuerda la contraseña: sin ella no se puede " +
+                        "restaurar."
+                },
+                { "Error al exportar: ${it.localizedMessage}" },
+            )
+        }
+    }
+
+    private fun doFullImport(uri: Uri, password: CharArray) {
+        busy = true
+        status = null
+        lifecycleScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                runCatching {
+                    contentResolver.openInputStream(uri)?.use {
+                        UltimateBackup.importEncrypted(applicationContext, it, password)
+                    } ?: throw Exception("No se pudo abrir el fichero")
+                }
+            }
+            password.fill('\u0000')
+            busy = false
+            result.fold(
+                { res ->
+                    importDone = true
+                    status = "Copia restaurada: base de datos + ${res.prefsFiles} ficheros de ajustes" +
+                        (if (res.routeFiles > 0) " + ${res.routeFiles} rutas" else "") +
+                        ". Reinicia la app para aplicar los cambios. Nota: el emparejamiento " +
+                        "Bluetooth no se puede restaurar (es del sistema Android); vuelve a conectar " +
+                        "el reloj desde la app."
+                },
+                {
+                    importDone = false
+                    status = "Error al importar: ${it.localizedMessage}"
+                },
+            )
+        }
+    }
+
+    /** Legacy, unencrypted: exports just the database file (old behaviour / plain GB backups). */
+    private fun doLegacyDbExport(uri: Uri) {
         busy = true
         status = null
         lifecycleScope.launch {
@@ -131,45 +231,22 @@ class UltimateDataIOActivity : AppCompatActivity() {
             }
             busy = false
             status = result.fold(
-                { "Copia exportada correctamente." },
+                { "Base de datos exportada (sin cifrar, solo BD)." },
                 { "Error al exportar: ${it.localizedMessage}" },
             )
         }
     }
 
-    private fun doImport(uri: Uri) {
-        busy = true
-        status = null
-        lifecycleScope.launch {
-            val result = withContext(Dispatchers.IO) {
-                runCatching {
-                    contentResolver.openInputStream(uri)?.use { GBDatabaseManager.importDB(it) }
-                        ?: throw Exception("No se pudo abrir el fichero")
-                }
-            }
-            busy = false
-            result.fold(
-                {
-                    importDone = true
-                    status = "Base de datos importada (todos los datos: actividad, sueño, pulso y " +
-                        "entrenos). Reinicia la app para que los cambios sean visibles."
-                },
-                {
-                    importDone = false
-                    status = "Error al importar: ${it.localizedMessage}"
-                },
-            )
-        }
-    }
-
     /**
-     * Clean process restart so the freshly imported database is reopened from scratch.
+     * Clean process restart so the freshly imported database AND the restored SharedPreferences are
+     * reloaded from scratch.
      *
      * We launch the app's main entry point ([UltimateHomeActivity], the LAUNCHER activity, which
      * reconnects the last watch on start) as a fresh task and then kill the process. When Android
-     * relaunches the task, [nodomain.freeyourgadget.gadgetbridge.GBApplication] re-initialises and
-     * [GBDatabaseManager] opens the new database file, so every in-memory cache is rebuilt from the
-     * imported data. This is the library-free ProcessPhoenix pattern (no extra dependencies).
+     * relaunches the task, [nodomain.freeyourgadget.gadgetbridge.GBApplication] re-initialises,
+     * re-reads the preference files from disk and [GBDatabaseManager] opens the new database file,
+     * so every in-memory cache is rebuilt from the imported data. This is the library-free
+     * ProcessPhoenix pattern (no extra dependencies).
      */
     private fun restartApp() {
         val launchComponent = packageManager
@@ -193,14 +270,18 @@ class UltimateDataIOActivity : AppCompatActivity() {
 private fun DataIOScreen(
     status: String?,
     busy: Boolean,
-    confirmImportUri: Uri?,
+    askExportPassword: Boolean,
+    askImportPassword: Boolean,
     importDone: Boolean,
     confirmRestart: Boolean,
     onBack: () -> Unit,
-    onExport: () -> Unit,
+    onExportFull: () -> Unit,
+    onExportPasswordConfirmed: (String) -> Unit,
+    onExportPasswordCancel: () -> Unit,
     onPickImport: () -> Unit,
-    onConfirmImport: (Uri) -> Unit,
-    onCancelImport: () -> Unit,
+    onImportPasswordConfirmed: (String) -> Unit,
+    onImportPasswordCancel: () -> Unit,
+    onExportDbOnly: () -> Unit,
     onRestartRequest: () -> Unit,
     onConfirmRestart: () -> Unit,
     onCancelRestart: () -> Unit,
@@ -210,7 +291,7 @@ private fun DataIOScreen(
         containerColor = palette.background,
         topBar = {
             TopAppBar(
-                title = { Text("Exportar / Importar", fontWeight = FontWeight.Bold) },
+                title = { Text("Copia de seguridad", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás")
@@ -229,31 +310,50 @@ private fun DataIOScreen(
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             SectionCard(
-                title = "Exportar copia",
-                body = "Guarda una copia de seguridad de toda tu base de datos (actividad, sueño, " +
-                    "pulso, entrenos, ajustes de dispositivos) en un fichero que tú eliges. Todo local.",
+                title = "Copia completa cifrada",
+                body = "Crea un único fichero .ugbak que puedes llevar a otro teléfono. Incluye la " +
+                    "base de datos (entrenos, actividad, sueño, pulso), todos los ajustes (de la app " +
+                    "y de cada dispositivo) y las rutas guardadas. Se cifra con tu contraseña " +
+                    "(AES-256). Sin la contraseña no se puede restaurar, así que no la olvides.",
             ) {
-                Button(onClick = onExport, enabled = !busy) { Text("Exportar copia…") }
+                Button(onClick = onExportFull, enabled = !busy) { Text("Crear copia cifrada…") }
             }
+
             SectionCard(
-                title = "Importar copia",
-                body = "Restaura una copia de seguridad exportada antes. SOBRESCRIBE la base de datos " +
-                    "actual (todas las tablas, incluidos los entrenos). Tras importar hay que " +
-                    "reiniciar la app para que los datos restaurados se vean.",
+                title = "Restaurar copia completa",
+                body = "Elige un fichero .ugbak y escribe su contraseña. SOBRESCRIBE la base de " +
+                    "datos y los ajustes actuales con los de la copia. Después hay que reiniciar la " +
+                    "app para que se apliquen los cambios.",
             ) {
-                OutlinedButton(onClick = onPickImport, enabled = !busy) { Text("Elegir fichero…") }
+                OutlinedButton(onClick = onPickImport, enabled = !busy) { Text("Elegir copia…") }
             }
+
+            SectionCard(
+                title = "Al pasar a otro teléfono",
+                body = "El emparejamiento Bluetooth (las claves de vinculación del reloj) lo guarda el " +
+                    "sistema Android, NO la app, así que no se puede exportar. En el teléfono nuevo, " +
+                    "tras restaurar la copia tendrás que volver a conectar/emparejar el reloj desde " +
+                    "la app. Los entrenos, los ajustes y el dispositivo guardado SÍ se restauran.",
+            ) {}
 
             SectionCard(
                 title = "Reiniciar app",
                 body = if (importDone) {
-                    "Importación lista. Reinicia la app para aplicar los cambios y ver los datos " +
+                    "Restauración lista. Reinicia la app para aplicar los cambios y ver los datos " +
                         "restaurados. Al volver se reconectará tu reloj automáticamente."
                 } else {
-                    "Cierra y vuelve a abrir la app de forma limpia. Útil tras importar una copia."
+                    "Cierra y vuelve a abrir la app de forma limpia. Útil tras restaurar una copia."
                 },
             ) {
                 Button(onClick = onRestartRequest, enabled = !busy) { Text("Reiniciar app") }
+            }
+
+            SectionCard(
+                title = "Exportar solo base de datos (sin cifrar)",
+                body = "Opción heredada: guarda únicamente el fichero de la base de datos, sin " +
+                    "ajustes ni cifrado. Útil para interoperar con copias de Gadgetbridge.",
+            ) {
+                OutlinedButton(onClick = onExportDbOnly, enabled = !busy) { Text("Exportar solo BD…") }
             }
 
             if (busy) {
@@ -268,24 +368,25 @@ private fun DataIOScreen(
         }
     }
 
-    if (confirmImportUri != null) {
-        androidx.compose.material3.AlertDialog(
-            onDismissRequest = onCancelImport,
-            title = { Text("Sobrescribir la base de datos") },
-            text = { Text("Esto reemplazará todos los datos actuales por los de la copia. ¿Continuar?") },
-            confirmButton = { Button(onClick = { onConfirmImport(confirmImportUri) }) { Text("Importar") } },
-            dismissButton = { OutlinedButton(onClick = onCancelImport) { Text("Cancelar") } },
-            containerColor = palette.surfaceContainer,
-            titleContentColor = palette.onSurface,
-            textContentColor = palette.onSurfaceVariant,
+    if (askExportPassword) {
+        ExportPasswordDialog(
+            onConfirm = onExportPasswordConfirmed,
+            onCancel = onExportPasswordCancel,
+        )
+    }
+
+    if (askImportPassword) {
+        ImportPasswordDialog(
+            onConfirm = onImportPasswordConfirmed,
+            onCancel = onImportPasswordCancel,
         )
     }
 
     if (confirmRestart) {
-        androidx.compose.material3.AlertDialog(
+        AlertDialog(
             onDismissRequest = onCancelRestart,
             title = { Text("Reiniciar la app") },
-            text = { Text("La app se cerrará y se reiniciará para aplicar la importación. ¿Continuar?") },
+            text = { Text("La app se cerrará y se reiniciará para aplicar la restauración. ¿Continuar?") },
             confirmButton = { Button(onClick = onConfirmRestart) { Text("Reiniciar") } },
             dismissButton = { OutlinedButton(onClick = onCancelRestart) { Text("Cancelar") } },
             containerColor = palette.surfaceContainer,
@@ -293,6 +394,106 @@ private fun DataIOScreen(
             textContentColor = palette.onSurfaceVariant,
         )
     }
+}
+
+@Composable
+private fun ExportPasswordDialog(onConfirm: (String) -> Unit, onCancel: () -> Unit) {
+    val palette = LocalUltimatePalette.current
+    var pwd by remember { mutableStateOf("") }
+    var confirm by remember { mutableStateOf("") }
+    var reveal by remember { mutableStateOf(false) }
+
+    val tooShort = pwd.length < 6
+    val mismatch = pwd != confirm
+    val error = when {
+        pwd.isEmpty() -> null
+        tooShort -> "La contraseña debe tener al menos 6 caracteres."
+        mismatch && confirm.isNotEmpty() -> "Las contraseñas no coinciden."
+        else -> null
+    }
+    val canConfirm = !tooShort && !mismatch && confirm.isNotEmpty()
+
+    AlertDialog(
+        onDismissRequest = onCancel,
+        title = { Text("Contraseña de la copia") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text(
+                    "Elige una contraseña para cifrar la copia. La necesitarás para restaurarla; " +
+                        "no se puede recuperar si la pierdes.",
+                    color = palette.onSurfaceVariant,
+                )
+                PasswordField(pwd, { pwd = it }, "Contraseña", reveal)
+                PasswordField(confirm, { confirm = it }, "Repite la contraseña", reveal)
+                TextButton(onClick = { reveal = !reveal }) {
+                    Text(if (reveal) "Ocultar" else "Mostrar", color = palette.primary)
+                }
+                error?.let { Text(it, color = palette.error) }
+            }
+        },
+        confirmButton = {
+            Button(onClick = { onConfirm(pwd) }, enabled = canConfirm) { Text("Cifrar y guardar") }
+        },
+        dismissButton = { OutlinedButton(onClick = onCancel) { Text("Cancelar") } },
+        containerColor = palette.surfaceContainer,
+        titleContentColor = palette.onSurface,
+        textContentColor = palette.onSurfaceVariant,
+    )
+}
+
+@Composable
+private fun ImportPasswordDialog(onConfirm: (String) -> Unit, onCancel: () -> Unit) {
+    val palette = LocalUltimatePalette.current
+    var pwd by remember { mutableStateOf("") }
+    var reveal by remember { mutableStateOf(false) }
+
+    AlertDialog(
+        onDismissRequest = onCancel,
+        title = { Text("Contraseña de la copia") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text(
+                    "Escribe la contraseña con la que se cifró esta copia para poder restaurarla.",
+                    color = palette.onSurfaceVariant,
+                )
+                PasswordField(pwd, { pwd = it }, "Contraseña", reveal)
+                TextButton(onClick = { reveal = !reveal }) {
+                    Text(if (reveal) "Ocultar" else "Mostrar", color = palette.primary)
+                }
+            }
+        },
+        confirmButton = {
+            Button(onClick = { onConfirm(pwd) }, enabled = pwd.isNotEmpty()) { Text("Restaurar") }
+        },
+        dismissButton = { OutlinedButton(onClick = onCancel) { Text("Cancelar") } },
+        containerColor = palette.surfaceContainer,
+        titleContentColor = palette.onSurface,
+        textContentColor = palette.onSurfaceVariant,
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun PasswordField(value: String, onChange: (String) -> Unit, label: String, reveal: Boolean) {
+    val palette = LocalUltimatePalette.current
+    OutlinedTextField(
+        value = value,
+        onValueChange = onChange,
+        label = { Text(label) },
+        singleLine = true,
+        visualTransformation = if (reveal) VisualTransformation.None else PasswordVisualTransformation(),
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+        modifier = Modifier.fillMaxWidth(),
+        colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
+            focusedTextColor = palette.onSurface,
+            unfocusedTextColor = palette.onSurface,
+            focusedBorderColor = palette.primary,
+            unfocusedBorderColor = palette.onSurfaceVariant,
+            focusedLabelColor = palette.primary,
+            unfocusedLabelColor = palette.onSurfaceVariant,
+            cursorColor = palette.primary,
+        ),
+    )
 }
 
 @Composable
