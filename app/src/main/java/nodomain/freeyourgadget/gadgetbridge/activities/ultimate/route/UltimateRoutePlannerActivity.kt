@@ -56,11 +56,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import nodomain.freeyourgadget.gadgetbridge.GBApplication
+import nodomain.freeyourgadget.gadgetbridge.activities.install.GpxRouteInstallerActivity
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.theme.LocalUltimatePalette
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.theme.UltimateTheme
-import nodomain.freeyourgadget.gadgetbridge.devices.GpxRouteInstallHandler
+import nodomain.freeyourgadget.gadgetbridge.impl.GBDevice
+import nodomain.freeyourgadget.gadgetbridge.util.kotlin.getParcelableCompat
 import nodomain.freeyourgadget.gadgetbridge.mapcore.LatLon
 import nodomain.freeyourgadget.gadgetbridge.mapcore.MapTheme
+import nodomain.freeyourgadget.gadgetbridge.mapcore.MyLocationButton
 import nodomain.freeyourgadget.gadgetbridge.mapcore.UltimateMapEngine
 import nodomain.freeyourgadget.gadgetbridge.mapcore.UltimateMapView
 import java.io.File
@@ -113,6 +116,17 @@ class UltimateRoutePlannerActivity : AppCompatActivity() {
                         }
                         Text("Planificar ruta", style = MaterialTheme.typography.titleLarge, color = palette.onSurface)
                     }
+
+                    MyLocationButton(
+                        onLocation = { p ->
+                            engine?.setUserLocation(p)
+                            engine?.setCamera(p, 15.0)
+                        },
+                        onUnavailable = { msg -> Toast.makeText(this@UltimateRoutePlannerActivity, msg, Toast.LENGTH_SHORT).show() },
+                        containerColor = palette.surfaceContainer,
+                        contentColor = palette.primary,
+                        modifier = Modifier.align(Alignment.TopEnd).padding(12.dp),
+                    )
 
                     if (!this@UltimateRoutePlannerActivity.hasBaseMap()) {
                         PillButton("Importar mapa base", Icons.Filled.Send, palette.secondaryContainer, palette.onSecondaryContainer, enabled = true, modifier = Modifier.align(Alignment.Center)) {
@@ -175,24 +189,40 @@ class UltimateRoutePlannerActivity : AppCompatActivity() {
     private fun hasBaseMap(): Boolean =
         File(filesDir, "maps").listFiles { f -> f.isFile && f.name.endsWith(".pmtiles") }?.isNotEmpty() == true
 
+    /** The watch we plan for: the one we were launched with, else any initialized device. */
+    private fun plannerDevice(): GBDevice? {
+        val manager = GBApplication.app().deviceManager
+        val fromIntent = intent.getParcelableCompat<GBDevice>(GBDevice.EXTRA_DEVICE)
+        return fromIntent?.let { want -> manager.devices.firstOrNull { it.address == want.address } }
+            ?: manager.devices.firstOrNull { it.isInitialized }
+            ?: manager.devices.firstOrNull()
+    }
+
     private fun sendRoute(name: String) {
-        val device = GBApplication.app().deviceManager.devices.firstOrNull { it.isInitialized }
+        val device = plannerDevice()
         if (device == null) {
-            Toast.makeText(this, "Conecta un reloj primero", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Empareja un reloj compatible primero", Toast.LENGTH_SHORT).show()
             return
         }
         try {
             val gpx = buildGpx(name, waypoints)
+            // Keep a local copy in the route registry (manage / resend / delete).
+            PhoneRouteStore.save(this, name, gpx)
+            // Hand the GPX to the proven installer flow: it waits for the connection, validates that
+            // the device supports route upload, and shows upload progress — unlike a blind fire-and-forget.
             val dir = File(cacheDir, "gpx").apply { mkdirs() }
             val file = File(dir, "planned_${System.currentTimeMillis()}.gpx")
             file.writeText(gpx)
             val uri = FileProvider.getUriForFile(this, "$packageName.screenshot_provider", file)
-            val bundle = Bundle().apply { putString(GpxRouteInstallHandler.EXTRA_TRACK_NAME, name) }
-            GBApplication.deviceService(device).onInstallApp(uri, bundle)
-            Toast.makeText(this, "Enviando ruta al reloj…", Toast.LENGTH_SHORT).show()
+            val intent = Intent(this, GpxRouteInstallerActivity::class.java).apply {
+                data = uri
+                putExtra(GBDevice.EXTRA_DEVICE, device)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            startActivity(intent)
             finish()
         } catch (e: Exception) {
-            Toast.makeText(this, "No se pudo enviar: ${e.message}", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "No se pudo preparar la ruta: ${e.message}", Toast.LENGTH_LONG).show()
         }
     }
 

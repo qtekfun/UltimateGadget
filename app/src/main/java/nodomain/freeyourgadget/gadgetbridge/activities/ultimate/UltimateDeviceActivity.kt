@@ -117,6 +117,9 @@ class UltimateDeviceActivity : AppCompatActivity() {
             options += DeviceOptionUi("maps", "Mapas offline", "Instalar y borrar mapas del reloj")
             options += DeviceOptionUi("routes", "Rutas", "Enviar una ruta GPX")
         }
+        if (coordinator != null && runCatching { coordinator.supportsWatchfaceManagement(device) }.getOrDefault(false)) {
+            options += DeviceOptionUi("watchfaces", "Esferas", "Ver, activar y borrar esferas del reloj")
+        }
         if (supportsAgps(device)) {
             options += DeviceOptionUi("agps", "Actualizar GPS (A-GNSS)", "Instalar datos de satélites para fijar antes")
         }
@@ -142,7 +145,15 @@ class UltimateDeviceActivity : AppCompatActivity() {
             "maps" -> startActivity(
                 Intent(this, HuaweiMapManagementActivity::class.java).apply { putExtra(GBDevice.EXTRA_DEVICE, device) },
             )
-            "routes" -> toast("Rutas — próximamente")
+            "routes" -> startActivity(
+                Intent(this, HuaweiMapManagementActivity::class.java).apply {
+                    putExtra(GBDevice.EXTRA_DEVICE, device)
+                    putExtra("ug_tab", 1) // open on the Routes tab
+                },
+            )
+            "watchfaces" -> startActivity(
+                nodomain.freeyourgadget.gadgetbridge.activities.ultimate.watchfaces.UltimateWatchfacesActivity.intent(this, device),
+            )
             "agps" -> {
                 agpsDevice = device
                 toast("Elige el fichero A-GNSS descargado")
