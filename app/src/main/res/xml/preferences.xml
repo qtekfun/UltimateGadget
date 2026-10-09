@@ -34,7 +34,7 @@
             android:icon="@drawable/ic_encrypted_add">
             <intent
                 android:targetPackage="@string/applicationId"
-                android:targetClass="nodomain.freeyourgadget.gadgetbridge.activities.PermissionsActivity" />
+                android:targetClass="nodomain.freeyourgadget.gadgetbridge.activities.ultimate.onboarding.UltimatePermissionsActivity" />
         </Preference>
 
         <SwitchPreferenceCompat

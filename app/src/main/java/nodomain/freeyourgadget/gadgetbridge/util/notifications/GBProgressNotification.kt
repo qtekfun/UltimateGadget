@@ -24,7 +24,7 @@ import androidx.annotation.StringRes
 import androidx.core.app.NotificationCompat
 import nodomain.freeyourgadget.gadgetbridge.BuildConfig
 import nodomain.freeyourgadget.gadgetbridge.R
-import nodomain.freeyourgadget.gadgetbridge.activities.ControlCenterv2
+import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.UltimateHomeActivity
 import nodomain.freeyourgadget.gadgetbridge.util.GB
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -220,7 +220,7 @@ class GBProgressNotification(
             channelId: String,
             context: Context
         ): Notification {
-            val notificationIntent = Intent(context, ControlCenterv2::class.java)
+            val notificationIntent = Intent(context, UltimateHomeActivity::class.java)
             notificationIntent.setPackage(BuildConfig.APPLICATION_ID)
             notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
             val pendingIntent = PendingIntent.getActivity(

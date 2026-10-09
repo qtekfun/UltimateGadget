@@ -11,8 +11,8 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import nodomain.freeyourgadget.gadgetbridge.Logging
 import nodomain.freeyourgadget.gadgetbridge.R
 import nodomain.freeyourgadget.gadgetbridge.activities.CameraActivity
-import nodomain.freeyourgadget.gadgetbridge.activities.PermissionsActivity
-import nodomain.freeyourgadget.gadgetbridge.activities.welcome.WelcomeActivity
+import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.onboarding.UltimatePermissionsActivity
+import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.onboarding.UltimateWelcomeActivity
 import nodomain.freeyourgadget.gadgetbridge.deviceevents.GBDeviceEventCameraRemote
 import nodomain.freeyourgadget.gadgetbridge.util.DeviceTypeDialog
 import nodomain.freeyourgadget.gadgetbridge.util.FileUtils
@@ -102,11 +102,11 @@ class MainDebugFragment : AbstractDebugFragment() {
         }
 
         onClick(PREF_DEBUG_ACTIVITY_WELCOME) {
-            requireContext().startActivity(Intent(requireContext().applicationContext, WelcomeActivity::class.java))
+            requireContext().startActivity(UltimateWelcomeActivity.intent(requireContext().applicationContext))
         }
 
         onClick(PREF_DEBUG_ACTIVITY_PERMISSIONS) {
-            requireContext().startActivity(Intent(requireContext().applicationContext, PermissionsActivity::class.java))
+            requireContext().startActivity(UltimatePermissionsActivity.intent(requireContext().applicationContext))
         }
     }
 

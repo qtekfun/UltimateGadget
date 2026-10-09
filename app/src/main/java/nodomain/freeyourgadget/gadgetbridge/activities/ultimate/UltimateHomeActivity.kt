@@ -52,8 +52,6 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import nodomain.freeyourgadget.gadgetbridge.GBApplication
 import nodomain.freeyourgadget.gadgetbridge.util.GBPrefs
 import nodomain.freeyourgadget.gadgetbridge.util.PermissionsUtils
-import nodomain.freeyourgadget.gadgetbridge.activities.welcome.WelcomeActivity
-import nodomain.freeyourgadget.gadgetbridge.activities.PermissionsActivity
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.dashboard.DashboardScreen
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.dashboard.DashboardViewModel
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.detail.UltimateHealthDetailActivity
