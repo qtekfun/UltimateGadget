@@ -200,6 +200,16 @@ public class HuaweiSettingsCustomizer implements DeviceSpecificSettingsCustomize
             });
         }
 
+        final Preference offlineMaps = handler.findPreference("pref_huawei_offline_maps_manage");
+        if (offlineMaps != null) {
+            offlineMaps.setOnPreferenceClickListener(preference -> {
+                final Intent intent = new Intent(handler.getContext(), nodomain.freeyourgadget.gadgetbridge.devices.huawei.ui.HuaweiMapManagementActivity.class);
+                intent.putExtra(GBDevice.EXTRA_DEVICE, handler.getDevice());
+                handler.getContext().startActivity(intent);
+                return true;
+            });
+        }
+
         final Preference hrSettings = handler.findPreference("pref_perform_heart_rate_settings");
         if (hrSettings != null) {
             hrSettings.setOnPreferenceClickListener(preference -> {
