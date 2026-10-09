@@ -2,6 +2,11 @@
 
 <!-- For contributors: do not modify this file - the project maintainers will update it as needed -->
 
+#### 0.99.0
+
+* Emparejado: paso opcional y saltable para configurar la autenticación (p. ej. la cuenta Huawei) antes de vincular, para que el reloj no se desvincule ni se restablezca de fábrica
+* App de mapas: utilidad para obtener la clave Bluetooth (auth key) de relojes Amazfit/Zepp desde los servidores de Huami, con selector de región, para emparejarlos sin la app Zepp (el email y la contraseña solo se usan para el login y no se guardan)
+
 #### 0.98.0
 
 * Copia de seguridad completa y cifrada (.ugbak): exporta entrenos, toda la configuración de la app, los ajustes por dispositivo y las rutas, protegidos con contraseña (AES-256-GCM); restaurable en otro teléfono (el emparejamiento Bluetooth hay que rehacerlo)
