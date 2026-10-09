@@ -2,6 +2,12 @@
 
 <!-- For contributors: do not modify this file - the project maintainers will update it as needed -->
 
+#### 0.97.0
+
+* Golf: scorecard por hoyo (par, golpes, ±, putts) con totales, leído de la sincronización normal de entrenos (sin root ni Huawei Health); las rondas de golf se identifican como Golf
+* Splash de arranque rehecho con la estética oscura de marca (adiós al naranja)
+* Visor de mapas extraído a una librería propia reutilizable (ultimate-mapcore)
+
 #### 0.96.0
 
 * Nueva interfaz UltimateGadget como app completa: Inicio (dashboard con datos reales + readiness), lista de dispositivos con tarjetas e iconos propios por categoría, y detalle de dispositivo agrupado por secciones
