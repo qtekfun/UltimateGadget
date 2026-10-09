@@ -106,7 +106,7 @@ private fun PhoneMapsScreen(onBack: () -> Unit) {
         ) {
             Text(
                 "Mapas base para el visor (planificador y entrenos). Descarga un .pmtiles de las releases de " +
-                    "UltimateGadget-maps / UltimateMaps-data (o con UltimateMaps) e impórtalo aquí.",
+                    "UltimateGadget-maps / ultimate-maps-data (o con UltimateMaps) e impórtalo aquí.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = palette.onSurfaceVariant,
             )
