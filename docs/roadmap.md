@@ -21,12 +21,14 @@ enfoque privacidad-primero / 100% local del proyecto. Marca `[x]` lo hecho, `[~]
 
 ## Siguiente (alto valor, reaprovecha lo hecho)
 - [x] Mapas del móvil: importación de PMTiles + app compañera :mapdownloader que los descarga del catálogo de UltimateMaps-data (la app principal es offline).
-- [~] En curso (agentes): bug atrás-en-ajustes, insets del mapa, export GPX/FIT por entreno, sueño avanzado, gestor de música.
+- [x] Pantallas nuevas: notificaciones, esferas, informes/objetivos, alarmas/recordatorios/relojes mundiales, sueño avanzado, gestor de música, export GPX/FIT por entreno, rendimiento (PAI/carga/VO2max/HRV), temporizadores (locales del móvil), widgets de inicio + QS tiles.
+- [x] Bugs: atrás-en-ajustes ya no cierra la app; insets del mapa; rutas con coma decimal; activación de esferas (confirm 0x05).
+- [x] Ajustes del dispositivo: piel oscura de marca + categorías (solo Huawei).
 - [ ] Snap-to-roads en el planificador (OSRM) y edición de waypoints.
-- [ ] Reemplazar/retematizar "Ajustes del dispositivo" (aún UI vieja de preferencias).
+- [x] "Ajustes del dispositivo": piel oscura de marca + categorías (Huawei).
 - [x] Informes semanales/mensuales con gráficas. Objetivos, rachas y medallas. [ ] export a PDF pendiente.
-- [ ] Puntuaciones derivadas en local: readiness/energía (tipo Body Battery), carga de entreno, VO2max, HRV, PAI.
-- [~] Sueño avanzado: fases, puntuación, SpO2 nocturno, siestas (agente en curso).
+- [x] Puntuaciones derivadas: readiness, carga (TRIMP/ACWR), VO2max, HRV, PAI.
+- [x] Sueño avanzado: fases, puntuación, SpO2 nocturno, siestas.
 
 ## Datos y privacidad (diferenciador)
 - [x] Notificaciones: apps que notifican al reloj + No molestar (horario/días) en estética Ultimate.
@@ -38,15 +40,15 @@ enfoque privacidad-primero / 100% local del proyecto. Marca `[x]` lo hecho, `[~]
 
 ## Dispositivo
 - [x] Vitrina/instalador de esferas (watchfaces). [ ] Diseñador básico (later).
-- [x] Alarmas, recordatorios y relojes mundiales (estética Ultimate). [ ] Temporizadores y gestión de apps/widgets del reloj.
-- [~] Gestor de música (agente en curso). [ ] Playlists.
+- [x] Alarmas, recordatorios, relojes mundiales y temporizadores (local). [ ] Gestión de apps/widgets del reloj.
+- [x] Gestor de música (listar/subir/borrar). [ ] Playlists.
 
 ## Golf (nicho propio)
 - [ ] Biblioteca de campos desde OpenStreetMap (golf=*), scorecard, seguimiento de golpes, distancias.
 - [ ] Desbloquear el formato del fichero de campo/efemérides Huawei (requiere muestra con dispositivo rooteado).
 
 ## Ambicioso / later
-- [ ] Widgets de pantalla de inicio y Quick Settings tiles.
+- [x] Widget de inicio (pasos/batería/FC) y QS tiles (sincronizar, buscar reloj).
 - [ ] Reglas de notificaciones (filtros por app/horario).
 - [ ] Material You dinámico opcional.
 - [x] UI nueva como pantalla de arranque (con gateo de primer-inicio/permisos).
