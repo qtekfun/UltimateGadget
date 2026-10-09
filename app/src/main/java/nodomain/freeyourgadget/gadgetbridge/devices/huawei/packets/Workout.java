@@ -27,6 +27,7 @@ import java.util.Map;
 
 import nodomain.freeyourgadget.gadgetbridge.devices.huawei.HuaweiPacket;
 import nodomain.freeyourgadget.gadgetbridge.devices.huawei.HuaweiTLV;
+import nodomain.freeyourgadget.gadgetbridge.util.GB;
 
 public class Workout {
 
@@ -1058,6 +1059,30 @@ public class Workout {
                 public int divingUnderwaterTime = -1;
                 public int divingBreakTime = -1;
 
+                // UltimateGadget golf spike: per-hole golf scorecard fields carried as workout
+                // "section" blocks (service 0x17 / command 0x16). These are additive and only
+                // populated when the watch sends the corresponding golf TLV tags; every other
+                // workout type leaves them at -1 and is unaffected. Tag->field mapping was taken
+                // from Huawei Health's HwWorkoutServiceUtils.parseGolfSectionData /
+                // parseGolfSectionTrackData (static analysis of the own-phone APK, no server
+                // traffic). NOTE: not yet confirmed against a real synced round — see rawHex.
+                public int golfBackSwingTime = -1;   // tag 0x12 (18)
+                public int golfDownSwingTime = -1;   // tag 0x13 (19)
+                public int golfHeadSpeed = -1;       // tag 0x14 (20)
+                public int golfSwingTempo = -1;      // tag 0x15 (21)
+                public long golfHoleId = -1;         // tag 0x2b (43)
+                public int golfPar = -1;             // tag 0x2c (44)
+                public int golfHoleScore = -1;       // tag 0x2d (45)
+                public int golfHolePutts = -1;       // tag 0x2e (46)
+                public int golfHolePenalty = -1;     // tag 0x2f (47)
+                public int golfFairwayHits = -1;     // tag 0x30 (48)
+                public int golfHandicap = -1;        // tag 0x31 (49)
+                public int golfValidTracks = -1;     // tag 0x32 (50)
+
+                // Debug-only verbatim capture of the whole section block TLV, so the exact golf
+                // layout (including the nested shot-track container, tags 0x34/0x35/0x36 =
+                // lon/lat/distance) can be recovered from a real synced round. Logged, not stored.
+                public String rawHex = null;
 
                 @NonNull
                 @Override
@@ -1080,6 +1105,19 @@ public class Workout {
                             ", divingMaxDepth=" + divingMaxDepth +
                             ", divingUnderwaterTime=" + divingUnderwaterTime +
                             ", divingBreakTime=" + divingBreakTime +
+                            ", golfBackSwingTime=" + golfBackSwingTime +
+                            ", golfDownSwingTime=" + golfDownSwingTime +
+                            ", golfHeadSpeed=" + golfHeadSpeed +
+                            ", golfSwingTempo=" + golfSwingTempo +
+                            ", golfHoleId=" + golfHoleId +
+                            ", golfPar=" + golfPar +
+                            ", golfHoleScore=" + golfHoleScore +
+                            ", golfHolePutts=" + golfHolePutts +
+                            ", golfHolePenalty=" + golfHolePenalty +
+                            ", golfFairwayHits=" + golfFairwayHits +
+                            ", golfHandicap=" + golfHandicap +
+                            ", golfValidTracks=" + golfValidTracks +
+                            (rawHex == null ? "" : ", rawHex=" + rawHex) +
                             '}';
                 }
             }
@@ -1148,6 +1186,43 @@ public class Workout {
                         block.divingUnderwaterTime = blockTlv.getAsInteger(0x29);
                     if (blockTlv.contains(0x2a))
                         block.divingBreakTime = blockTlv.getAsInteger(0x2a);
+
+                    // UltimateGadget golf spike: per-hole golf scorecard tags (additive, guarded).
+                    if (blockTlv.contains(0x12))
+                        block.golfBackSwingTime = blockTlv.getAsInteger(0x12);
+                    if (blockTlv.contains(0x13))
+                        block.golfDownSwingTime = blockTlv.getAsInteger(0x13);
+                    if (blockTlv.contains(0x14))
+                        block.golfHeadSpeed = blockTlv.getAsInteger(0x14);
+                    if (blockTlv.contains(0x15))
+                        block.golfSwingTempo = blockTlv.getAsInteger(0x15);
+                    if (blockTlv.contains(0x2b))
+                        block.golfHoleId = blockTlv.getAsLong(0x2b);
+                    if (blockTlv.contains(0x2c))
+                        block.golfPar = blockTlv.getAsInteger(0x2c);
+                    if (blockTlv.contains(0x2d))
+                        block.golfHoleScore = blockTlv.getAsInteger(0x2d);
+                    if (blockTlv.contains(0x2e))
+                        block.golfHolePutts = blockTlv.getAsInteger(0x2e);
+                    if (blockTlv.contains(0x2f))
+                        block.golfHolePenalty = blockTlv.getAsInteger(0x2f);
+                    if (blockTlv.contains(0x30))
+                        block.golfFairwayHits = blockTlv.getAsInteger(0x30);
+                    if (blockTlv.contains(0x31))
+                        block.golfHandicap = blockTlv.getAsInteger(0x31);
+                    if (blockTlv.contains(0x32))
+                        block.golfValidTracks = blockTlv.getAsInteger(0x32);
+
+                    // If this looks like a golf hole, keep the raw block bytes for the capture so
+                    // the exact nested shot-track container can be reconstructed. Debug-only, not
+                    // persisted. Guarded by a golf tag so non-golf workouts pay nothing.
+                    if (blockTlv.contains(0x2b) || blockTlv.contains(0x2c) || blockTlv.contains(0x2d)) {
+                        try {
+                            block.rawHex = GB.hexdump(blockTlv.serialize());
+                        } catch (Exception e) {
+                            block.rawHex = "<serialize failed: " + e.getMessage() + ">";
+                        }
+                    }
 
                     blocks.add(block);
                 }
