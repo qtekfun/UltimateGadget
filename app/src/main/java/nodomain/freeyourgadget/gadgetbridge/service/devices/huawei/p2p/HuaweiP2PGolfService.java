@@ -19,11 +19,14 @@ package nodomain.freeyourgadget.gadgetbridge.service.devices.huawei.p2p;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 
 import nodomain.freeyourgadget.gadgetbridge.service.devices.huawei.HuaweiP2PManager;
+import nodomain.freeyourgadget.gadgetbridge.service.devices.huawei.HuaweiUploadManager;
+import nodomain.freeyourgadget.gadgetbridge.service.devices.huawei.requests.SendFileUploadInfo;
 import nodomain.freeyourgadget.gadgetbridge.util.StringUtils;
 
 /**
@@ -130,6 +133,8 @@ public class HuaweiP2PGolfService extends HuaweiBaseP2PService {
     private static final int TYPE_COURSE_LIST_FILE = 12;
     private static final int COURSE_RECORD_SIZE = 92;
     private static final int COURSE_NAME_MAX_BYTES = 80;
+    // Records in the watch's LOCAL_COURSE_LIST reply: courseId(4) + version(4) + flag(4) + 8 reserved.
+    private static final int COURSE_LIST_RECORD_SIZE = 20;
 
     private static byte[] buildCourseRecord(String name, int courseId, int version, int distanceMeters) {
         final ByteBuffer rec = ByteBuffer.allocate(COURSE_RECORD_SIZE).order(ByteOrder.LITTLE_ENDIAN);
@@ -209,7 +214,19 @@ public class HuaweiP2PGolfService extends HuaweiBaseP2PService {
 
         if (type == TYPE_LOCAL_COURSE_LIST && data.length >= HEADER_SIZE + 4) {
             final int courseCount = ByteBuffer.wrap(data, HEADER_SIZE, 4).order(ByteOrder.LITTLE_ENDIAN).getInt();
-            LOG.info("Golf probe: watch reports {} downloaded course(s)", courseCount);
+            // Each record is 20 bytes: courseId(4 LE) + version(4) + flag(4) + 8 reserved.
+            final StringBuilder ids = new StringBuilder();
+            int off = HEADER_SIZE + 4;
+            int n = 0;
+            while (off + 4 <= data.length) {
+                final int cid = ByteBuffer.wrap(data, off, 4).order(ByteOrder.LITTLE_ENDIAN).getInt();
+                final int ver = (off + 8 <= data.length) ? ByteBuffer.wrap(data, off + 4, 4).order(ByteOrder.LITTLE_ENDIAN).getInt() : 0;
+                if (ids.length() > 0) ids.append(", ");
+                ids.append(cid).append("(v").append(ver).append(")");
+                off += COURSE_LIST_RECORD_SIZE;
+                n++;
+            }
+            LOG.info("Golf: watch reports {} downloaded course(s); this frame has {} ids: {}", courseCount, n, ids);
         } else if (type == TYPE_GPS_INFO_SEND && data.length >= HEADER_SIZE + 20) {
             final ByteBuffer payload = ByteBuffer.wrap(data, HEADER_SIZE, data.length - HEADER_SIZE).order(ByteOrder.LITTLE_ENDIAN);
             payload.getInt(); // reserved (sport watch convention)
@@ -242,6 +259,82 @@ public class HuaweiP2PGolfService extends HuaweiBaseP2PService {
         LOG.info("Golf probe: sending GPS-correlated course list file (msgId {}, {} bytes): {}", msgId, msg.length, StringUtils.bytesToHex(msg));
         sendCommand(msg, (code, data) -> LOG.info("Golf probe: GPS-correlated course list file transport ack code {} data {}", code,
                 data == null ? "null" : StringUtils.bytesToHex(data)));
+    }
+
+    /**
+     * EXPERIMENTAL / not yet wired to any UI. Push a course map to the watch: upload the .bin via
+     * the generic Huawei P2P file upload (routed to the golf app by package/fingerprint, same as
+     * Mapkit offline maps; file named "<courseId>_vector_wearable.bin"), then attempt to register
+     * it in the watch's course list (type 12).
+     *
+     * Status (RE): the file UPLOAD works end-to-end (a course the watch already has opens fine after
+     * overwriting its .bin). The REGISTRATION of a brand-new course does NOT yet take — the type 12
+     * record below is transported (generic ack) but the watch does not add the course to its list,
+     * so a new course neither appears nor notifies. The real add flow/record format still needs RE
+     * (likely a richer GolfCourseInfo record, or a watch-initiated flow). Left here as scaffolding.
+     */
+    private void sendCourseMap(int courseId, String name, int version, int distance, byte[] data) {
+        currentPackage = PACKAGE_SPORT_WATCH;
+        final HuaweiUploadManager.FileUploadInfo fileInfo = new HuaweiUploadManager.FileUploadInfo();
+        fileInfo.setFileType((byte) 7);
+        fileInfo.setFileName(courseId + "_vector_wearable.bin");
+        fileInfo.setUploadData(new HuaweiUploadManager.UploadDataBuffer(data));
+        fileInfo.setSrcPackage(getModule());
+        fileInfo.setDstPackage(getPackage());
+        fileInfo.setSrcFingerprint(getLocalFingerprint());
+        fileInfo.setDstFingerprint(getFingerprint());
+        fileInfo.setFileUploadCallback(new HuaweiUploadManager.FileUploadCallback() {
+            @Override
+            public void onUploadStart() {
+                LOG.info("Golf map upload: start");
+            }
+
+            @Override
+            public void onUploadProgress(int progress) {
+                LOG.info("Golf map upload: progress {}", progress);
+            }
+
+            @Override
+            public void onUploadComplete() {
+                LOG.info("Golf map upload: COMPLETE, now registering course {} in the watch list", courseId);
+                registerCourse(courseId, name, version, distance);
+            }
+
+            @Override
+            public void onError(int code) {
+                LOG.info("Golf map upload: ERROR {}", code);
+            }
+        });
+        final HuaweiUploadManager up = manager.getSupportProvider().getUploadManager();
+        up.setFileUploadInfo(fileInfo);
+        try {
+            new SendFileUploadInfo(manager.getSupportProvider(), up).doPerform();
+        } catch (IOException e) {
+            LOG.error("Golf map upload: send failed", e);
+        }
+    }
+
+    /** Register one real course in the watch's list (type 12) after its map was uploaded. */
+    private void registerCourse(int courseId, String name, int version, int distance) {
+        currentPackage = PACKAGE_SPORT_WATCH;
+        final byte[] record = buildCourseRecord(name, courseId, version, distance);
+        final ByteBuffer businessHead = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(1);
+        final ByteBuffer buf = ByteBuffer.allocate(HEADER_SIZE + 4 + record.length).order(ByteOrder.LITTLE_ENDIAN);
+        buf.putInt(TYPE_COURSE_LIST_FILE);
+        buf.putInt(1); // version
+        buf.putInt(buf.capacity()); // total length
+        buf.putInt(4); // business head length (course count field)
+        buf.putInt(3); // msgId
+        buf.putInt(0); // response state
+        buf.putInt(0); // map style
+        buf.position(HEADER_SIZE);
+        buf.put(businessHead.array());
+        buf.put(record);
+        LOG.info("Golf: registering course {} '{}' (type 12, {} bytes)", courseId, name, buf.capacity());
+        sendCommand(buf.array(), (code, data) -> {
+            LOG.info("Golf: register course ack code {} data {}", code, data == null ? "null" : StringUtils.bytesToHex(data));
+            requestLocalCourseList(null);
+        });
     }
 
     public static HuaweiP2PGolfService getRegisteredInstance(HuaweiP2PManager manager) {
