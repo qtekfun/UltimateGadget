@@ -175,8 +175,8 @@ class UltimateGolfCoursesActivity : AppCompatActivity() {
         d.let { requestListDelayed() }
     }
 
-    private fun requestListDelayed() {
-        android.os.Handler(mainLooper).postDelayed({ requestList() }, 2500)
+    private fun requestListDelayed(delayMs: Long = 2500) {
+        android.os.Handler(mainLooper).postDelayed({ requestList() }, delayMs)
     }
 
     private fun toggle(courseId: Int) {
@@ -227,7 +227,9 @@ class UltimateGolfCoursesActivity : AppCompatActivity() {
             status = "Enviando ${labelFor(courseId)} al reloj…"
             pendingAction = "Enviado ${labelFor(courseId)}"
             Toast.makeText(this, "Enviando ${labelFor(courseId)}…", Toast.LENGTH_SHORT).show()
-            requestListDelayed()
+            // The service broadcasts the refreshed list when the upload actually completes; this is
+            // only a long fallback in case the upload never reports completion.
+            requestListDelayed(20000)
         } catch (e: Exception) {
             Toast.makeText(this, "Error al leer el fichero: ${e.message}", Toast.LENGTH_LONG).show()
         }
