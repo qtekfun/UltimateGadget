@@ -45,6 +45,7 @@ object AgnssDownloader {
 
     data class Result(
         val zip: ByteArray,
+        val rtcm: ByteArray,
         val counts: Map<Char, Int>,
         val validUntilMs: Long,
         val source: String,
@@ -92,7 +93,7 @@ object AgnssDownloader {
             zip.putNextEntry(ZipEntry("$UUID/$RTCM_NAME")); zip.write(rtcm); zip.closeEntry()
         }
         // Broadcast ephemeris is practically useful for a few hours; expose a conservative window.
-        return Result(bos.toByteArray(), counts, now + 3 * 3600_000L, source)
+        return Result(bos.toByteArray(), rtcm, counts, now + 3 * 3600_000L, source)
     }
 
     private fun gunzip(data: ByteArray): ByteArray =

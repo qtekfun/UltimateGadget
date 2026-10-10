@@ -2,6 +2,11 @@
 
 <!-- For contributors: do not modify this file - the project maintainers will update it as needed -->
 
+#### 0.101.0
+
+* A-GNSS (GPS) para relojes Huawei: nueva pantalla "Actualizar GPS (A-GNSS)" que descarga datos de satélites (efemérides públicas IGS) a través de la app de mapas y los prepara para que el reloj fije el GPS en segundos, sin Huawei Health ni servidores de Huawei. Con botón manual, opción de actualizar al conectar y descarga solo por Wi-Fi; nada se envía al reloj a la fuerza (el reloj lo recoge solo)
+* App de mapas: nueva herramienta A-GNSS y servicio interno para dar los datos a UltimateGadget (que no tiene acceso a internet por diseño)
+
 #### 0.100.0
 
 * Golf: nueva pantalla "Campos de golf" (relojes Huawei) para ver los campos que tiene el reloj, enviar al reloj un mapa de campo descargado con la app de mapas, y borrar campos — sin Huawei Health ni HMS en el móvil; el campo aparece y se notifica en el reloj igual que con la app original
