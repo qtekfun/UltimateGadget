@@ -2,6 +2,10 @@
 
 <!-- For contributors: do not modify this file - the project maintainers will update it as needed -->
 
+#### 0.103.0
+
+* Emparejamiento (relojes Huawei por Bluetooth clásico, p.ej. Watch GT Runner 2): corregido el fallo por el que el **primer intento** de emparejar pedía "empareja desde la app de Huawei Health" y solo el segundo intento funcionaba. Ahora la app completa el vínculo también en el primer intento (envía el aviso de estado y continúa con el handshake de seguridad, igual que hace la app original)
+
 #### 0.102.0
 
 * Golf (Huawei): la pantalla "Campos de golf" ahora permite **seleccionar varios campos y borrarlos de golpe**, muestra el **nombre** de cada campo (aprendido al enviarlo desde la app) en vez de solo el número, y **confirma** cada borrado/envío ("Borrados N ✓ · el reloj tiene X campos"). El borrado ahora funciona de forma fiable (usa un id de mensaje nuevo por petición) y la lista se refresca al terminar de enviar un campo
