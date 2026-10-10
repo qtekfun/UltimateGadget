@@ -7,6 +7,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -68,7 +69,8 @@ private fun App() {
     var screen by remember { mutableStateOf("maps") }
     when (screen) {
         "authkey" -> AuthKeyScreen(onBack = { screen = "maps" })
-        else -> Screen(onOpenAuthKey = { screen = "authkey" })
+        "golf" -> GolfScreen(onBack = { screen = "maps" })
+        else -> Screen(onOpenAuthKey = { screen = "authkey" }, onOpenGolf = { screen = "golf" })
     }
 }
 
@@ -76,6 +78,18 @@ private fun prefs(c: Context) = c.getSharedPreferences(PREFS, Context.MODE_PRIVA
 
 private fun savedFolder(c: Context): Uri? =
     prefs(c).getString(KEY_FOLDER, null)?.let { Uri.parse(it) }
+
+/** Save a golf course `.bin` into a `golf/` subfolder of the user-picked SAF tree. */
+private fun writeGolfBin(context: Context, folderUri: Uri, name: String, bytes: ByteArray) {
+    val root = DocumentFile.fromTreeUri(context, folderUri) ?: throw RuntimeException("carpeta no accesible")
+    val dir = root.findFile("golf")?.takeIf { it.isDirectory } ?: root.createDirectory("golf")
+        ?: throw RuntimeException("no se pudo crear la carpeta golf")
+    dir.findFile(name)?.delete()
+    val file = dir.createFile("application/octet-stream", name)
+        ?: throw RuntimeException("no se pudo crear el fichero")
+    context.contentResolver.openOutputStream(file.uri)?.use { it.write(bytes) }
+        ?: throw RuntimeException("no se pudo escribir")
+}
 
 private fun fmt(bytes: Long): String {
     if (bytes <= 0) return "—"
@@ -87,7 +101,7 @@ private fun fmt(bytes: Long): String {
 
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
-private fun Screen(onOpenAuthKey: () -> Unit) {
+private fun Screen(onOpenAuthKey: () -> Unit, onOpenGolf: () -> Unit) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val scope = rememberCoroutineScope()
 
@@ -128,6 +142,7 @@ private fun Screen(onOpenAuthKey: () -> Unit) {
             TopAppBar(
                 title = { Text("Descargar mapas", fontWeight = FontWeight.Bold) },
                 actions = {
+                    androidx.compose.material3.TextButton(onClick = onOpenGolf) { Text("Golf") }
                     androidx.compose.material3.TextButton(onClick = onOpenAuthKey) { Text("Auth key") }
                 },
                 colors = androidx.compose.material3.TopAppBarDefaults.topAppBarColors(
@@ -344,6 +359,149 @@ private fun AuthKeyScreen(onBack: () -> Unit) {
                     }
                 }
             }
+        }
+    }
+}
+
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+@Composable
+private fun GolfScreen(onBack: () -> Unit) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val scope = rememberCoroutineScope()
+    val folder = savedFolder(context)
+
+    // Simple country -> city -> course drill-down.
+    var level by remember { mutableStateOf("countries") }
+    var countries by remember { mutableStateOf<List<GolfApi.Country>>(emptyList()) }
+    var cities by remember { mutableStateOf<List<GolfApi.City>>(emptyList()) }
+    var courses by remember { mutableStateOf<List<GolfApi.Course>>(emptyList()) }
+    var country by remember { mutableStateOf<GolfApi.Country?>(null) }
+    var city by remember { mutableStateOf<GolfApi.City?>(null) }
+    var loading by remember { mutableStateOf(false) }
+    var status by remember { mutableStateOf("") }
+
+    fun load(block: suspend () -> Unit) {
+        loading = true; status = ""
+        scope.launch {
+            runCatching { block() }.onFailure { status = it.message ?: "Error" }
+            loading = false
+        }
+    }
+
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        if (countries.isEmpty()) {
+            loading = true
+            runCatching { withContext(Dispatchers.IO) { GolfApi.countries() } }
+                .onSuccess { countries = it }.onFailure { status = it.message ?: "Error" }
+            loading = false
+        }
+    }
+
+    val title = when (level) {
+        "cities" -> country?.name ?: "Ciudades"
+        "courses" -> city?.name ?: "Campos"
+        else -> "Golf — países"
+    }
+    val back: () -> Unit = {
+        when (level) {
+            "courses" -> { level = "cities" }
+            "cities" -> { level = "countries" }
+            else -> onBack()
+        }
+    }
+
+    Scaffold(
+        containerColor = Scheme.background,
+        topBar = {
+            TopAppBar(
+                title = { Text(title, fontWeight = FontWeight.Bold) },
+                navigationIcon = {
+                    androidx.compose.material3.TextButton(onClick = back) { Text("Atrás") }
+                },
+                colors = androidx.compose.material3.TopAppBarDefaults.topAppBarColors(
+                    containerColor = Scheme.background, titleContentColor = Scheme.onBackground,
+                ),
+            )
+        },
+    ) { inner ->
+        Column(
+            Modifier.padding(inner).fillMaxSize().padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Text(
+                "Explora y descarga campos de golf (datos anónimos de Huawei). El mapa se guarda como " +
+                    ".bin en la subcarpeta 'golf' de la carpeta elegida, listo para importar en UltimateGadget. " +
+                    "Elige la carpeta en la pantalla de mapas si aún no lo has hecho.",
+                style = MaterialTheme.typography.bodySmall, color = Scheme.onSurfaceVariant,
+            )
+            if (loading) CircularProgressIndicator(Modifier.padding(4.dp))
+            if (status.isNotBlank()) Text(status, style = MaterialTheme.typography.bodySmall, color = Scheme.error)
+
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                when (level) {
+                    "countries" -> items(countries, key = { it.id }) { c ->
+                        RowCard("${c.name} (${c.code})") {
+                            country = c; cities = emptyList(); level = "cities"
+                            load {
+                                val list = withContext(Dispatchers.IO) { GolfApi.cities(c.id, country = c.code) }
+                                cities = list; status = "${list.size} ciudades"
+                            }
+                        }
+                    }
+                    "cities" -> items(cities, key = { it.id }) { ci ->
+                        RowCard(if (ci.province.isBlank()) ci.name else "${ci.name} · ${ci.province}") {
+                            city = ci; courses = emptyList(); level = "courses"
+                            val cc = country?.code ?: "ES"
+                            load {
+                                val list = withContext(Dispatchers.IO) { GolfApi.courses(ci.id, country = cc) }
+                                courses = list; status = "${list.size} campos"
+                            }
+                        }
+                    }
+                    else -> items(courses, key = { it.id }) { co ->
+                        Card(Modifier.fillMaxWidth()) {
+                            Row(
+                                Modifier.padding(12.dp).fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                            ) {
+                                Column(Modifier.weight(1f)) {
+                                    Text(co.name, color = Scheme.onSurface)
+                                    Text(
+                                        "${co.totalLength} m · v${co.version} · id ${co.id}",
+                                        style = MaterialTheme.typography.bodySmall, color = Scheme.onSurfaceVariant,
+                                    )
+                                }
+                                OutlinedButton(
+                                    enabled = folder != null && !loading,
+                                    onClick = {
+                                        load {
+                                            val saved = withContext(Dispatchers.IO) {
+                                                val map = GolfApi.courseMap(co.id, country = country?.code ?: "ES")
+                                                    ?: throw RuntimeException("sin datos de mapa")
+                                                val (name, bytes) = GolfApi.downloadMapBin(map.url)
+                                                writeGolfBin(context, folder!!, name, bytes)
+                                                name
+                                            }
+                                            status = "Guardado: $saved"
+                                        }
+                                    },
+                                ) { Text(if (folder == null) "Elige carpeta" else "Descargar") }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun RowCard(text: String, onClick: () -> Unit) {
+    Card(Modifier.fillMaxWidth().clickable(onClick = onClick)) {
+        Row(Modifier.padding(14.dp).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Text(text, color = Scheme.onSurface, modifier = Modifier.weight(1f))
+            Text("›", color = Scheme.onSurfaceVariant)
         }
     }
 }
