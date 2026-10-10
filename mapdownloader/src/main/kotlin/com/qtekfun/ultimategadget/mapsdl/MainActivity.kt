@@ -79,6 +79,22 @@ private fun prefs(c: Context) = c.getSharedPreferences(PREFS, Context.MODE_PRIVA
 private fun savedFolder(c: Context): Uri? =
     prefs(c).getString(KEY_FOLDER, null)?.let { Uri.parse(it) }
 
+/**
+ * Human-friendly file name for a golf course map: "<Country> - <Course> (<id>).bin".
+ * The id is kept so UltimateGadget can recover the course when importing/sending to the watch.
+ */
+private fun golfFileName(country: String, name: String, id: Long): String {
+    fun clean(s: String) = s.trim()
+        .replace(Regex("[\\\\/:*?\"<>|]"), " ")
+        .replace(Regex("\\s+"), " ")
+        .trim()
+    val base = listOf(clean(country), clean(name))
+        .filter { it.isNotBlank() }
+        .joinToString(" - ")
+        .ifBlank { "golf_$id" }
+    return "$base ($id).bin"
+}
+
 /** Save a golf course `.bin` into a `golf/` subfolder of the user-picked SAF tree. */
 private fun writeGolfBin(context: Context, folderUri: Uri, name: String, bytes: ByteArray) {
     val root = DocumentFile.fromTreeUri(context, folderUri) ?: throw RuntimeException("carpeta no accesible")
@@ -475,13 +491,15 @@ private fun GolfScreen(onBack: () -> Unit) {
                                 OutlinedButton(
                                     enabled = folder != null && !loading,
                                     onClick = {
+                                        val countryName = country?.name ?: ""
                                         load {
                                             val saved = withContext(Dispatchers.IO) {
                                                 val map = GolfApi.courseMap(co.id, country = country?.code ?: "ES")
                                                     ?: throw RuntimeException("sin datos de mapa")
-                                                val (name, bytes) = GolfApi.downloadMapBin(map.url)
-                                                writeGolfBin(context, folder!!, name, bytes)
-                                                name
+                                                val (_, bytes) = GolfApi.downloadMapBin(map.url)
+                                                val fname = golfFileName(countryName, co.name, co.id)
+                                                writeGolfBin(context, folder!!, fname, bytes)
+                                                fname
                                             }
                                             status = "Guardado: $saved"
                                         }
