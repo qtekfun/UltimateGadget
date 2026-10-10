@@ -2,6 +2,11 @@
 
 <!-- For contributors: do not modify this file - the project maintainers will update it as needed -->
 
+#### 0.102.0
+
+* Golf (Huawei): la pantalla "Campos de golf" ahora permite **seleccionar varios campos y borrarlos de golpe**, muestra el **nombre** de cada campo (aprendido al enviarlo desde la app) en vez de solo el número, y **confirma** cada borrado/envío ("Borrados N ✓ · el reloj tiene X campos"). El borrado ahora funciona de forma fiable (usa un id de mensaje nuevo por petición) y la lista se refresca al terminar de enviar un campo
+* Corregido un cierre inesperado de la app que podía ocurrir al desconectarse el reloj mientras había una petición en curso
+
 #### 0.101.0
 
 * A-GNSS (GPS) para relojes Huawei: nueva pantalla "Actualizar GPS (A-GNSS)" que descarga datos de satélites (efemérides públicas IGS) a través de la app de mapas y los prepara para que el reloj fije el GPS en segundos, sin Huawei Health ni servidores de Huawei. Con botón manual, opción de actualizar al conectar y descarga solo por Wi-Fi; nada se envía al reloj a la fuerza (el reloj lo recoge solo)
