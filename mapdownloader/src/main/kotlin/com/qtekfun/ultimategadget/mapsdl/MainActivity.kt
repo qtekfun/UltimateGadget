@@ -8,6 +8,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -328,53 +329,101 @@ private fun ItemCard(title: String, subtitle: String, trailing: @Composable () -
 
 // ----- A-GNSS -----
 
-@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+@OptIn(
+    androidx.compose.material3.ExperimentalMaterial3Api::class,
+    androidx.compose.foundation.layout.ExperimentalLayoutApi::class,
+)
 @Composable
 private fun AgnssScreen(folder: Uri?, onPick: () -> Unit, onBack: () -> Unit) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val scope = rememberCoroutineScope()
-    var loading by remember { mutableStateOf(false) }
-    var status by remember { mutableStateOf("") }
-    var error by remember { mutableStateOf(false) }
+    // Huawei (public broadcast ephemeris)
+    var hwLoading by remember { mutableStateOf(false) }
+    var hwStatus by remember { mutableStateOf("") }
+    var hwError by remember { mutableStateOf(false) }
+    // Amazfit / Zepp OS (Huami EPO via account login)
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var azLoading by remember { mutableStateOf(false) }
+    var azStatus by remember { mutableStateOf("") }
+    var azError by remember { mutableStateOf(false) }
 
     Scaffold(containerColor = Scheme.background, topBar = { bar("A-GNSS (GPS)", onBack) }) { inner ->
         Column(
-            Modifier.padding(inner).fillMaxSize().padding(16.dp),
+            Modifier.padding(inner).fillMaxSize()
+                .verticalScroll(androidx.compose.foundation.rememberScrollState()).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Hint(
-                "Descarga efemérides GNSS públicas (IGS/BKG) y genera el paquete A-GNSS que el reloj " +
-                    "usa para fijar el GPS en segundos. Se guarda como 'agnss/ephemeris.zip' en la carpeta.",
-            )
-            Hint("Las efemérides caducan en pocas horas: genera el paquete poco antes de sincronizar el reloj.")
+            Hint("Datos de satélites para que el reloj fije el GPS en segundos. Elige la sección de tu reloj.")
             FolderCard(folderName(context, folder), onPick)
 
+            // --- Huawei ---
+            SectionLabel("HUAWEI (GT RUNNER 2, GT…)")
+            Hint("En relojes Huawei esto es automático: hazlo desde UltimateGadget (dispositivo → Actualizar GPS). Este botón es un respaldo manual: guarda 'agnss/ephemeris.zip'.")
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                 Button(
-                    enabled = folder != null && !loading,
+                    enabled = folder != null && !hwLoading,
                     onClick = {
                         val f = folder ?: return@Button
-                        loading = true; status = "Descargando efemérides…"; error = false
+                        hwLoading = true; hwStatus = "Descargando efemérides…"; hwError = false
                         scope.launch {
                             runCatching {
                                 withContext(Dispatchers.IO) {
                                     val res = AgnssDownloader.generate()
-                                    writeInto(context, f, "agnss", "ephemeris.zip", res.zip)
-                                    res
+                                    writeInto(context, f, "agnss", "ephemeris.zip", res.zip); res
                                 }
                             }.onSuccess { res ->
                                 val c = res.counts
-                                status = "Generado: GPS ${c['G'] ?: 0}, GLONASS ${c['R'] ?: 0}, " +
-                                    "Galileo ${c['E'] ?: 0}, BeiDou ${c['C'] ?: 0} · ${fmt(res.zip.size.toLong())} · ${res.source}"
-                                error = false
-                            }.onFailure { status = it.message ?: "Error"; error = true }
-                            loading = false
+                                hwStatus = "Generado: GPS ${c['G'] ?: 0}, GLONASS ${c['R'] ?: 0}, Galileo ${c['E'] ?: 0}, " +
+                                    "BeiDou ${c['C'] ?: 0} · ${fmt(res.zip.size.toLong())} · ${res.source}"
+                                hwError = false
+                            }.onFailure { hwStatus = it.message ?: "Error"; hwError = true }
+                            hwLoading = false
                         }
                     },
-                ) { Text(if (folder == null) "Elige carpeta" else "Generar A-GNSS") }
-                if (loading) CircularProgressIndicator(Modifier.padding(start = 4.dp))
+                ) { Text(if (folder == null) "Elige carpeta" else "Generar (Huawei)") }
+                if (hwLoading) CircularProgressIndicator(Modifier.padding(start = 4.dp))
             }
-            StatusLine(status, error)
+            StatusLine(hwStatus, hwError)
+
+            // --- Amazfit / Zepp OS ---
+            SectionLabel("AMAZFIT / ZEPP OS")
+            Hint("Inicia sesión en tu cuenta Zepp/Amazfit para bajar el A-GPS (EPO) de tu cuenta y generar el paquete del reloj. El email y la contraseña solo se usan para el login y no se guardan. Luego instálalo en UltimateGadget (dispositivo → Actualizar GPS → elige el fichero).")
+            androidx.compose.material3.OutlinedTextField(
+                value = email, onValueChange = { email = it }, label = { Text("Email de la cuenta Zepp/Amazfit") },
+                singleLine = true, modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Email),
+            )
+            androidx.compose.material3.OutlinedTextField(
+                value = password, onValueChange = { password = it }, label = { Text("Contraseña") },
+                singleLine = true, modifier = Modifier.fillMaxWidth(),
+                visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
+                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Password),
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Button(
+                    enabled = folder != null && !azLoading && email.isNotBlank() && password.isNotBlank(),
+                    onClick = {
+                        val f = folder ?: return@Button
+                        azLoading = true; azStatus = "Iniciando sesión y descargando A-GPS…"; azError = false
+                        val e = email.trim(); val p = password
+                        scope.launch {
+                            runCatching {
+                                withContext(Dispatchers.IO) {
+                                    val uihh = HuamiToken.fetchAgpsUihh(e, p)
+                                    writeInto(context, f, "agnss", "amazfit-agps-uihh.bin", uihh); uihh.size
+                                }
+                            }.onSuccess { sz ->
+                                azStatus = "Generado: amazfit-agps-uihh.bin (${fmt(sz.toLong())}). Instálalo en UltimateGadget."
+                                azError = false
+                            }.onFailure { azStatus = it.message ?: "Error"; azError = true }
+                            azLoading = false
+                        }
+                    },
+                ) { Text(if (folder == null) "Elige carpeta" else "Generar (Amazfit)") }
+                if (azLoading) CircularProgressIndicator(Modifier.padding(start = 4.dp))
+            }
+            StatusLine(azStatus, azError)
         }
     }
 }
