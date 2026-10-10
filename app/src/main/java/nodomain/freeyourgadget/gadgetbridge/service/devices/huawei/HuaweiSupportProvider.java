@@ -1380,9 +1380,13 @@ public class HuaweiSupportProvider {
             if (config.startsWith(HuaweiConstants.PREF_HUAWEI_GOLF_DELETE_PREFIX)) {
                 HuaweiP2PGolfService golf = HuaweiP2PGolfService.getRegisteredInstance(huaweiP2PManager);
                 if (golf != null) {
+                    // One or more course ids, comma-separated (bulk delete).
                     String args = config.substring(HuaweiConstants.PREF_HUAWEI_GOLF_DELETE_PREFIX.length());
                     try {
-                        golf.deleteCourses(new int[]{Integer.parseInt(args.trim())});
+                        String[] parts = args.split(",");
+                        int[] ids = new int[parts.length];
+                        for (int i = 0; i < parts.length; i++) ids[i] = Integer.parseInt(parts[i].trim());
+                        golf.deleteCourses(ids);
                     } catch (NumberFormatException e) {
                         LOG.error("Invalid golf delete request: {}", config);
                     }

@@ -42,6 +42,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -83,6 +84,8 @@ class UltimateGolfCoursesActivity : AppCompatActivity() {
     private var items by mutableStateOf<List<CourseItem>>(emptyList())
     private var loaded by mutableStateOf(false)
     private var status by mutableStateOf("")
+    private var selectMode by mutableStateOf(false)
+    private var selected by mutableStateOf<Set<Int>>(emptySet())
 
     private val listReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -141,6 +144,25 @@ class UltimateGolfCoursesActivity : AppCompatActivity() {
         android.os.Handler(mainLooper).postDelayed({ requestList() }, 2500)
     }
 
+    private fun toggle(courseId: Int) {
+        selected = if (courseId in selected) selected - courseId else selected + courseId
+    }
+
+    /** Bulk-delete the selected courses in a single request (type 15 with N course ids). */
+    private fun deleteSelected() {
+        val d = device ?: return
+        if (selected.isEmpty()) return
+        val ids = selected.toList()
+        GBApplication.deviceService(d).onSendConfiguration(
+            HuaweiConstants.PREF_HUAWEI_GOLF_DELETE_PREFIX + ids.joinToString(","),
+        )
+        status = "Borrando ${ids.size} campo(s)…"
+        items = items.filterNot { it.courseId in selected }
+        selected = emptySet()
+        selectMode = false
+        requestListDelayed()
+    }
+
     /** Copy the picked .bin to a local file and send it, parsing courseId + version from the name. */
     private fun importAndSend(uri: Uri) {
         val d = device
@@ -185,42 +207,58 @@ class UltimateGolfCoursesActivity : AppCompatActivity() {
     private fun GolfScreen() {
         val palette = LocalUltimatePalette.current
         var pendingDelete by remember { mutableStateOf<CourseItem?>(null) }
+        var pendingBulk by remember { mutableStateOf(false) }
 
         Scaffold(
             containerColor = palette.background,
             topBar = {
                 TopAppBar(
-                    title = { Text("Campos de golf", fontWeight = FontWeight.Bold) },
+                    title = { Text(if (selectMode) "${selected.size} seleccionados" else "Campos de golf", fontWeight = FontWeight.Bold) },
                     navigationIcon = {
-                        IconButton(onClick = { finish() }) {
+                        IconButton(onClick = { if (selectMode) { selectMode = false; selected = emptySet() } else finish() }) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
+                        }
+                    },
+                    actions = {
+                        if (items.isNotEmpty()) {
+                            if (selectMode) {
+                                TextButton(onClick = { selected = items.map { it.courseId }.toSet() }) { Text("Todos") }
+                                TextButton(enabled = selected.isNotEmpty(), onClick = { pendingBulk = true }) {
+                                    Text("Borrar (${selected.size})", color = if (selected.isNotEmpty()) palette.error else palette.onSurfaceVariant)
+                                }
+                            } else {
+                                TextButton(onClick = { selectMode = true }) { Text("Seleccionar") }
+                            }
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = palette.background,
                         titleContentColor = palette.onSurface,
                         navigationIconContentColor = palette.onSurface,
+                        actionIconContentColor = palette.onSurface,
                     ),
                 )
             },
         ) { inner ->
             Column(Modifier.padding(inner).fillMaxSize().padding(16.dp)) {
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .background(palette.primary, RoundedCornerShape(16.dp))
-                        .clickable(enabled = device?.isInitialized == true) { pickBin.launch(arrayOf("*/*")) }
-                        .padding(vertical = 14.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text("Importar y enviar mapa de campo", color = palette.onPrimary, fontWeight = FontWeight.Bold)
+                if (!selectMode) {
+                    Box(
+                        Modifier
+                            .fillMaxWidth()
+                            .background(palette.primary, RoundedCornerShape(16.dp))
+                            .clickable(enabled = device?.isInitialized == true) { pickBin.launch(arrayOf("*/*")) }
+                            .padding(vertical = 14.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text("Importar y enviar mapa de campo", color = palette.onPrimary, fontWeight = FontWeight.Bold)
+                    }
+                    Text(
+                        "Elige un .bin descargado con la app de mapas (su nombre lleva el id del campo). El reloj lo mostrará en su app de golf.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = palette.onSurfaceVariant,
+                        modifier = Modifier.padding(vertical = 8.dp),
+                    )
                 }
-                Text(
-                    "Elige un .bin descargado con la app de mapas (su nombre lleva el id del campo). El reloj lo mostrará en su app de golf.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = palette.onSurfaceVariant,
-                    modifier = Modifier.padding(vertical = 8.dp),
-                )
                 if (status.isNotBlank()) {
                     Text(status, style = MaterialTheme.typography.bodySmall, color = palette.secondary)
                 }
@@ -243,19 +281,26 @@ class UltimateGolfCoursesActivity : AppCompatActivity() {
                 } else {
                     LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         items(items, key = { it.courseId }) { item ->
+                            val isSel = item.courseId in selected
                             Row(
                                 Modifier
                                     .fillMaxWidth()
-                                    .background(palette.surfaceContainer, RoundedCornerShape(16.dp))
+                                    .background(if (isSel) palette.secondaryContainer else palette.surfaceContainer, RoundedCornerShape(16.dp))
+                                    .clickable(enabled = selectMode) { toggle(item.courseId) }
                                     .padding(14.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
-                                Column(Modifier.weight(1f)) {
+                                if (selectMode) {
+                                    Checkbox(checked = isSel, onCheckedChange = { toggle(item.courseId) })
+                                }
+                                Column(Modifier.weight(1f).padding(start = if (selectMode) 8.dp else 0.dp)) {
                                     Text("Campo ${item.courseId}", style = MaterialTheme.typography.titleMedium, color = palette.onSurface)
                                     Text("v${item.version}", style = MaterialTheme.typography.bodySmall, color = palette.onSurfaceVariant)
                                 }
-                                IconButton(onClick = { pendingDelete = item }) {
-                                    Icon(Icons.Filled.Delete, contentDescription = "Borrar", tint = palette.error)
+                                if (!selectMode) {
+                                    IconButton(onClick = { pendingDelete = item }) {
+                                        Icon(Icons.Filled.Delete, contentDescription = "Borrar", tint = palette.error)
+                                    }
                                 }
                             }
                         }
@@ -277,6 +322,23 @@ class UltimateGolfCoursesActivity : AppCompatActivity() {
                 },
                 dismissButton = {
                     TextButton(onClick = { pendingDelete = null }) { Text(getString(android.R.string.cancel)) }
+                },
+            )
+        }
+
+        if (pendingBulk) {
+            AlertDialog(
+                onDismissRequest = { pendingBulk = false },
+                containerColor = palette.surfaceContainer,
+                title = { Text("Borrar campos") },
+                text = { Text("¿Quitar ${selected.size} campo(s) del reloj?") },
+                confirmButton = {
+                    TextButton(onClick = { deleteSelected(); pendingBulk = false }) {
+                        Text("Borrar", color = palette.error)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { pendingBulk = false }) { Text(getString(android.R.string.cancel)) }
                 },
             )
         }
