@@ -302,7 +302,9 @@ public class HuaweiP2PGolfService extends HuaweiBaseP2PService {
             @Override public void onUploadProgress(int progress) { LOG.info("Golf course file upload: progress {}", progress); }
             @Override public void onUploadComplete() {
                 LOG.info("Golf course file upload: COMPLETE for course {}", courseId);
-                requestLocalCourseList(null);
+                // Re-query AND broadcast, so the UI list refreshes exactly when the course is
+                // actually registered on the watch (the upload takes a few seconds).
+                requestCourseListAndBroadcast();
             }
             @Override public void onError(int code) { LOG.info("Golf course file upload: ERROR {}", code); }
         });
