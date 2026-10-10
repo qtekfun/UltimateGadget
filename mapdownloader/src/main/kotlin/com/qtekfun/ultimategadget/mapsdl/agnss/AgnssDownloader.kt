@@ -37,8 +37,11 @@ object AgnssDownloader {
     private const val UUID = "ug-agnss"
     private const val RTCM_NAME = "HW_AGNSS_RTCM_33"
 
-    // BKG open archive: daily merged broadcast navigation (all constellations), ~1 MB gzipped.
-    private const val BKG_BASE = "https://igs.bkg.bund.de/root_ftp/IGS/BRDC"
+    // Geoscience Australia public S3 bucket (anonymous HTTPS over AWS, reachable from mobile).
+    // A single CORS station's daily mixed-navigation file carries broadcast ephemeris for the whole
+    // visible constellation; Australian IGS stations see GPS/GLONASS/Galileo/BeiDou well.
+    private const val GA_BASE = "https://ga-gnss-data-rinex-v1.s3.amazonaws.com/public/daily"
+    private val STATIONS = listOf("ALIC00AUS", "STR200AUS", "HOB200AUS", "COCO00AUS", "DARW00AUS")
 
     data class Result(
         val zip: ByteArray,
@@ -47,23 +50,29 @@ object AgnssDownloader {
         val source: String,
     )
 
-    private fun url(year: Int, doy: Int): String =
-        "$BKG_BASE/$year/%03d/BRDC00IGS_R_$year%03d0000_01D_MN.rnx.gz".format(doy, doy)
+    private fun url(year: Int, doy: Int, station: String): String =
+        "$GA_BASE/$year/%03d/${station}_R_$year%03d0000_01D_MN.rnx.gz".format(doy, doy)
 
-    /** Download today's (or, as fallback, yesterday's) broadcast ephemeris and build ephemeris.zip. */
+    /**
+     * Download the most recent complete daily broadcast navigation and build ephemeris.zip.
+     * Daily files have ~2 h latency after the UTC day ends, so we start at yesterday and walk back,
+     * trying a few robust stations per day.
+     */
     fun generate(): Result {
         val cal = GregorianCalendar(TimeZone.getTimeZone("UTC"))
+        cal.add(GregorianCalendar.DAY_OF_YEAR, -1) // most recent complete UTC day
         var lastError: Exception? = null
-        // Try today then the previous two days (the current day's file fills in through the day).
-        for (back in 0..2) {
+        for (back in 0..3) {
             val y = cal.get(GregorianCalendar.YEAR)
             val doy = cal.get(GregorianCalendar.DAY_OF_YEAR)
-            try {
-                val rnx = String(gunzip(httpGet(url(y, doy))), Charsets.US_ASCII)
-                val ephs = RinexNav.latestPerSat(RinexNav.parse(rnx))
-                if (ephs.isNotEmpty()) return assemble(ephs, "BRDC $y/$doy (BKG)")
-            } catch (e: Exception) {
-                lastError = e
+            for (station in STATIONS) {
+                try {
+                    val rnx = String(gunzip(httpGet(url(y, doy, station))), Charsets.US_ASCII)
+                    val ephs = RinexNav.latestPerSat(RinexNav.parse(rnx))
+                    if (ephs.isNotEmpty()) return assemble(ephs, "$station $y/$doy (GA)")
+                } catch (e: Exception) {
+                    lastError = e
+                }
             }
             cal.add(GregorianCalendar.DAY_OF_YEAR, -1)
         }
