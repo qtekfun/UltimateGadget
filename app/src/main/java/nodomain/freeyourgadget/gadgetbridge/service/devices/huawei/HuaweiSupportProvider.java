@@ -562,7 +562,7 @@ public class HuaweiSupportProvider {
                     if (status == -0x01 || status == 0x00 || status == 0x01) {
                         initializeDeviceDealHiChain(linkParamsReq);
                     } else {
-                        initializeDeviceNotify();
+                        initializeDeviceNotify(linkParamsReq);
                     }
                 }
 
@@ -673,8 +673,42 @@ public class HuaweiSupportProvider {
         }
     }
 
-    protected void initializeDeviceNotify() {
-        // TODO: Implement
+    protected void initializeDeviceNotify(final Request linkParamsReq) {
+        // On first pairing over BR/EDR the watch reports a device status outside {-1,0,1},
+        // meaning it does not yet consider this phone bound. Huawei Health reacts by sending a
+        // status notify (DeviceStatus with askStatus=false) and then running the key-agreement
+        // bind. This method used to be empty, so Gadgetbridge did nothing here: the watch timed
+        // out and told the user to pair from Huawei Health, and only a second attempt succeeded
+        // (once an ACL bond existed and the status became valid). Send the notify and continue
+        // the HiChain bind so the first attempt completes. We proceed on every outcome
+        // (response, timeout or parse mismatch) so the handshake never stalls waiting on the
+        // notify reply.
+        final RequestCallback proceed = new RequestCallback() {
+            @Override
+            public void call() {
+                initializeDeviceDealHiChain(linkParamsReq);
+            }
+
+            @Override
+            public void timeout(Request request) {
+                LOG.debug("Device notify timed out, proceeding with bind");
+                initializeDeviceDealHiChain(linkParamsReq);
+            }
+
+            @Override
+            public void handleException(Request.ResponseParseException e) {
+                LOG.debug("Device notify response ignored, proceeding with bind", e);
+                initializeDeviceDealHiChain(linkParamsReq);
+            }
+        };
+        try {
+            final GetDeviceStatusRequest deviceNotifyReq = new GetDeviceStatusRequest(this, false);
+            deviceNotifyReq.setFinalizeReq(proceed);
+            deviceNotifyReq.doPerform();
+        } catch (IOException e) {
+            LOG.error("Notify of authenticating to Huawei device failed, proceeding with bind", e);
+            initializeDeviceDealHiChain(linkParamsReq);
+        }
     }
 
     RequestCallback configureReq = new RequestCallback() {
