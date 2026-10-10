@@ -58,6 +58,8 @@ object HuamiToken {
     // host is region-dependent and comes from HuamiRegion.
     private const val URL_TOKENS = "https://api-user-us2.zepp.com/v2/registrations/tokens"
     private const val URL_LOGIN = "https://api-mifit-us2.zepp.com/v2/client/login"
+    // A-GNSS (AGPS/EPO) file listing, per file type (mirrors huami-token's GPS download).
+    private const val URL_GPS = "https://api-mifit-us2.zepp.com/apps/com.xiaomi.hm.health/fileTypes/%s/files"
 
     private const val CHANNEL = "a100900101016"
     private const val CV = "151689_9.12.5"
@@ -248,6 +250,129 @@ object HuamiToken {
         } finally {
             conn.disconnect()
         }
+    }
+
+    // ---- A-GNSS (AGPS) for Amazfit / Zepp OS ----
+
+    /**
+     * Log in to the Zepp/Huami account and build the Zepp OS A-GNSS package (UIHH container) the
+     * watch accepts, from the account's current AGPS/EPO files. The email/password are used only
+     * for the login handshake and never stored. Returns the UIHH bytes to save and install in
+     * UltimateGadget (its existing Zepp OS AGPS installer validates and sends it).
+     */
+    fun fetchAgpsUihh(email: String, password: String): ByteArray {
+        val accessToken = getAccessToken(email.trim(), password)
+        val login = login(accessToken)
+        val files = downloadGpsFiles(login.userId, login.appToken)
+        return buildGpsUihh(files)
+    }
+
+    private fun downloadGpsFiles(userId: String, appToken: String): Map<String, ByteArray> {
+        val out = LinkedHashMap<String, ByteArray>()
+        val appId = (Math.random() * Long.MAX_VALUE).toLong().toString()
+        val r1 = UUID.randomUUID().toString()
+        val r2 = UUID.randomUUID().toString()
+        for (fileType in listOf("AGPS_ALM", "AGPSZIP", "LLE", "AGPS", "EPO", "LTO")) {
+            val query = buildString {
+                appendForm("r", r1); append('&'); appendForm("r", r2)
+                append('&'); appendForm("userid", userId)
+                append('&'); appendForm("appid", appId)
+                append('&'); appendForm("country", "US")
+                append('&'); appendForm("appplatform", "android_phone")
+                append('&'); appendForm("hm-privacy-diagnostics", "false")
+                append('&'); appendForm("hm-privacy-ceip", "false")
+                append('&'); appendForm("x-request-id", UUID.randomUUID().toString())
+            }
+            val listUrl = URL_GPS.format(fileType) + "?" + query
+            val body = runCatching {
+                val conn = (URL(listUrl).openConnection() as HttpURLConnection).apply {
+                    requestMethod = "GET"; connectTimeout = 20_000; readTimeout = 30_000
+                    setRequestProperty("apptoken", appToken)
+                    setRequestProperty("appname", "com.huami.midong")
+                    setRequestProperty("appplatform", "android_phone")
+                    setRequestProperty("country", "US")
+                    setRequestProperty("x-request-id", UUID.randomUUID().toString())
+                    setRequestProperty("user-agent", USER_AGENT)
+                }
+                try { readBody(conn, "gps $fileType") } finally { conn.disconnect() }
+            }.getOrNull() ?: continue
+            val arr = runCatching { JSONArray(body) }.getOrNull() ?: continue
+            val fileUrl = (0 until arr.length()).firstNotNullOfOrNull {
+                arr.optJSONObject(it)?.optString("fileUrl")?.takeIf { u -> u.isNotBlank() }
+            } ?: continue
+            val name = fileUrl.substringAfterLast('/').substringBefore('?')
+            val bytes = runCatching { downloadRaw(fileUrl, appToken) }.getOrNull() ?: continue
+            out[name] = bytes
+        }
+        return out
+    }
+
+    private fun downloadRaw(url: String, appToken: String): ByteArray {
+        val conn = (URL(url).openConnection() as HttpURLConnection).apply {
+            requestMethod = "GET"; connectTimeout = 20_000; readTimeout = 60_000
+            setRequestProperty("apptoken", appToken)
+            setRequestProperty("user-agent", USER_AGENT)
+        }
+        try {
+            if (conn.responseCode !in 200..299) throw HuamiException("Descarga A-GPS falló (HTTP ${conn.responseCode}).")
+            return conn.inputStream.readBytes()
+        } finally { conn.disconnect() }
+    }
+
+    private fun readZipEntries(bytes: ByteArray): Map<String, ByteArray> {
+        val out = HashMap<String, ByteArray>()
+        java.util.zip.ZipInputStream(bytes.inputStream()).use { zin ->
+            var e = zin.nextEntry
+            while (e != null) {
+                if (!e.isDirectory) out[e.name.substringAfterLast('/')] = zin.readBytes()
+                e = zin.nextEntry
+            }
+        }
+        return out
+    }
+
+    private fun le32(v: Long): ByteArray = byteArrayOf(
+        (v and 0xFF).toByte(), ((v shr 8) and 0xFF).toByte(),
+        ((v shr 16) and 0xFF).toByte(), ((v shr 24) and 0xFF).toByte(),
+    )
+
+    private fun crc32(b: ByteArray): Long {
+        val c = java.util.zip.CRC32(); c.update(b); return c.value
+    }
+
+    /** Assemble the UIHH A-GNSS container from the downloaded cep_7days.zip + lle_1week.zip. */
+    private fun buildGpsUihh(files: Map<String, ByteArray>): ByteArray {
+        val cepZip = files.entries.firstOrNull { it.key.contains("cep_7days") && it.key.endsWith(".zip") }?.value
+            ?: throw HuamiException("La cuenta no devolvió el A-GPS (cep_7days.zip). ¿El reloj tiene GPS y A-GPS activado?")
+        val lleZip = files.entries.firstOrNull { it.key.contains("lle_1week") && it.key.endsWith(".zip") }?.value
+            ?: throw HuamiException("La cuenta no devolvió el A-GPS (lle_1week.zip).")
+        val cep = readZipEntries(cepZip)
+        val lle = readZipEntries(lleZip)
+        // file name -> UIHH file-type id (same mapping huami-token uses).
+        val spec = listOf(
+            "gps_alm.bin" to 0x05, "gln_alm.bin" to 0x0F,
+            "lle_bds.lle" to 0x86, "lle_gps.lle" to 0x87, "lle_glo.lle" to 0x88,
+            "lle_gal.lle" to 0x89, "lle_qzss.lle" to 0x8A,
+        )
+        val content = java.io.ByteArrayOutputStream()
+        for ((fname, type) in spec) {
+            val fc = (if (type >= 0x86) lle[fname] else cep[fname])
+                ?: throw HuamiException("Falta $fname en el paquete A-GPS")
+            content.write(byteArrayOf(0x01, type.toByte()))
+            content.write(le32(fc.size.toLong()))
+            content.write(le32(crc32(fc)))
+            content.write(fc)
+        }
+        val c = content.toByteArray()
+        val out = java.io.ByteArrayOutputStream()
+        out.write("UIHH".toByteArray(Charsets.US_ASCII))
+        out.write(byteArrayOf(0x04, 0, 0, 0, 0, 0, 0, 0x01))
+        out.write(le32(crc32(c)))
+        out.write(ByteArray(6))
+        out.write(le32(c.size.toLong()))
+        out.write(ByteArray(6))
+        out.write(c)
+        return out.toByteArray()
     }
 
     private fun aesEncrypt(data: ByteArray): ByteArray {
