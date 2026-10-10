@@ -226,6 +226,11 @@ class UltimateGolfCoursesActivity : AppCompatActivity() {
             )
             status = "Enviando ${labelFor(courseId)} al reloj…"
             pendingAction = "Enviado ${labelFor(courseId)}"
+            // Show it immediately (optimistic); the authoritative refresh reconciles when the upload
+            // finishes. Avoids the list looking frozen during the few-second Bluetooth transfer.
+            if (items.none { it.courseId == courseId }) {
+                items = (items + CourseItem(courseId, version)).sortedBy { it.courseId }
+            }
             Toast.makeText(this, "Enviando ${labelFor(courseId)}…", Toast.LENGTH_SHORT).show()
             // The service broadcasts the refreshed list when the upload actually completes; this is
             // only a long fallback in case the upload never reports completion.
