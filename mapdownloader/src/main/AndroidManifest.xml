@@ -2,6 +2,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- Only apps signed with the same key (UltimateGadget) may bind the A-GNSS helper. -->
+    <permission
+        android:name="com.qtekfun.ultimategadget.permission.AGNSS"
+        android:protectionLevel="signature" />
 
     <application
         android:allowBackup="true"
@@ -17,6 +23,15 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <service
+            android:name=".agnss.AgnssHelperService"
+            android:exported="true"
+            android:permission="com.qtekfun.ultimategadget.permission.AGNSS">
+            <intent-filter>
+                <action android:name="com.qtekfun.ultimategadget.agnss.HELPER" />
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>
