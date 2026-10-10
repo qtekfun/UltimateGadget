@@ -36,10 +36,6 @@ public class Ephemeris {
             @Override
             public void parseTlv() throws ParseException {
 
-                // UltimateGadget A-GNSS recon: dump the raw request so we can see exactly what the
-                // watch asks for (read-only diagnostic, no behaviour change).
-                org.slf4j.LoggerFactory.getLogger(Ephemeris.class).info("UG-AGNSS OperatorIncomingRequest TLV: {}", this.tlv);
-
                 //TODO: can contain many elements.
                 //List<HuaweiTLV> subContainers = container.getObjects(0x81);
                 HuaweiTLV subTlv = this.tlv.getObject(0x81);
@@ -89,19 +85,6 @@ public class Ephemeris {
 
             @Override
             public void parseTlv() throws HuaweiPacket.ParseException {
-
-                // UltimateGadget A-GNSS recon: dump every tag the watch requests (it may ask for
-                // several, e.g. HW_AGNSS and HW_PGNSS_*). Read-only diagnostic, no behaviour change.
-                org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(Ephemeris.class);
-                log.info("UG-AGNSS ParameterConsult raw TLV: {}", this.tlv);
-                for (HuaweiTLV sub : this.tlv.getObjects(0x81)) {
-                    try {
-                        log.info("UG-AGNSS watch wants tag='{}' ver={} time={}",
-                                sub.getString(0x06), sub.getByte(0x05), sub.getByte(0x04));
-                    } catch (Exception e) {
-                        log.info("UG-AGNSS sub-tlv parse: {}", sub);
-                    }
-                }
 
                 //TODO: can contain many elements.
                 //List<HuaweiTLV> subContainers = container.getObjects(0x81);
