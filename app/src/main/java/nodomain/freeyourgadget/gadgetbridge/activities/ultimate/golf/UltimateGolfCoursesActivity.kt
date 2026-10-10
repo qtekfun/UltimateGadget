@@ -86,6 +86,8 @@ class UltimateGolfCoursesActivity : AppCompatActivity() {
     private var status by mutableStateOf("")
     private var selectMode by mutableStateOf(false)
     private var selected by mutableStateOf<Set<Int>>(emptySet())
+    // When set, the next course-list refresh shows this as a confirmation with the resulting count.
+    private var pendingAction by mutableStateOf("")
 
     private val listReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -97,8 +99,34 @@ class UltimateGolfCoursesActivity : AppCompatActivity() {
             }
             items = list.sortedBy { it.courseId }
             loaded = true
+            if (pendingAction.isNotBlank()) {
+                status = "$pendingAction ✓ · el reloj tiene ${list.size} campo(s)"
+                pendingAction = ""
+            }
         }
     }
+
+    // Cache of courseId -> friendly name, learned from the file names of courses sent from here.
+    private var names by mutableStateOf<Map<Int, String>>(emptyMap())
+
+    private fun namesPrefs() = getSharedPreferences("huawei_golf_names", Context.MODE_PRIVATE)
+
+    private fun loadNames() {
+        names = namesPrefs().all.mapNotNull { (k, v) ->
+            val id = k.toIntOrNull() ?: return@mapNotNull null
+            val n = v as? String ?: return@mapNotNull null
+            id to n
+        }.toMap()
+    }
+
+    private fun saveName(courseId: Int, name: String) {
+        if (name.isBlank()) return
+        namesPrefs().edit().putString(courseId.toString(), name).apply()
+        names = names + (courseId to name)
+    }
+
+    /** Course label: cached friendly name if known, else the numeric id. */
+    private fun labelFor(courseId: Int): String = names[courseId] ?: "Campo $courseId"
 
     private val pickBin = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
         if (uri != null) importAndSend(uri)
@@ -107,6 +135,7 @@ class UltimateGolfCoursesActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         device = intent.getParcelableExtra(GBDevice.EXTRA_DEVICE)
+        loadNames()
         setContent {
             UltimateTheme {
                 DisposableEffect(Unit) {
@@ -134,7 +163,8 @@ class UltimateGolfCoursesActivity : AppCompatActivity() {
         GBApplication.deviceService(d).onSendConfiguration(
             HuaweiConstants.PREF_HUAWEI_GOLF_DELETE_PREFIX + item.courseId,
         )
-        status = "Borrando ${item.courseId}…"
+        status = "Borrando ${labelFor(item.courseId)}…"
+        pendingAction = "Borrado 1 campo"
         items = items.filterNot { it.courseId == item.courseId }
         // Re-query shortly so the list reflects the watch's authoritative state.
         d.let { requestListDelayed() }
@@ -157,6 +187,7 @@ class UltimateGolfCoursesActivity : AppCompatActivity() {
             HuaweiConstants.PREF_HUAWEI_GOLF_DELETE_PREFIX + ids.joinToString(","),
         )
         status = "Borrando ${ids.size} campo(s)…"
+        pendingAction = "Borrados ${ids.size} campo(s)"
         items = items.filterNot { it.courseId in selected }
         selected = emptySet()
         selectMode = false
@@ -177,6 +208,9 @@ class UltimateGolfCoursesActivity : AppCompatActivity() {
             return
         }
         val version = Regex("v(\\d{6,})").find(name)?.groupValues?.get(1)?.toIntOrNull() ?: 0
+        // Friendly name = file name without the "(id) vXXXX.bin" tail, so the list can show it.
+        val friendly = name.substringBefore(" (").substringBeforeLast('.').trim()
+        if (friendly.isNotBlank()) saveName(courseId, friendly)
         try {
             val dest = File(cacheDir, "golf_import_$courseId.bin")
             contentResolver.openInputStream(uri)!!.use { input ->
@@ -185,8 +219,9 @@ class UltimateGolfCoursesActivity : AppCompatActivity() {
             GBApplication.deviceService(d).onSendConfiguration(
                 HuaweiConstants.PREF_HUAWEI_GOLF_SEND_PREFIX + dest.absolutePath + "|" + courseId + "|" + version,
             )
-            status = "Enviando campo $courseId al reloj…"
-            Toast.makeText(this, "Enviando campo $courseId…", Toast.LENGTH_SHORT).show()
+            status = "Enviando ${labelFor(courseId)} al reloj…"
+            pendingAction = "Enviado ${labelFor(courseId)}"
+            Toast.makeText(this, "Enviando ${labelFor(courseId)}…", Toast.LENGTH_SHORT).show()
             requestListDelayed()
         } catch (e: Exception) {
             Toast.makeText(this, "Error al leer el fichero: ${e.message}", Toast.LENGTH_LONG).show()
@@ -294,8 +329,8 @@ class UltimateGolfCoursesActivity : AppCompatActivity() {
                                     Checkbox(checked = isSel, onCheckedChange = { toggle(item.courseId) })
                                 }
                                 Column(Modifier.weight(1f).padding(start = if (selectMode) 8.dp else 0.dp)) {
-                                    Text("Campo ${item.courseId}", style = MaterialTheme.typography.titleMedium, color = palette.onSurface)
-                                    Text("v${item.version}", style = MaterialTheme.typography.bodySmall, color = palette.onSurfaceVariant)
+                                    Text(labelFor(item.courseId), style = MaterialTheme.typography.titleMedium, color = palette.onSurface)
+                                    Text("id ${item.courseId} · v${item.version}", style = MaterialTheme.typography.bodySmall, color = palette.onSurfaceVariant)
                                 }
                                 if (!selectMode) {
                                     IconButton(onClick = { pendingDelete = item }) {
@@ -314,7 +349,7 @@ class UltimateGolfCoursesActivity : AppCompatActivity() {
                 onDismissRequest = { pendingDelete = null },
                 containerColor = palette.surfaceContainer,
                 title = { Text("Borrar campo") },
-                text = { Text("¿Quitar el campo ${item.courseId} del reloj?") },
+                text = { Text("¿Quitar ${labelFor(item.courseId)} del reloj?") },
                 confirmButton = {
                     TextButton(onClick = { delete(item); pendingDelete = null }) {
                         Text("Borrar", color = palette.error)
