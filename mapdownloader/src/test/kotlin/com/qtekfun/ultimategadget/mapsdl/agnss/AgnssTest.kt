@@ -60,6 +60,7 @@ class AgnssTest {
     fun rinexToRtcmIsValid() {
         val ephs = RinexNav.parse(fixture())
         assertTrue("GPS parsed", ephs.any { it.system == 'G' })
+        assertTrue("GLONASS parsed", ephs.any { it.system == 'R' })
         assertTrue("Galileo parsed", ephs.any { it.system == 'E' })
         assertTrue("BeiDou parsed", ephs.any { it.system == 'C' })
 
@@ -75,7 +76,6 @@ class AgnssTest {
         )
         val seen = HashSet<Int>()
         for (f in frames) {
-            val band = sqrtBands[f.msg] ?: error("unexpected msg ${f.msg}")
             seen.add(f.msg)
             // CRC must be valid: recompute over D3+len+payload and compare to the frame's trailing 3 bytes.
             val framed = AgnssRtcm.frame(f.payload)
@@ -85,12 +85,23 @@ class AgnssTest {
             assertEquals("crc valid for ${f.msg}", stored, crc)
 
             val m = AgnssRtcm.decodeMessage(AgnssRtcm.tableByMsg[f.msg]!!, f.payload)
-            val sqrtA = m["sqrta"]!! * 2.0.pow(-19)
-            val ecc = m["ecc"]!! * 2.0.pow(-33)
-            assertTrue("msg ${f.msg} sat ${m["sat"]} sqrtA=$sqrtA in $band", sqrtA in band)
-            assertTrue("msg ${f.msg} ecc=$ecc sane", ecc in 0.0..0.05)
-            assertTrue("msg ${f.msg} sat ${m["sat"]} in range", m["sat"]!! in 1..63)
+            if (f.msg == 1020) {
+                // GLONASS: validate the broadcast position radius ~25510 km.
+                val x = m["xn"]!! * 2.0.pow(-11)
+                val y = m["yn"]!! * 2.0.pow(-11)
+                val z = m["zn"]!! * 2.0.pow(-11)
+                val r = kotlin.math.sqrt(x * x + y * y + z * z)
+                assertTrue("GLONASS |r|=$r ~25510km sat ${m["sat"]}", r in 25000.0..26000.0)
+                assertTrue("GLONASS sat ${m["sat"]} in range", m["sat"]!! in 1..24)
+            } else {
+                val band = sqrtBands[f.msg] ?: error("unexpected msg ${f.msg}")
+                val sqrtA = m["sqrta"]!! * 2.0.pow(-19)
+                val ecc = m["ecc"]!! * 2.0.pow(-33)
+                assertTrue("msg ${f.msg} sat ${m["sat"]} sqrtA=$sqrtA in $band", sqrtA in band)
+                assertTrue("msg ${f.msg} ecc=$ecc sane", ecc in 0.0..0.05)
+                assertTrue("msg ${f.msg} sat ${m["sat"]} in range", m["sat"]!! in 1..63)
+            }
         }
-        assertEquals("all three constellations present", setOf(1019, 1042, 1046), seen)
+        assertEquals("all four constellations present", setOf(1019, 1020, 1042, 1046), seen)
     }
 }
