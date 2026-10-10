@@ -83,7 +83,7 @@ private fun savedFolder(c: Context): Uri? =
  * Human-friendly file name for a golf course map: "<Country> - <Course> (<id>).bin".
  * The id is kept so UltimateGadget can recover the course when importing/sending to the watch.
  */
-private fun golfFileName(country: String, name: String, id: Long): String {
+private fun golfFileName(country: String, name: String, id: Long, version: String): String {
     fun clean(s: String) = s.trim()
         .replace(Regex("[\\\\/:*?\"<>|]"), " ")
         .replace(Regex("\\s+"), " ")
@@ -92,7 +92,9 @@ private fun golfFileName(country: String, name: String, id: Long): String {
         .filter { it.isNotBlank() }
         .joinToString(" - ")
         .ifBlank { "golf_$id" }
-    return "$base ($id).bin"
+    // The id is needed to send it to the watch; the version lets UltimateGadget send the right one.
+    val ver = version.filter { it.isDigit() }
+    return if (ver.isNotEmpty()) "$base ($id) v$ver.bin" else "$base ($id).bin"
 }
 
 /** Save a golf course `.bin` into a `golf/` subfolder of the user-picked SAF tree. */
@@ -160,6 +162,9 @@ private fun Screen(onOpenAuthKey: () -> Unit, onOpenGolf: () -> Unit) {
                 actions = {
                     androidx.compose.material3.TextButton(onClick = onOpenGolf) { Text("Golf") }
                     androidx.compose.material3.TextButton(onClick = onOpenAuthKey) { Text("Auth key") }
+                    androidx.compose.material3.TextButton(onClick = {
+                        (context as? android.app.Activity)?.finishAndRemoveTask()
+                    }) { Text("Salir") }
                 },
                 colors = androidx.compose.material3.TopAppBarDefaults.topAppBarColors(
                     containerColor = Scheme.background, titleContentColor = Scheme.onBackground,
@@ -497,7 +502,7 @@ private fun GolfScreen(onBack: () -> Unit) {
                                                 val map = GolfApi.courseMap(co.id, country = country?.code ?: "ES")
                                                     ?: throw RuntimeException("sin datos de mapa")
                                                 val (_, bytes) = GolfApi.downloadMapBin(map.url)
-                                                val fname = golfFileName(countryName, co.name, co.id)
+                                                val fname = golfFileName(countryName, co.name, co.id, co.version)
                                                 writeGolfBin(context, folder!!, fname, bytes)
                                                 fname
                                             }
