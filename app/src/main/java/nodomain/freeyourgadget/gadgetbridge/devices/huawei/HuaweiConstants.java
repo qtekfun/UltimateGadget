@@ -132,6 +132,10 @@ public final class HuaweiConstants {
     public static final String PREF_HUAWEI_OFFLINE_MAPS_MANAGE = "pref_huawei_offline_maps_manage";
     public static final String PREF_HUAWEI_OFFLINE_MAP_QUERY = "huawei_offline_map_query";
     public static final String PREF_HUAWEI_OFFLINE_MAP_DELETE_PREFIX = "huawei_offline_map_delete:";
+    // Golf course management on the watch (UltimateGadget).
+    public static final String PREF_HUAWEI_GOLF_LIST = "huawei_golf_list";
+    public static final String PREF_HUAWEI_GOLF_SEND_PREFIX = "huawei_golf_send:"; // <filePath>|<courseId>|<version>
+    public static final String PREF_HUAWEI_GOLF_DELETE_PREFIX = "huawei_golf_delete:"; // <courseId>
     public static final String PREF_HUAWEI_ACTIVITY_REMINDER_STAND = "pref_huawei_activity_reminder_stand";
     public static final String PREF_HUAWEI_ACTIVITY_REMINDER_PROGRESS = "pref_huawei_activity_reminder_progress";
     public static final String PREF_HUAWEI_ACTIVITY_REMINDER_GOAL_REACHED = "pref_huawei_activity_reminder_goal_reached";

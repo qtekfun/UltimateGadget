@@ -55,7 +55,6 @@ import de.greenrobot.dao.Property;
 import de.greenrobot.dao.query.DeleteQuery;
 import de.greenrobot.dao.query.QueryBuilder;
 import kotlin.Triple;
-import nodomain.freeyourgadget.gadgetbridge.BuildConfig;
 import nodomain.freeyourgadget.gadgetbridge.GBApplication;
 import nodomain.freeyourgadget.gadgetbridge.R;
 import nodomain.freeyourgadget.gadgetbridge.activities.SettingsActivity;
@@ -143,12 +142,12 @@ import nodomain.freeyourgadget.gadgetbridge.service.devices.huawei.datasync.Huaw
 import nodomain.freeyourgadget.gadgetbridge.service.devices.huawei.datasync.HuaweiDataSyncWheelchairService;
 import nodomain.freeyourgadget.gadgetbridge.service.devices.huawei.p2p.HuaweiP2PAppIcon;
 import nodomain.freeyourgadget.gadgetbridge.service.devices.huawei.p2p.HuaweiP2PBatteryService;
-import nodomain.freeyourgadget.gadgetbridge.service.devices.huawei.p2p.HuaweiP2PGolfService;
 import nodomain.freeyourgadget.gadgetbridge.service.devices.huawei.p2p.HuaweiP2PCalendarService;
 import nodomain.freeyourgadget.gadgetbridge.service.devices.huawei.p2p.HuaweiP2PCannedRepliesService;
 import nodomain.freeyourgadget.gadgetbridge.service.devices.huawei.p2p.HuaweiP2PContactsService;
 import nodomain.freeyourgadget.gadgetbridge.service.devices.huawei.p2p.HuaweiP2PDirection;
 import nodomain.freeyourgadget.gadgetbridge.service.devices.huawei.p2p.HuaweiP2PFitnessData;
+import nodomain.freeyourgadget.gadgetbridge.service.devices.huawei.p2p.HuaweiP2PGolfService;
 import nodomain.freeyourgadget.gadgetbridge.service.devices.huawei.p2p.HuaweiP2PMapkitService;
 import nodomain.freeyourgadget.gadgetbridge.service.devices.huawei.p2p.HuaweiP2PTrackService;
 import nodomain.freeyourgadget.gadgetbridge.service.devices.huawei.p2p.HuaweiP2PDataDictionarySyncService;
@@ -1194,8 +1193,8 @@ public class HuaweiSupportProvider {
                             batteryService.register();
                         }
 
-                        // Phase 0 spike (debug builds only): probe the golf mini-app of the watch
-                        if (BuildConfig.DEBUG && HuaweiP2PGolfService.getRegisteredInstance(huaweiP2PManager) == null) {
+                        // Golf course management (UltimateGadget): list / send / delete courses.
+                        if (HuaweiP2PGolfService.getRegisteredInstance(huaweiP2PManager) == null) {
                             new HuaweiP2PGolfService(huaweiP2PManager).register();
                         }
                     }
@@ -1348,6 +1347,40 @@ public class HuaweiSupportProvider {
                         } catch (NumberFormatException e) {
                             LOG.error("Invalid offline map delete request: {}", config);
                         }
+                    }
+                }
+                return;
+            }
+            // Golf course management (UltimateGadget): list / send / delete courses on the watch.
+            if (config.equals(HuaweiConstants.PREF_HUAWEI_GOLF_LIST)) {
+                HuaweiP2PGolfService golf = HuaweiP2PGolfService.getRegisteredInstance(huaweiP2PManager);
+                if (golf != null) golf.requestCourseListAndBroadcast();
+                return;
+            }
+            if (config.startsWith(HuaweiConstants.PREF_HUAWEI_GOLF_SEND_PREFIX)) {
+                HuaweiP2PGolfService golf = HuaweiP2PGolfService.getRegisteredInstance(huaweiP2PManager);
+                if (golf != null) {
+                    // format: <prefix><filePath>|<courseId>|<version>
+                    String args = config.substring(HuaweiConstants.PREF_HUAWEI_GOLF_SEND_PREFIX.length());
+                    String[] parts = args.split("\\|");
+                    if (parts.length >= 3) {
+                        try {
+                            golf.sendCourseMapFromFile(parts[0], Integer.parseInt(parts[1].trim()), Integer.parseInt(parts[2].trim()));
+                        } catch (NumberFormatException e) {
+                            LOG.error("Invalid golf send request: {}", config);
+                        }
+                    }
+                }
+                return;
+            }
+            if (config.startsWith(HuaweiConstants.PREF_HUAWEI_GOLF_DELETE_PREFIX)) {
+                HuaweiP2PGolfService golf = HuaweiP2PGolfService.getRegisteredInstance(huaweiP2PManager);
+                if (golf != null) {
+                    String args = config.substring(HuaweiConstants.PREF_HUAWEI_GOLF_DELETE_PREFIX.length());
+                    try {
+                        golf.deleteCourses(new int[]{Integer.parseInt(args.trim())});
+                    } catch (NumberFormatException e) {
+                        LOG.error("Invalid golf delete request: {}", config);
                     }
                 }
                 return;
