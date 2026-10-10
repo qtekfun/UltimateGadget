@@ -2,6 +2,11 @@
 
 <!-- For contributors: do not modify this file - the project maintainers will update it as needed -->
 
+#### 0.100.0
+
+* Golf: nueva pantalla "Campos de golf" (relojes Huawei) para ver los campos que tiene el reloj, enviar al reloj un mapa de campo descargado con la app de mapas, y borrar campos — sin Huawei Health ni HMS en el móvil; el campo aparece y se notifica en el reloj igual que con la app original
+* App de mapas: el nombre del archivo de campo incluye la versión (para enviar la correcta al reloj) y nuevo botón "Salir" para cerrar la app
+
 #### 0.99.2
 
 * Dispositivos: la lista se refresca al volver a la app (p. ej. tras borrar un dispositivo, ya no se queda el que acabas de quitar)
