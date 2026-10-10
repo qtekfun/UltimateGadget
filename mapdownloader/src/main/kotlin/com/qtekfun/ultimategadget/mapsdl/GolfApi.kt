@@ -129,7 +129,48 @@ object GolfApi {
         }.sortedBy { it.name }
     }
 
-    // TODO: getCourseMapDataAnon — the request shape {courseIds,language,type,deviceLevel} returns
-    // "parameter invalid" from a plain client; the exact field(s) still need confirming from a real
-    // captured request. Left out until then; see ~/re/golf-campo/golf-api.md.
+    data class CourseMap(val courseId: Long, val version: String, val url: String, val size: Long)
+
+    /**
+     * Course map metadata for [courseId]. The watch needs the "vector" map; note `type` MUST be
+     * "lite_wearable" — the anonymous server rejects "wearable" with "parameter invalid".
+     * The returned [CourseMap.url] is a short-lived (~2h) signed CDN ZIP.
+     */
+    fun courseMap(courseId: Long, language: String = "es-ES", country: String = "ES"): CourseMap? {
+        val body = envelope(language, country).apply {
+            put("courseIds", JSONArray().put(courseId))
+            put("language", language)
+            put("type", "lite_wearable")
+            put("deviceLevel", "vector")
+        }
+        val el = post("getCourseMapDataAnon", body).optJSONArray("courseMapData")?.optJSONObject(0)
+            ?: return null
+        val url = el.optString("url")
+        if (url.isBlank()) return null
+        return CourseMap(el.optLong("courseId", courseId), el.optString("version"), url, el.optLong("size"))
+    }
+
+    /** Download the signed ZIP at [url] and return the inner course `.bin` (name to bytes). */
+    fun downloadMapBin(url: String): Pair<String, ByteArray> {
+        val conn = (URL(url).openConnection() as HttpURLConnection).apply {
+            requestMethod = "GET"
+            connectTimeout = 20_000
+            readTimeout = 60_000
+        }
+        try {
+            if (conn.responseCode !in 200..299) throw GolfException("download HTTP ${conn.responseCode}")
+            java.util.zip.ZipInputStream(conn.inputStream.buffered()).use { zip ->
+                var entry = zip.nextEntry
+                while (entry != null) {
+                    if (!entry.isDirectory && entry.name.endsWith(".bin")) {
+                        return entry.name.substringAfterLast('/') to zip.readBytes()
+                    }
+                    entry = zip.nextEntry
+                }
+            }
+            throw GolfException("no .bin inside the course zip")
+        } finally {
+            conn.disconnect()
+        }
+    }
 }
