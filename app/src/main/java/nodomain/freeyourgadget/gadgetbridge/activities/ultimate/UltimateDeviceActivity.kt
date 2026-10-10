@@ -152,6 +152,7 @@ class UltimateDeviceActivity : AppCompatActivity() {
             options += DeviceOptionUi("maps", "Mapas offline", "Instalar y borrar mapas del reloj", section = sNav)
             options += DeviceOptionUi("routes", "Rutas", "Planificar y enviar rutas", section = sNav)
             options += DeviceOptionUi("golf", "Campos de golf", "Enviar y borrar mapas de campos del reloj", section = sNav)
+            options += DeviceOptionUi("agnss", "Actualizar GPS (A-GNSS)", "Datos de satélites para fijar antes", section = sNav)
         }
         if (supportsAgps(device)) {
             options += DeviceOptionUi("agps", "Actualizar GPS (A-GNSS)", "Instalar datos de satélites para fijar antes", section = sNav)
@@ -186,6 +187,9 @@ class UltimateDeviceActivity : AppCompatActivity() {
             )
             "golf" -> startActivity(
                 nodomain.freeyourgadget.gadgetbridge.activities.ultimate.golf.UltimateGolfCoursesActivity.intent(this, device),
+            )
+            "agnss" -> startActivity(
+                nodomain.freeyourgadget.gadgetbridge.activities.ultimate.agnss.UltimateAgnssActivity.intent(this, device),
             )
             "watchfaces" -> startActivity(
                 nodomain.freeyourgadget.gadgetbridge.activities.ultimate.watchfaces.UltimateWatchfacesActivity.intent(this, device),
