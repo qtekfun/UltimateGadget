@@ -199,15 +199,61 @@ object AgnssBuilder {
         )
     }
 
-    /** Build the concatenated RTCM3 stream for the given ephemerides (GPS, Galileo, BeiDou). */
+    /** RINEX GLONASS value indices (3 clock terms, then 3 orbit lines of position/velocity/accel). */
+    private object R {
+        const val negTauN = 0; const val gammaN = 1; const val tk = 2
+        const val x = 3; const val xv = 4; const val xa = 5; const val bn = 6
+        const val y = 7; const val yv = 8; const val ya = 9; const val freq = 10
+        const val z = 11; const val zv = 12; const val za = 13; const val age = 14
+    }
+
+    fun glonassFields(e: RinexNav.Eph): Map<String, Long> {
+        val v = e.values
+        // tb: ephemeris reference time index (15-min units) in GLONASS time = UTC + 3h.
+        val secOfDayUtc = e.hour * 3600L + e.minute * 60L + e.second
+        val tb = ((secOfDayUtc + 3 * 3600L) % 86400L) / 900L
+        // NT: day number within the current GLONASS 4-year interval (started 1996 + k*4).
+        val n4 = (e.year - 1996) / 4 + 1
+        val intervalStartYear = 1996 + (n4 - 1) * 4
+        val nt = GnssTime.daysFromCivil(e.year, e.month, e.day) -
+            GnssTime.daysFromCivil(intervalStartYear, 1, 1) + 1
+        val bn = v[R.bn].toLong()
+        return linkedMapOf(
+            "msg" to 1020L,
+            "sat" to e.prn.toLong(),
+            "freq" to (v[R.freq].toLong() + 7),
+            "almH" to 0L, "almHav" to 0L, "P1" to 0L,
+            "tk" to 0L, // frame reception time; not used for position (HH also sends 0)
+            "Bn_msb" to ((bn shr 2) and 1),
+            "P2" to 0L,
+            "tb" to tb,
+            "xnd" to q(v[R.xv], -20), "xn" to q(v[R.x], -11), "xndd" to q(v[R.xa], -30),
+            "ynd" to q(v[R.yv], -20), "yn" to q(v[R.y], -11), "yndd" to q(v[R.ya], -30),
+            "znd" to q(v[R.zv], -20), "zn" to q(v[R.z], -11), "zndd" to q(v[R.za], -30),
+            "P3" to 0L,
+            "gn" to q(v[R.gammaN], -40),
+            "P" to 0L, "ln3" to 0L,
+            "taun" to q(-v[R.negTauN], -30), // RINEX stores -TauN; broadcast tau_n = -(stored)
+            "dtaun" to 0L,
+            "En" to v[R.age].toLong(),
+            "P4" to 0L, "FT" to 0L,
+            "NT" to nt,
+            "M" to 1L, // GLONASS-M
+            "addAvail" to 0L, "NA" to 0L, "tauc" to 0L, "N4" to 0L, "tauGPS" to 0L, "ln5" to 0L,
+            "resv" to 0L,
+        )
+    }
+
+    /** Build the concatenated RTCM3 stream for the given ephemerides (GPS, GLONASS, Galileo, BeiDou). */
     fun buildRtcm(ephs: List<RinexNav.Eph>): ByteArray {
         val out = ArrayList<Byte>()
         for (e in RinexNav.latestPerSat(ephs)) {
             val fields = when (e.system) {
                 'G' -> gpsFields(e)
+                'R' -> glonassFields(e)
                 'E' -> galileoFields(e)
                 'C' -> beidouFields(e)
-                else -> null // GLONASS (1020): added next
+                else -> null
             } ?: continue
             val table = AgnssRtcm.tableByMsg[fields["msg"]!!.toInt()]!!
             val frame = AgnssRtcm.frame(AgnssRtcm.encodeMessage(table, fields))
