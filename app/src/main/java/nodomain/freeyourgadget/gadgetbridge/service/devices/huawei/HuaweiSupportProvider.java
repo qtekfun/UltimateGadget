@@ -1135,6 +1135,10 @@ public class HuaweiSupportProvider {
                 public void call() {
                     gbDevice.setUpdateState(GBDevice.State.INITIALIZED, getContext());
 
+                    // A-GNSS (UltimateGadget): if enabled, prepare/refresh the ephemeris the watch
+                    // may pull. No-op unless the user opted in; never force-pushes to the watch.
+                    HuaweiAgnssHelper.onDeviceConnected(getContext());
+
                     if (getDeviceState().supportsP2PService()) {
                         if (getDeviceState().supportsCalendar()) {
                             if (HuaweiP2PCalendarService.getRegisteredInstance(huaweiP2PManager) == null) {

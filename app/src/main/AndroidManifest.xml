@@ -62,6 +62,9 @@
     <!-- Internet Helper -->
     <uses-permission android:name="nodomain.freeyourgadget.internethelper.INTERNET"/>
 
+    <!-- A-GNSS: bind the map companion's helper service (same signing key). -->
+    <uses-permission android:name="com.qtekfun.ultimategadget.permission.AGNSS"/>
+
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.READ_CALENDAR" />
@@ -309,6 +312,7 @@
         <activity android:name=".activities.ultimate.workout.UltimateWorkoutMapActivity" android:exported="false" android:theme="@style/GadgetbridgeThemeDark.NoActionBar" android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
         <activity android:name=".activities.ultimate.golf.UltimateGolfActivity" android:exported="false" android:theme="@style/GadgetbridgeThemeDark.NoActionBar" android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
         <activity android:name=".activities.ultimate.golf.UltimateGolfCoursesActivity" android:exported="false" android:theme="@style/GadgetbridgeThemeDark.NoActionBar" android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
+        <activity android:name=".activities.ultimate.agnss.UltimateAgnssActivity" android:exported="false" android:theme="@style/GadgetbridgeThemeDark.NoActionBar" android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
         <activity android:name=".activities.ultimate.route.UltimateRoutePlannerActivity" android:exported="false" android:theme="@style/GadgetbridgeThemeDark.NoActionBar" android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
         <activity android:name=".activities.ultimate.phonemaps.PhoneMapsActivity" android:exported="false" android:theme="@style/GadgetbridgeThemeDark.NoActionBar" android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
         <activity android:name=".activities.ultimate.readiness.ReadinessDetailActivity" android:exported="false" android:theme="@style/GadgetbridgeThemeDark.NoActionBar" android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
@@ -1433,6 +1437,8 @@
 
     <queries>
         <package android:name="com.google.android.apps.healthdata" />
+        <!-- A-GNSS: bind the UltimateGadget map companion's internet-less-bridge helper service. -->
+        <package android:name="com.qtekfun.ultimategadget.mapsdl" />
 
         <!--
              This is required such that the app can query and resolve packages that have written
