@@ -79,6 +79,18 @@ private fun prefs(c: Context) = c.getSharedPreferences(PREFS, Context.MODE_PRIVA
 private fun savedFolder(c: Context): Uri? =
     prefs(c).getString(KEY_FOLDER, null)?.let { Uri.parse(it) }
 
+/** Save a golf course `.bin` into a `golf/` subfolder of the user-picked SAF tree. */
+private fun writeGolfBin(context: Context, folderUri: Uri, name: String, bytes: ByteArray) {
+    val root = DocumentFile.fromTreeUri(context, folderUri) ?: throw RuntimeException("carpeta no accesible")
+    val dir = root.findFile("golf")?.takeIf { it.isDirectory } ?: root.createDirectory("golf")
+        ?: throw RuntimeException("no se pudo crear la carpeta golf")
+    dir.findFile(name)?.delete()
+    val file = dir.createFile("application/octet-stream", name)
+        ?: throw RuntimeException("no se pudo crear el fichero")
+    context.contentResolver.openOutputStream(file.uri)?.use { it.write(bytes) }
+        ?: throw RuntimeException("no se pudo escribir")
+}
+
 private fun fmt(bytes: Long): String {
     if (bytes <= 0) return "—"
     val u = arrayOf("B", "KB", "MB", "GB")
@@ -354,7 +366,9 @@ private fun AuthKeyScreen(onBack: () -> Unit) {
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
 private fun GolfScreen(onBack: () -> Unit) {
+    val context = androidx.compose.ui.platform.LocalContext.current
     val scope = rememberCoroutineScope()
+    val folder = savedFolder(context)
 
     // Simple country -> city -> course drill-down.
     var level by remember { mutableStateOf("countries") }
@@ -415,8 +429,9 @@ private fun GolfScreen(onBack: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Text(
-                "Explora campos de golf (datos anónimos de Huawei). La descarga del mapa al reloj " +
-                    "llegará cuando se cierre el formato del fichero.",
+                "Explora y descarga campos de golf (datos anónimos de Huawei). El mapa se guarda como " +
+                    ".bin en la subcarpeta 'golf' de la carpeta elegida, listo para importar en UltimateGadget. " +
+                    "Elige la carpeta en la pantalla de mapas si aún no lo has hecho.",
                 style = MaterialTheme.typography.bodySmall, color = Scheme.onSurfaceVariant,
             )
             if (loading) CircularProgressIndicator(Modifier.padding(4.dp))
@@ -445,12 +460,33 @@ private fun GolfScreen(onBack: () -> Unit) {
                     }
                     else -> items(courses, key = { it.id }) { co ->
                         Card(Modifier.fillMaxWidth()) {
-                            Column(Modifier.padding(12.dp).fillMaxWidth()) {
-                                Text(co.name, color = Scheme.onSurface)
-                                Text(
-                                    "${co.totalLength} m · v${co.version} · id ${co.id}",
-                                    style = MaterialTheme.typography.bodySmall, color = Scheme.onSurfaceVariant,
-                                )
+                            Row(
+                                Modifier.padding(12.dp).fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                            ) {
+                                Column(Modifier.weight(1f)) {
+                                    Text(co.name, color = Scheme.onSurface)
+                                    Text(
+                                        "${co.totalLength} m · v${co.version} · id ${co.id}",
+                                        style = MaterialTheme.typography.bodySmall, color = Scheme.onSurfaceVariant,
+                                    )
+                                }
+                                OutlinedButton(
+                                    enabled = folder != null && !loading,
+                                    onClick = {
+                                        load {
+                                            val saved = withContext(Dispatchers.IO) {
+                                                val map = GolfApi.courseMap(co.id, country = country?.code ?: "ES")
+                                                    ?: throw RuntimeException("sin datos de mapa")
+                                                val (name, bytes) = GolfApi.downloadMapBin(map.url)
+                                                writeGolfBin(context, folder!!, name, bytes)
+                                                name
+                                            }
+                                            status = "Guardado: $saved"
+                                        }
+                                    },
+                                ) { Text(if (folder == null) "Elige carpeta" else "Descargar") }
                             }
                         }
                     }
