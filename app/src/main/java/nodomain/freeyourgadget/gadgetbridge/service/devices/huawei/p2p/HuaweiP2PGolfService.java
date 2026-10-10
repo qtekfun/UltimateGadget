@@ -184,6 +184,12 @@ public class HuaweiP2PGolfService extends HuaweiBaseP2PService {
     private static final int TYPE_COURSE_DELETE = 15;
     private static final int MAP_STYLE_VECTOR = 1;
     private static final int PUSH_MSG_ID = 100;
+    // Fresh message id per request, like Huawei Health's GolfMsgHeader.newMsgId() (a fixed id can be
+    // de-duplicated by the watch, which is likely why repeated deletes appeared to do nothing).
+    private static final java.util.concurrent.atomic.AtomicInteger MSG_ID = new java.util.concurrent.atomic.AtomicInteger(1000);
+    private static int nextMsgId() {
+        return MSG_ID.getAndIncrement();
+    }
 
     /** Delete courses from the watch (type 15): count header + N x courseId (LE). */
     public void deleteCourses(int[] courseIds) {
@@ -191,7 +197,7 @@ public class HuaweiP2PGolfService extends HuaweiBaseP2PService {
         final ByteBuffer payload = ByteBuffer.allocate(4 + courseIds.length * 4).order(ByteOrder.LITTLE_ENDIAN);
         payload.putInt(courseIds.length); // GolfNumberHeader
         for (int id : courseIds) payload.putInt(id);
-        final byte[] msg = buildGolfMessage(TYPE_COURSE_DELETE, PUSH_MSG_ID, 0, 4, payload.array());
+        final byte[] msg = buildGolfMessage(TYPE_COURSE_DELETE, nextMsgId(), 0, 4, payload.array());
         LOG.info("Golf: DELETE courses {} ({} bytes)", java.util.Arrays.toString(courseIds), msg.length);
         sendCommand(msg, (code, data) -> {
             LOG.info("Golf: delete ack code {} data {}", code, data == null ? "null" : StringUtils.bytesToHex(data));
@@ -296,7 +302,9 @@ public class HuaweiP2PGolfService extends HuaweiBaseP2PService {
             @Override public void onUploadProgress(int progress) { LOG.info("Golf course file upload: progress {}", progress); }
             @Override public void onUploadComplete() {
                 LOG.info("Golf course file upload: COMPLETE for course {}", courseId);
-                requestLocalCourseList(null);
+                // Re-query AND broadcast, so the UI list refreshes exactly when the course is
+                // actually registered on the watch (the upload takes a few seconds).
+                requestCourseListAndBroadcast();
             }
             @Override public void onError(int code) { LOG.info("Golf course file upload: ERROR {}", code); }
         });
