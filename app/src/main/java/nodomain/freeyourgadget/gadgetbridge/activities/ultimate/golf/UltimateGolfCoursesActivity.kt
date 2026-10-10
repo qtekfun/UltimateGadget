@@ -101,6 +101,11 @@ class UltimateGolfCoursesActivity : AppCompatActivity() {
             loaded = true
             if (pendingAction.isNotBlank()) {
                 status = "$pendingAction ✓ · el reloj tiene ${list.size} campo(s)"
+                Toast.makeText(
+                    this@UltimateGolfCoursesActivity,
+                    "$pendingAction ✓ · el reloj tiene ${list.size} campo(s)",
+                    Toast.LENGTH_LONG,
+                ).show()
                 pendingAction = ""
             }
         }
