@@ -74,10 +74,10 @@ import nodomain.freeyourgadget.gadgetbridge.entities.BaseActivitySummary
 import nodomain.freeyourgadget.gadgetbridge.entities.HuaweiWorkoutSectionsSampleDao
 import nodomain.freeyourgadget.gadgetbridge.entities.HuaweiWorkoutSummarySampleDao
 import nodomain.freeyourgadget.gadgetbridge.impl.GBDevice
-import nodomain.freeyourgadget.gadgetbridge.mapcore.LatLon
-import nodomain.freeyourgadget.gadgetbridge.mapcore.MapTheme
-import nodomain.freeyourgadget.gadgetbridge.mapcore.UltimateMapEngine
-import nodomain.freeyourgadget.gadgetbridge.mapcore.UltimateMapView
+import com.qtekfun.mapcore.LatLon
+import com.qtekfun.mapcore.MapTheme
+import com.qtekfun.mapcore.UltimateMapEngine
+import com.qtekfun.mapcore.UltimateMapView
 import nodomain.freeyourgadget.gadgetbridge.model.ActivityKind
 import java.io.File
 

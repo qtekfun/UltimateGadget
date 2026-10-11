@@ -2,6 +2,10 @@
 
 <!-- For contributors: do not modify this file - the project maintainers will update it as needed -->
 
+#### 0.110.0
+
+* Interno: el motor de mapas (MapLibre+PMTiles) pasa a vivir en su repo propio **ultimate-mapcore** (compartido con UltimateMaps) y la app lo consume como submódulo vía composite build de Gradle; se elimina la copia duplicada dentro de la app. Sin cambios visibles de funcionalidad. Al clonar el repo usa `--recursive` (o `git submodule update --init`)
+
 #### 0.109.0
 
 * Batería: la **gráfica de histórico** del dispositivo ahora es nativa (UI nueva), ya no abre la pantalla clásica. Se accede desde Ajustes del dispositivo → Batería → "Histórico de batería", con rangos de 24 h / 7 d / 30 d y resumen actual/mín/máx

@@ -142,8 +142,8 @@ android {
         minSdk = 23
 
         // Note: always bump BOTH versionCode and versionName!
-        versionName "0.109.0"
-        versionCode 270
+        versionName "0.110.0"
+        versionCode 271
         vectorDrawables.useSupportLibrary = true
         buildConfigField "String", "GIT_HASH_SHORT", "\"${getGitHashShort()}\""
         buildConfigField "String", "GIT_DIRTY_STATUS", "\"${getGitDirtyFlag()}\""
@@ -396,6 +396,10 @@ dependencies {
 
     implementation libs.bundles.mapsforge
     implementation libs.maplibre.android
+    // Shared map engine (MapLibre+PMTiles) from the ultimate-mapcore submodule, wired as a Gradle
+    // composite build in settings.gradle.kts. Replaces the former in-source `...gadgetbridge.mapcore`
+    // package. mapcore api-exposes MapLibre, so it comes in transitively too.
+    implementation 'com.qtekfun:mapcore:0.1.0'
     implementation libs.androidsvg
     implementation libs.jsoup
     implementation libs.kaitai.struct.runtime
