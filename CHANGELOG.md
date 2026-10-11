@@ -2,6 +2,10 @@
 
 <!-- For contributors: do not modify this file - the project maintainers will update it as needed -->
 
+#### 0.109.0
+
+* Batería: la **gráfica de histórico** del dispositivo ahora es nativa (UI nueva), ya no abre la pantalla clásica. Se accede desde Ajustes del dispositivo → Batería → "Histórico de batería", con rangos de 24 h / 7 d / 30 d y resumen actual/mín/máx
+
 #### 0.108.0
 
 * Primer arranque: corregido que tras la pantalla de bienvenida/permisos la app se cerraba al pulsar atrás (no llevaba a ningún sitio). Ahora el onboarding termina abriendo la pantalla principal, con un botón "Continuar" para entrar aunque se omitan permisos

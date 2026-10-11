@@ -130,6 +130,13 @@ class UltimateDeviceSettingsActivity : AppCompatActivity() {
                             title = getString(nodomain.freeyourgadget.gadgetbridge.R.string.pref_battery_polling_interval),
                             summary = null, iconRes = 0, default = "15", numeric = true, dependency = null,
                         ),
+                        // Native battery history chart (replaces the classic BatteryInfoActivity).
+                        PrefNode.Action(
+                            key = ACTION_BATTERY_HISTORY,
+                            title = "Histórico de batería",
+                            summary = "Ver el nivel de batería a lo largo del tiempo",
+                            iconRes = 0,
+                        ),
                     ),
                 ),
             )
@@ -149,6 +156,8 @@ class UltimateDeviceSettingsActivity : AppCompatActivity() {
             Intent(this, cls).putExtra(GBDevice.EXTRA_DEVICE, device),
         )
         when (key) {
+            ACTION_BATTERY_HISTORY ->
+                startActivity(nodomain.freeyourgadget.gadgetbridge.activities.ultimate.battery.UltimateBatteryActivity.intent(this, device))
             "pref_huawei_offline_maps_manage" ->
                 open(nodomain.freeyourgadget.gadgetbridge.devices.huawei.ui.HuaweiMapManagementActivity::class.java)
             "pref_music_management" ->
@@ -182,6 +191,9 @@ class UltimateDeviceSettingsActivity : AppCompatActivity() {
     }
 
     companion object {
+        /** Synthetic action key for the native battery-history screen (not a persisted preference). */
+        private const val ACTION_BATTERY_HISTORY = "ug_battery_history"
+
         @JvmStatic
         fun intent(context: Context, device: GBDevice): Intent =
             Intent(context, UltimateDeviceSettingsActivity::class.java).apply {
