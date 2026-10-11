@@ -68,6 +68,7 @@ import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.ui.HeroStats
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.ui.UltimateHomeScreen
 import nodomain.freeyourgadget.gadgetbridge.impl.GBDevice
 import nodomain.freeyourgadget.gadgetbridge.model.ActivityUser
+import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.dashboard.HealthUnits
 import nodomain.freeyourgadget.gadgetbridge.model.DailyTotals
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -281,7 +282,10 @@ class UltimateHomeActivity : AppCompatActivity() {
                     DailyTotals.getDailyTotalsForDevice(device, Calendar.getInstance())
                 }.getOrNull()
                 val steps = totals?.steps?.toInt()?.takeIf { it > 0 }
-                val distanceKm = totals?.distance?.takeIf { it > 0 }?.let { it / 1000.0 }
+                // Totals are in centimetres; devices without distance fall back to steps x step length.
+                val distanceKm = totals?.let {
+                    HealthUnits.distanceKm(it.distance, it.steps, ActivityUser().stepLengthCm)
+                }?.takeIf { it > 0.0 }
                 val goal = runCatching { ActivityUser().stepsGoal }.getOrNull()?.takeIf { it > 0 }
 
                 val heartRate = runCatching {
