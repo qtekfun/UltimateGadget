@@ -73,7 +73,13 @@ import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.theme.UltimateTh
 import nodomain.freeyourgadget.gadgetbridge.entities.BaseActivitySummary
 import nodomain.freeyourgadget.gadgetbridge.entities.HuaweiWorkoutSectionsSampleDao
 import nodomain.freeyourgadget.gadgetbridge.entities.HuaweiWorkoutSummarySampleDao
+import nodomain.freeyourgadget.gadgetbridge.impl.GBDevice
+import nodomain.freeyourgadget.gadgetbridge.mapcore.LatLon
+import nodomain.freeyourgadget.gadgetbridge.mapcore.MapTheme
+import nodomain.freeyourgadget.gadgetbridge.mapcore.UltimateMapEngine
+import nodomain.freeyourgadget.gadgetbridge.mapcore.UltimateMapView
 import nodomain.freeyourgadget.gadgetbridge.model.ActivityKind
+import java.io.File
 
 /**
  * Golf round detail — a scorecard-style card for a golf workout, in the Ultimate aesthetic.
@@ -88,20 +94,49 @@ class UltimateGolfActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val summaryId = intent.getLongExtra(EXTRA_SUMMARY_ID, -1L)
+        val device = intent.getParcelableExtra<GBDevice>(GBDevice.EXTRA_DEVICE)
 
         setContent {
             UltimateTheme {
                 var round by remember { mutableStateOf<GolfRound?>(null) }
                 var loading by remember { mutableStateOf(true) }
+                // null = still loading / unknown; emptyList = no GPS track for this round.
+                var track by remember { mutableStateOf<List<LatLon>?>(null) }
 
                 androidx.compose.runtime.LaunchedEffect(summaryId) {
                     val r = withContext(Dispatchers.IO) { loadRound(summaryId) }
                     round = r; loading = false
                 }
+                androidx.compose.runtime.LaunchedEffect(summaryId, device) {
+                    track = withContext(Dispatchers.IO) { loadTrack(summaryId, device) }
+                }
 
-                GolfScreen(round = round, loading = loading, onBack = { finish() })
+                GolfScreen(
+                    round = round, loading = loading, track = track,
+                    hasBaseMap = hasBaseMap(), onBack = { finish() },
+                )
             }
         }
+    }
+
+    private fun hasBaseMap(): Boolean =
+        File(filesDir, "maps").listFiles { f -> f.isFile && f.name.endsWith(".pmtiles") }?.isNotEmpty() == true
+
+    /**
+     * The round's recorded GPS track (the walked path on the course), from Gadgetbridge's own
+     * activity-track provider — the same source the regular workout map uses. Empty when there is
+     * no device, no track, or the round carried no GPS.
+     */
+    private fun loadTrack(summaryId: Long, device: GBDevice?): List<LatLon> {
+        if (summaryId <= 0 || device == null) return emptyList()
+        return runCatching {
+            GBApplication.acquireDB().use { db ->
+                val summary = db.daoSession.baseActivitySummaryDao.load(summaryId) ?: return emptyList()
+                val provider = device.deviceCoordinator.getActivityTrackProvider(device, GBApplication.getContext())
+                val trackData = provider.getActivityTrack(summary) ?: return emptyList()
+                trackData.allPoints.mapNotNull { it.location }.map { LatLon(it.latitude, it.longitude) }
+            }
+        }.getOrDefault(emptyList())
     }
 
     private fun loadRound(summaryId: Long): GolfRound? {
@@ -173,14 +208,22 @@ class UltimateGolfActivity : AppCompatActivity() {
     companion object {
         const val EXTRA_SUMMARY_ID = "ug_summary_id"
 
-        fun intent(context: Context, summaryId: Long): Intent =
-            Intent(context, UltimateGolfActivity::class.java).putExtra(EXTRA_SUMMARY_ID, summaryId)
+        fun intent(context: Context, summaryId: Long, device: GBDevice? = null): Intent =
+            Intent(context, UltimateGolfActivity::class.java)
+                .putExtra(EXTRA_SUMMARY_ID, summaryId)
+                .apply { device?.let { putExtra(GBDevice.EXTRA_DEVICE, it) } }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-private fun GolfScreen(round: GolfRound?, loading: Boolean, onBack: () -> Unit) {
+private fun GolfScreen(
+    round: GolfRound?,
+    loading: Boolean,
+    track: List<LatLon>?,
+    hasBaseMap: Boolean,
+    onBack: () -> Unit,
+) {
     val scheme = MaterialTheme.colorScheme
     // Resolve the localized "Golf" label + icon the same way the list does.
     val ctx = GBApplication.getContext()
@@ -320,7 +363,58 @@ private fun GolfScreen(round: GolfRound?, loading: Boolean, onBack: () -> Unit) 
                 }
             }
 
+            // Route walked on the course, below the card — the map view the user liked.
+            GolfRouteCard(track = track, hasBaseMap = hasBaseMap)
+
             Spacer(Modifier.height(24.dp))
+        }
+    }
+}
+
+/**
+ * The round's GPS track drawn on the shared offline course map ([UltimateMapView]). Shows a short
+ * note instead when there is no base map installed or the round carried no GPS track, so the card
+ * never renders an empty/confusing map.
+ */
+@Composable
+private fun GolfRouteCard(track: List<LatLon>?, hasBaseMap: Boolean) {
+    val scheme = MaterialTheme.colorScheme
+    GolfCard {
+        Text("Ruta en el campo", style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold, color = scheme.onSurface)
+        Spacer(Modifier.height(10.dp))
+
+        when {
+            !hasBaseMap -> Text(
+                "Importa un mapa base (en la app de mapas) para ver la ruta sobre el campo.",
+                style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant,
+            )
+            track == null -> Box(
+                Modifier.fillMaxWidth().height(260.dp).clip(RoundedCornerShape(14.dp))
+                    .background(scheme.surfaceContainerHighest),
+                contentAlignment = Alignment.Center,
+            ) { CircularProgressIndicator(color = scheme.primary) }
+            track.isEmpty() -> Text(
+                "Esta ronda no tiene track GPS guardado.",
+                style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant,
+            )
+            else -> {
+                var engine by remember { mutableStateOf<UltimateMapEngine?>(null) }
+                androidx.compose.runtime.LaunchedEffect(engine, track) {
+                    val e = engine ?: return@LaunchedEffect
+                    e.drawTrack(track); e.fitTo(track)
+                }
+                Box(
+                    Modifier.fillMaxWidth().height(260.dp).clip(RoundedCornerShape(14.dp)),
+                ) {
+                    UltimateMapView(
+                        modifier = Modifier.fillMaxSize(),
+                        tilesDir = File(GBApplication.getContext()!!.filesDir, "maps"),
+                        theme = MapTheme.DARK,
+                        onReady = { engine = it },
+                    )
+                }
+            }
         }
     }
 }
@@ -344,7 +438,7 @@ private fun GolfCard(content: @Composable androidx.compose.foundation.layout.Col
 private fun GolfScorecardCard(card: GolfScorecard) {
     val scheme = MaterialTheme.colorScheme
     GolfCard {
-        Text("Scorecard por hoyo", style = MaterialTheme.typography.titleMedium,
+        Text("Scorecard · ${card.holeCount} hoyos", style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold, color = scheme.onSurface)
         Spacer(Modifier.height(10.dp))
 

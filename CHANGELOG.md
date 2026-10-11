@@ -2,6 +2,12 @@
 
 <!-- For contributors: do not modify this file - the project maintainers will update it as needed -->
 
+#### 0.104.0
+
+* Golf: la tarjeta ahora distingue rondas de **9 o 18 hoyos** — si la vuelta de atrás llega con par 0 (no saliste a los segundos 9), la ronda se muestra como de 9 hoyos y los totales dejan de contar hoyos vacíos
+* Golf: **debajo de la tarjeta se dibuja la ruta recorrida sobre el mapa del campo** (el mismo mapa offline del entreno), como cuando el golf salía como entreno normal
+* Emparejamiento (relojes Huawei por Bluetooth clásico): trazas de diagnóstico del primer emparejamiento para afinar el arreglo si todavía fallara en algún móvil
+
 #### 0.103.0
 
 * Emparejamiento (relojes Huawei por Bluetooth clásico, p.ej. Watch GT Runner 2): corregido el fallo por el que el **primer intento** de emparejar pedía "empareja desde la app de Huawei Health" y solo el segundo intento funcionaba. Ahora la app completa el vínculo también en el primer intento (envía el aviso de estado y continúa con el handshake de seguridad, igual que hace la app original)

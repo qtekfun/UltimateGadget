@@ -74,8 +74,14 @@ class UltimateHealthDetailActivity : AppCompatActivity() {
                     onBack = { finish() },
                     onOpenWorkout = { row ->
                         if (row.isGolf) {
-                            // Golf rounds have no GPS map worth showing; open the golf scorecard.
-                            startActivity(UltimateGolfActivity.intent(this@UltimateHealthDetailActivity, row.id))
+                            // Golf rounds open the scorecard; pass the device so the round's GPS
+                            // track can be drawn on the course map below the card.
+                            startActivity(
+                                UltimateGolfActivity.intent(
+                                    this@UltimateHealthDetailActivity, row.id,
+                                    activeDevice(this@UltimateHealthDetailActivity),
+                                ),
+                            )
                         } else {
                             activeDevice(this@UltimateHealthDetailActivity)?.let { dev ->
                                 startActivity(UltimateWorkoutMapActivity.intent(this@UltimateHealthDetailActivity, row.id, dev))
