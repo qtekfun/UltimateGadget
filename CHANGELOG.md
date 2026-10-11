@@ -2,6 +2,10 @@
 
 <!-- For contributors: do not modify this file - the project maintainers will update it as needed -->
 
+#### 0.114.0
+
+* "Buscar dispositivo" (relojes Huawei): ahora **funciona** — hace sonar/vibrar el reloj y muestra un diálogo para pararlo (antes era un stub "próximamente"). Usa la función de Gadgetbridge que ya existía; requiere que el reloj soporte "find device"
+
 #### 0.113.0
 
 * Ajustes del dispositivo: las sub-pantallas (Pantalla, Salud, Notificaciones, Conexión…) ahora muestran un **resumen de lo que contienen**, para que no haya que adivinar. Así "Pantalla" indica que dentro están "Activar pantalla al levantar", "Girar la muñeca…", etc. ("Levantar para activar" ya estaba, pero quedaba oculto dentro de Pantalla)
