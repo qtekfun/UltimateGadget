@@ -10,6 +10,7 @@ on:
     branches: [master, main]
     paths:
       - "mapdownloader/**"
+      - "mapsdl-core/**"
       - "gradle/libs.versions.toml"
       - ".github/workflows/sidecar.yml"
   workflow_dispatch:
