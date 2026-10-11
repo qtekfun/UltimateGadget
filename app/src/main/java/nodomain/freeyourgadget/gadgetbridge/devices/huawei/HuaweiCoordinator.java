@@ -602,10 +602,12 @@ public abstract class HuaweiCoordinator extends AbstractDeviceCoordinator {
             display.add(R.xml.devicesettings_wearlocation);
         if (deviceState.supportsAutoWorkMode())
             display.add(R.xml.devicesettings_workmode);
-        if (deviceState.supportsActivateOnLift(device))
-            display.add(R.xml.devicesettings_liftwrist_display_noshed);
-        if (deviceState.supportsRotateToCycleInfo())
-            display.add(R.xml.devicesettings_rotatewrist_cycleinfo);
+        // Raise-to-wake and rotate-to-cycle are near-universal GT-series gestures. Capability
+        // detection proved unreliable (it depends on a full init handshake that may not have run),
+        // so always offer the toggles on Huawei watches rather than hiding them; the request only
+        // sends the value the user picks, and a watch that lacks the gesture simply ignores it.
+        display.add(R.xml.devicesettings_liftwrist_display_noshed);
+        display.add(R.xml.devicesettings_rotatewrist_cycleinfo);
         // Currently on main setting menu.
         /*if (deviceState.supportsLanguageSetting())
             display.add(R.xml.devicesettings_language_generic);*/

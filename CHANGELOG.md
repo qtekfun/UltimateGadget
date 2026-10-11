@@ -2,6 +2,10 @@
 
 <!-- For contributors: do not modify this file - the project maintainers will update it as needed -->
 
+#### 0.111.0
+
+* "Levantar para activar" y "Girar la muñeca para cambiar info" (relojes Huawei): ahora **aparecen siempre** en Ajustes del dispositivo → Pantalla y gestos (antes dependían de una detección de capacidad poco fiable y podían no salir) y el cambio **se envía de verdad al reloj** al activarlos
+
 #### 0.110.0
 
 * Interno: el motor de mapas (MapLibre+PMTiles) pasa a vivir en su repo propio **ultimate-mapcore** (compartido con UltimateMaps) y la app lo consume como submódulo vía composite build de Gradle; se elimina la copia duplicada dentro de la app. Sin cambios visibles de funcionalidad. Al clonar el repo usa `--recursive` (o `git submodule update --init`)
