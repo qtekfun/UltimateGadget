@@ -20,7 +20,11 @@ import android.app.Application
 import android.content.Context
 import nodomain.freeyourgadget.gadgetbridge.GBApplication
 import nodomain.freeyourgadget.gadgetbridge.database.DBHelper
+import nodomain.freeyourgadget.gadgetbridge.devices.huawei.HuaweiCoordinator
+import nodomain.freeyourgadget.gadgetbridge.entities.BaseActivitySummary
 import nodomain.freeyourgadget.gadgetbridge.entities.BaseActivitySummaryDao
+import nodomain.freeyourgadget.gadgetbridge.model.ActivitySummaryData
+import nodomain.freeyourgadget.gadgetbridge.model.ActivitySummaryEntries
 import nodomain.freeyourgadget.gadgetbridge.impl.GBDevice
 import nodomain.freeyourgadget.gadgetbridge.model.ActivityKind
 import nodomain.freeyourgadget.gadgetbridge.model.ActivityUser
@@ -76,8 +80,11 @@ class DbHealthRepository(private val app: Application) : HealthRepository {
         return StepsData(
             steps = today.steps.toInt(),
             goal = goal,
-            distanceKm = today.distance / 1000.0,
-            kcal = (today.activeCalories + today.restingCalories).toInt(),
+            distanceKm = HealthUnits.distanceKm(today.distance, today.steps, ActivityUser().stepLengthCm),
+            kcal = (
+                HealthUnits.activeKcal(today.activeCalories, device.deviceCoordinator is HuaweiCoordinator) +
+                    today.restingCalories
+                ).toInt(),
             weekly = weekly,
         )
     }
@@ -144,6 +151,25 @@ class DbHealthRepository(private val app: Application) : HealthRepository {
 
     // ---- Last workout ----------------------------------------------------------------------
 
+    /**
+     * Distance of a workout in km: the summary's own distance when the device sends one, otherwise
+     * the length of its GPS track (golf rounds from Huawei carry the walk only as a track).
+     */
+    private fun workoutDistanceKm(device: GBDevice, summary: BaseActivitySummary): Double {
+        val fromSummary = runCatching {
+            ActivitySummaryData.fromJson(summary.summaryData)
+                .getNumber(ActivitySummaryEntries.DISTANCE_METERS, null)?.toDouble()
+        }.getOrNull()?.takeIf { it > 0.0 }
+        if (fromSummary != null) return fromSummary / 1000.0
+        val track = runCatching {
+            val provider = device.deviceCoordinator.getActivityTrackProvider(device, app)
+            provider.getActivityTrack(summary)?.allPoints.orEmpty()
+                .mapNotNull { it.location }
+                .map { it.latitude to it.longitude }
+        }.getOrDefault(emptyList())
+        return HealthUnits.pathMeters(track) / 1000.0
+    }
+
     private fun loadLastWorkout(device: GBDevice): WorkoutData? {
         GBApplication.acquireDB().use { db ->
             val session = db.daoSession
@@ -165,7 +191,7 @@ class DbHealthRepository(private val app: Application) : HealthRepository {
                 ?: "Workout"
             return WorkoutData(
                 type = type,
-                distanceKm = 0.0,
+                distanceKm = workoutDistanceKm(device, summary),
                 durationSeconds = durationSeconds,
                 whenLabel = start?.let { DATE_FMT.format(it) } ?: "",
                 avgHeartRate = 0,
