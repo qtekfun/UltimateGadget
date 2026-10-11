@@ -217,7 +217,18 @@ class UltimateDeviceActivity : AppCompatActivity() {
                 toast("Elige el fichero A-GNSS descargado")
                 agpsPicker.launch(arrayOf("*/*"))
             }
-            "find" -> toast("Buscar dispositivo — próximamente")
+            "find" -> {
+                // Gadgetbridge already implements "find my watch" for Huawei (onFindDevice →
+                // HuaweiDataSyncFindDevice.sendStartFindDevice). Ring the watch and show a dialog to
+                // stop it; dismissing (button, back, outside) stops the ringing.
+                GBApplication.deviceService(device).onFindDevice(true)
+                androidx.appcompat.app.AlertDialog.Builder(this)
+                    .setTitle("Buscar dispositivo")
+                    .setMessage("El reloj está sonando/vibrando. Pulsa Parar cuando lo encuentres.")
+                    .setPositiveButton("Parar", null)
+                    .setOnDismissListener { GBApplication.deviceService(device).onFindDevice(false) }
+                    .show()
+            }
             "remove" -> startActivity(
                 nodomain.freeyourgadget.gadgetbridge.activities.ultimate.install.UltimateRemoveDeviceActivity.intent(this, device),
             )
