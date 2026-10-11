@@ -82,8 +82,16 @@ class UltimateWelcomeActivity : AppCompatActivity() {
         GBApplication.getPrefs().preferences.edit()
             .putBoolean("first_run", false)
             .apply()
+        // The launcher (Home) was finished by the startup gate before we opened, so onboarding must
+        // itself hand off to Home when it ends — either via the permissions screen (which returns to
+        // Home) or directly when nothing is missing. Otherwise leaving onboarding closed the app.
         if (!PermissionsUtils.checkAllPermissions(this)) {
-            startActivity(UltimatePermissionsActivity.intent(this, showDoNotAskButton = false))
+            startActivity(UltimatePermissionsActivity.intent(this, showDoNotAskButton = false, returnToHome = true))
+        } else {
+            startActivity(
+                Intent(this, nodomain.freeyourgadget.gadgetbridge.activities.ultimate.UltimateHomeActivity::class.java)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK),
+            )
         }
         finish()
     }

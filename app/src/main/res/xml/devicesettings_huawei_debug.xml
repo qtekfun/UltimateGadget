@@ -49,6 +49,14 @@
             android:summary="@string/pref_force_wear_location_summary" />
 
         <SwitchPreferenceCompat
+            android:icon="@drawable/ic_arrow_upward"
+            android:defaultValue="false"
+            android:key="pref_force_enable_activate_on_lift"
+            android:layout="@layout/preference_checkbox"
+            android:title="@string/pref_force_activate_on_lift"
+            android:summary="@string/pref_force_activate_on_lift_summary" />
+
+        <SwitchPreferenceCompat
             android:icon="@drawable/ic_block"
             android:defaultValue="false"
             android:key="pref_force_dnd_support"

@@ -602,7 +602,7 @@ public abstract class HuaweiCoordinator extends AbstractDeviceCoordinator {
             display.add(R.xml.devicesettings_wearlocation);
         if (deviceState.supportsAutoWorkMode())
             display.add(R.xml.devicesettings_workmode);
-        if (deviceState.supportsActivateOnLift())
+        if (deviceState.supportsActivateOnLift(device))
             display.add(R.xml.devicesettings_liftwrist_display_noshed);
         if (deviceState.supportsRotateToCycleInfo())
             display.add(R.xml.devicesettings_rotatewrist_cycleinfo);

@@ -85,26 +85,53 @@ class UltimatePermissionsActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val showDoNotAsk = intent.getBooleanExtra(ARG_SHOW_DO_NOT_ASK_BUTTON, false)
+        // When this screen is part of first-run onboarding, the launcher (Home) was finished before
+        // us, so there is nothing to come back to: leaving must open Home, or the app would close.
+        // When it is the in-app "pestering" prompt instead, Home is already behind us, so we just
+        // finish and never stack a second Home.
+        val returnToHome = intent.getBooleanExtra(ARG_RETURN_TO_HOME, false)
         setContent {
             UltimateTheme {
-                PermissionsScreen(showDoNotAsk = showDoNotAsk, onBack = { finish() })
+                PermissionsScreen(
+                    showDoNotAsk = showDoNotAsk,
+                    returnToHome = returnToHome,
+                    onDone = { finishOnboarding(returnToHome) },
+                )
             }
         }
+    }
+
+    private fun finishOnboarding(returnToHome: Boolean) {
+        if (returnToHome) {
+            startActivity(
+                Intent(this, nodomain.freeyourgadget.gadgetbridge.activities.ultimate.UltimateHomeActivity::class.java)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK),
+            )
+        }
+        finish()
     }
 
     companion object {
         /** Same key as the legacy PermissionsActivity, so the gate's extra carries over. */
         const val ARG_SHOW_DO_NOT_ASK_BUTTON = "show_do_not_ask"
 
-        fun intent(context: Context, showDoNotAskButton: Boolean = false): Intent =
+        /** True when launched from first-run onboarding: leaving must open Home (no launcher behind). */
+        const val ARG_RETURN_TO_HOME = "ug_return_to_home"
+
+        fun intent(
+            context: Context,
+            showDoNotAskButton: Boolean = false,
+            returnToHome: Boolean = false,
+        ): Intent =
             Intent(context, UltimatePermissionsActivity::class.java)
                 .putExtra(ARG_SHOW_DO_NOT_ASK_BUTTON, showDoNotAskButton)
+                .putExtra(ARG_RETURN_TO_HOME, returnToHome)
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun PermissionsScreen(showDoNotAsk: Boolean, onBack: () -> Unit) {
+private fun PermissionsScreen(showDoNotAsk: Boolean, returnToHome: Boolean, onDone: () -> Unit) {
     val palette = LocalUltimatePalette.current
     val activity = LocalContext.current as Activity
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -139,9 +166,10 @@ private fun PermissionsScreen(showDoNotAsk: Boolean, onBack: () -> Unit) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 refreshTick++
-                if (PermissionsUtils.checkAllPermissions(activity) && showDoNotAsk) {
-                    // Just got everything while pestering — disappear, like the fragment did.
-                    activity.finish()
+                if (PermissionsUtils.checkAllPermissions(activity) && (showDoNotAsk || returnToHome)) {
+                    // Everything granted: during pestering, disappear (like the fragment did);
+                    // during onboarding, move on to Home. Both handled by onDone.
+                    onDone()
                 }
                 if (requesting.isNotEmpty()) requestAll()
             }
@@ -182,7 +210,7 @@ private fun PermissionsScreen(showDoNotAsk: Boolean, onBack: () -> Unit) {
                         .putBoolean("permission_pestering", false)
                         .apply()
                     showDoNotAskDialog = false
-                    activity.finish()
+                    onDone()
                 }) { Text("Aceptar", color = palette.primary) }
             },
             dismissButton = {
@@ -199,7 +227,7 @@ private fun PermissionsScreen(showDoNotAsk: Boolean, onBack: () -> Unit) {
             TopAppBar(
                 title = { Text("Permisos") },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
+                    IconButton(onClick = onDone) {
                         Icon(Icons.Filled.ArrowBack, contentDescription = null)
                     }
                 },
@@ -243,6 +271,14 @@ private fun PermissionsScreen(showDoNotAsk: Boolean, onBack: () -> Unit) {
                     onClick = { showDoNotAskDialog = true },
                     modifier = Modifier.fillMaxWidth(),
                 ) { Text("No volver a preguntar", color = palette.onSurfaceVariant) }
+            }
+
+            if (returnToHome) {
+                // First-run: let the user into the app even if they skip some permissions.
+                OutlinedButton(
+                    onClick = onDone,
+                    modifier = Modifier.fillMaxWidth(),
+                ) { Text(if (allGranted) "Continuar" else "Continuar de todas formas", color = palette.primary) }
             }
 
             LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {

@@ -252,6 +252,10 @@ public class HuaweiState {
         return supportsCommandForService(0x01, 0x09);
     }
 
+    public boolean supportsActivateOnLift(GBDevice gbDevice) {
+        return supportsActivateOnLift() || getForceOption(gbDevice, PREF_FORCE_ENABLE_ACTIVATE_ON_LIFT);
+    }
+
     public boolean supportsDoNotDisturb() {
         return supportsCommandForService(0x01, 0x0a);
     }
