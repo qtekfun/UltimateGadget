@@ -29,6 +29,9 @@ class AgnssPayload(
     val beidou: Int,
 )
 
+/** One map of the online catalog that can be downloaded into the phone map store. */
+class RemoteMap(val id: String, val name: String, val parent: String, val sizeBytes: Long)
+
 /**
  * Seam between the network-free core and the `play` flavor. Every flavor provides an object named
  * [InAppNetworkImpl] in this package: src/noplay (mainline, banglejs) is an inert stub, src/play
@@ -41,4 +44,15 @@ interface InAppNetwork {
     /** Blocking. Downloads and assembles fresh A-GNSS data; throws on any failure. */
     @Throws(Exception::class)
     fun fetchAgnss(context: Context, wifiOnly: Boolean): AgnssPayload
+
+    /** Blocking. Fetches the online base-map catalog; throws on failure. */
+    @Throws(Exception::class)
+    fun fetchMapCatalog(): List<RemoteMap>
+
+    /**
+     * Blocking. Downloads catalog map [id] into the phone map store (same place a manual import
+     * lands), reporting `(done, total)` bytes. Returns the stored file name; throws on failure.
+     */
+    @Throws(Exception::class)
+    fun downloadMap(context: Context, id: String, onProgress: (done: Long, total: Long) -> Unit): String
 }
