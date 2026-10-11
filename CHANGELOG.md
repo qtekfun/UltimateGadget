@@ -2,6 +2,10 @@
 
 <!-- For contributors: do not modify this file - the project maintainers will update it as needed -->
 
+#### 0.113.0
+
+* Ajustes del dispositivo: las sub-pantallas (Pantalla, Salud, Notificaciones, Conexión…) ahora muestran un **resumen de lo que contienen**, para que no haya que adivinar. Así "Pantalla" indica que dentro están "Activar pantalla al levantar", "Girar la muñeca…", etc. ("Levantar para activar" ya estaba, pero quedaba oculto dentro de Pantalla)
+
 #### 0.112.0
 
 * Sueño (TrueSleep de Huawei): la pantalla de sueño añade una tarjeta **TrueSleep** con los datos propios del reloj cuando existen — eficiencia, latencia, pulso (mín–máx/medio), respiración, HRV media, ronquidos, índice de apnea (RDI) y vueltas en la cama. Solo se muestran los campos que el reloj realmente registró
