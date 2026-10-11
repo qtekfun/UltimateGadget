@@ -67,11 +67,11 @@ import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.theme.LocalUltim
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.theme.UltimateTheme
 import nodomain.freeyourgadget.gadgetbridge.impl.GBDevice
 import nodomain.freeyourgadget.gadgetbridge.util.kotlin.getParcelableCompat
-import nodomain.freeyourgadget.gadgetbridge.mapcore.LatLon
-import nodomain.freeyourgadget.gadgetbridge.mapcore.MapTheme
-import nodomain.freeyourgadget.gadgetbridge.mapcore.MyLocationButton
-import nodomain.freeyourgadget.gadgetbridge.mapcore.UltimateMapEngine
-import nodomain.freeyourgadget.gadgetbridge.mapcore.UltimateMapView
+import com.qtekfun.mapcore.LatLon
+import com.qtekfun.mapcore.MapTheme
+import com.qtekfun.mapcore.MyLocationButton
+import com.qtekfun.mapcore.UltimateMapEngine
+import com.qtekfun.mapcore.UltimateMapView
 import java.io.File
 import kotlin.math.atan2
 import kotlin.math.cos

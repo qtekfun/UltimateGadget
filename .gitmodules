@@ -4,3 +4,6 @@
 [submodule "fossil-hr-gbapps"]
 	path = external/fossil-hr-gbapps
 	url = https://codeberg.org/Freeyourgadget/fossil-hr-gbapps
+[submodule "ultimate-mapcore"]
+	path = ultimate-mapcore
+	url = https://github.com/qtekfun/ultimate-mapcore
