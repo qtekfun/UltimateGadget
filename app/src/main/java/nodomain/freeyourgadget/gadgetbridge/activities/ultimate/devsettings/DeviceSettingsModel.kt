@@ -207,7 +207,7 @@ object DeviceSettingsParser {
                         PrefNode.SubScreen(
                             key = enum.key,
                             title = safeString(res, enum.title),
-                            summary = null,
+                            summary = summarize(children),
                             iconRes = 0,
                             children = children,
                         ),
@@ -218,6 +218,33 @@ object DeviceSettingsParser {
             }
         }
         return out
+    }
+
+    /**
+     * A short "what's inside" summary for a sub-screen row, from the titles of its first few
+     * settings, so a nested screen (e.g. "Display") tells the user it holds raise-to-wake, rotate,
+     * etc. instead of being an opaque row.
+     */
+    private fun summarize(children: List<PrefNode>): String? {
+        val titles = ArrayList<String>()
+        fun collect(nodes: List<PrefNode>) {
+            for (n in nodes) {
+                if (titles.size >= 3) return
+                when (n) {
+                    is PrefNode.Switch -> titles.add(n.title)
+                    is PrefNode.SingleChoice -> titles.add(n.title)
+                    is PrefNode.Text -> titles.add(n.title)
+                    is PrefNode.Slider -> titles.add(n.title)
+                    is PrefNode.TimePicker -> titles.add(n.title)
+                    is PrefNode.Action -> titles.add(n.title)
+                    is PrefNode.SubScreen -> titles.add(n.title)
+                    else -> {}
+                }
+            }
+        }
+        collect(children)
+        if (titles.isEmpty()) return null
+        return titles.joinToString(" · ").let { if (it.length > 80) it.take(79) + "…" else it }
     }
 
     /** Parses one preference XML resource, returning the children of its root PreferenceScreen. */
