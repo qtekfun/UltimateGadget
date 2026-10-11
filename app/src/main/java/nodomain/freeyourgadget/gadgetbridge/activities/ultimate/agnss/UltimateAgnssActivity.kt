@@ -91,7 +91,7 @@ class UltimateAgnssActivity : AppCompatActivity() {
 
     private fun refresh() {
         if (busy) return
-        if (!HuaweiAgnssHelper.isCompanionInstalled(this)) {
+        if (!HuaweiAgnssHelper.sourceAvailable(this)) {
             isError = true; message = "Instala la app de mapas de UltimateGadget para descargar A-GNSS"
             return
         }
