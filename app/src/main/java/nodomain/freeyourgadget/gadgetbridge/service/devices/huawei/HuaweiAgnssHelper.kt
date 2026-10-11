@@ -27,6 +27,7 @@ import android.os.HandlerThread
 import android.os.IBinder
 import android.os.Message
 import android.os.Messenger
+import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.net.InAppNetworkImpl
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.util.zip.ZipEntry
@@ -98,6 +99,11 @@ object HuaweiAgnssHelper {
         context.packageManager.getPackageInfo(COMPANION_PKG, 0); true
     }.getOrDefault(false)
 
+    /** A way to get A-GNSS data exists: this build downloads in-app (play) or the companion is installed. */
+    @JvmStatic
+    fun sourceAvailable(context: Context): Boolean =
+        InAppNetworkImpl.available || isCompanionInstalled(context)
+
     @JvmStatic
     fun status(context: Context): Status {
         val p = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
@@ -152,7 +158,7 @@ object HuaweiAgnssHelper {
             writeServedZipFromCache(context)
             return
         }
-        if (isCompanionInstalled(context)) {
+        if (sourceAvailable(context)) {
             refresh(context, p.getBoolean(PREF_WIFI_ONLY, false)) { ok, msg ->
                 LOG.info("A-GNSS: auto-refresh on connect: {} {}", ok, msg)
             }
@@ -161,10 +167,52 @@ object HuaweiAgnssHelper {
 
     private var inFlight = false
 
+    /** Persist freshly fetched RTCM + its metadata and rebuild the served zip. Shared by both sources. */
+    private fun store(
+        context: Context, rtcm: ByteArray, validUntil: Long, source: String,
+        gps: Int, glonass: Int, galileo: Int, beidou: Int,
+    ) {
+        File(context.filesDir, CACHE_FILE).writeBytes(rtcm)
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+            .putLong(PREF_FETCHED_AT, System.currentTimeMillis())
+            .putLong(PREF_VALID_UNTIL, validUntil)
+            .putString(PREF_SOURCE, source)
+            .putInt(PREF_GPS, gps).putInt(PREF_GLONASS, glonass)
+            .putInt(PREF_GALILEO, galileo).putInt(PREF_BEIDOU, beidou)
+            .apply()
+        writeServedZipFromCache(context)
+    }
+
+    /** In-process path (play flavor): download on a worker thread, no companion app involved. */
+    private fun refreshInApp(context: Context, wifiOnly: Boolean, callback: ResultCallback) {
+        inFlight = true
+        val appContext = context.applicationContext
+        Thread({
+            var ok = false
+            val message = try {
+                val p = InAppNetworkImpl.fetchAgnss(appContext, wifiOnly)
+                store(appContext, p.rtcm, p.validUntilMs, p.source, p.gps, p.glonass, p.galileo, p.beidou)
+                ok = true
+                "Actualizado: ${p.gps + p.glonass + p.galileo + p.beidou} satélites (${p.source})"
+            } catch (e: Exception) {
+                LOG.warn("A-GNSS: in-app refresh failed", e)
+                e.message ?: "Error desconocido"
+            }
+            synchronized(HuaweiAgnssHelper) { inFlight = false }
+            callback.onResult(ok, message)
+        }, "agnss-inapp").start()
+    }
+
     /** Bind the companion, fetch fresh RTCM, cache it and write the served zip. Async. */
     @JvmStatic
     @Synchronized
     fun refresh(context: Context, wifiOnly: Boolean, callback: ResultCallback) {
+        if (inFlight) {
+            callback.onResult(false, "Ya hay una actualización en curso"); return
+        }
+        if (InAppNetworkImpl.available) {
+            refreshInApp(context, wifiOnly, callback); return
+        }
         if (!isCompanionInstalled(context)) {
             callback.onResult(false, "La app de mapas no está instalada"); return
         }
@@ -198,15 +246,10 @@ object HuaweiAgnssHelper {
                 val rtcm = b.getByteArray(KEY_RTCM)
                 if (rtcm == null || rtcm.isEmpty()) { finish(false, "Respuesta vacía"); return }
                 runCatching {
-                    File(appContext.filesDir, CACHE_FILE).writeBytes(rtcm)
-                    appContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
-                        .putLong(PREF_FETCHED_AT, System.currentTimeMillis())
-                        .putLong(PREF_VALID_UNTIL, b.getLong(KEY_VALID_UNTIL, 0))
-                        .putString(PREF_SOURCE, b.getString(KEY_SOURCE, ""))
-                        .putInt(PREF_GPS, b.getInt(KEY_GPS, 0)).putInt(PREF_GLONASS, b.getInt(KEY_GLONASS, 0))
-                        .putInt(PREF_GALILEO, b.getInt(KEY_GALILEO, 0)).putInt(PREF_BEIDOU, b.getInt(KEY_BEIDOU, 0))
-                        .apply()
-                    writeServedZipFromCache(appContext)
+                    store(
+                        appContext, rtcm, b.getLong(KEY_VALID_UNTIL, 0), b.getString(KEY_SOURCE, "") ?: "",
+                        b.getInt(KEY_GPS, 0), b.getInt(KEY_GLONASS, 0), b.getInt(KEY_GALILEO, 0), b.getInt(KEY_BEIDOU, 0),
+                    )
                 }.onFailure { finish(false, "Error al guardar: ${it.message}"); return }
                 val n = b.getInt(KEY_GPS, 0) + b.getInt(KEY_GLONASS, 0) + b.getInt(KEY_GALILEO, 0) + b.getInt(KEY_BEIDOU, 0)
                 finish(true, "Actualizado: $n satélites (${b.getString(KEY_SOURCE, "")})")

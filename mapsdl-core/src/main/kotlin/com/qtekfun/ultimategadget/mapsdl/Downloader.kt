@@ -101,6 +101,47 @@ object Downloader {
         }
     }
 
+    /**
+     * Download [region] straight into [dest] (used by the in-app `play` flavor, no SAF involved).
+     * Streams to `<dest>.part`, verifies SHA-256 and only then renames, so an interrupted or
+     * corrupt download never leaves a half-written file where the map viewer would pick it up.
+     */
+    fun downloadToFile(
+        region: MapRegion,
+        dest: java.io.File,
+        onProgress: (done: Long, total: Long) -> Unit,
+    ) {
+        val part = java.io.File(dest.parentFile, dest.name + ".part")
+        val digest = MessageDigest.getInstance("SHA-256")
+        val conn = open(region.url)
+        try {
+            var done = 0L
+            part.outputStream().use { out ->
+                conn.inputStream.use { input ->
+                    val buf = ByteArray(1 shl 16)
+                    while (true) {
+                        val n = input.read(buf)
+                        if (n < 0) break
+                        out.write(buf, 0, n)
+                        digest.update(buf, 0, n)
+                        done += n
+                        onProgress(done, region.size)
+                    }
+                }
+            }
+            if (region.sha256.isNotEmpty()) {
+                val got = digest.digest().joinToString("") { "%02x".format(it) }
+                check(got.equals(region.sha256, ignoreCase = true)) { "La verificación SHA-256 falló" }
+            }
+            check(part.renameTo(dest)) { "No se pudo guardar el mapa" }
+        } catch (e: Exception) {
+            part.delete()
+            throw e
+        } finally {
+            conn.disconnect()
+        }
+    }
+
     private fun get(url: String): ByteArray {
         val conn = open(url)
         try {

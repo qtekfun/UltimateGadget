@@ -206,6 +206,17 @@ android {
             buildConfigField "boolean", "INTERNET_ACCESS", "true"
             // Note: app/src/banglejs/AndroidManifest.xml contains some extra permissions
         }
+
+        // All-in-one build for personal use (not a store build): downloads maps, Huawei golf
+        // courses and A-GNSS inside the app, so it carries the INTERNET permission. Deliberately
+        // breaks the "no network in the main app" rule of the spec; mainline keeps it.
+        play {
+            dimension "device_type"
+            applicationIdSuffix ".play"
+            versionNameSuffix "-play"
+            buildConfigField "boolean", "INTERNET_ACCESS", "true"
+            // app/src/play/AndroidManifest.xml re-adds INTERNET; code in app/src/play/java.
+        }
     }
 
     sourceSets {
@@ -215,6 +226,13 @@ android {
             kotlin.srcDirs += "build/generated/sources/kaitaiaux"
             res.srcDirs += "build/generated/res/changelog"
         }
+        // No-network stub of InAppNetwork for the flavors that do not ship the in-app downloaders
+        // (the `play` flavor provides the real one in src/play/java).
+        // Kotlin sources need kotlin.srcDir too (AGP 9 built-in Kotlin does not scan java dirs for them).
+        mainline.java.srcDir "src/noplay/java"
+        mainline.kotlin.srcDir "src/noplay/java"
+        banglejs.java.srcDir "src/noplay/java"
+        banglejs.kotlin.srcDir "src/noplay/java"
         test {
             // The optional FIT round-trip corpus (FitExporterReadmeRoundTripTest) is read
             // by filesystem path, not the classpath, and is not committed. Exclude it from
@@ -400,6 +418,9 @@ dependencies {
     // composite build in settings.gradle.kts. Replaces the former in-source `...gadgetbridge.mapcore`
     // package. mapcore api-exposes MapLibre, so it comes in transitively too.
     implementation 'com.qtekfun:mapcore:0.1.0'
+
+    // Network/download logic (maps, golf courses, A-GNSS, Huami token) only for the `play` flavor.
+    playImplementation project(':mapsdl-core')
     implementation libs.androidsvg
     implementation libs.jsoup
     implementation libs.kaitai.struct.runtime
