@@ -117,10 +117,27 @@ data class GolfScorecard(
     val avgHeadSpeed: Double?,
     val avgSwingTempo: Double?,
 ) {
+    /** Number of holes actually on the card (9 or 18 for a normal round). */
+    val holeCount: Int get() = holes.size
+
     companion object {
+        /**
+         * The watch always sends an 18-hole block. When the back nine was never played it still
+         * arrives, but with par 0 on every one of those holes. In that case it is a 9-hole round,
+         * so drop the empty back nine (otherwise the card shows nine bogus "0" rows and the totals
+         * are wrong). A genuine 18-hole round keeps real pars on 10–18 and is left untouched.
+         */
+        private fun trimEmptyBackNine(holes: List<GolfHole>): List<GolfHole> {
+            if (holes.size < 18) return holes
+            val backNine = holes.subList(9, holes.size)
+            val backNineUnplayed = backNine.all { (it.par ?: 0) == 0 && (it.score ?: 0) == 0 }
+            return if (backNineUnplayed) holes.take(9) else holes
+        }
+
         /** Builds a scorecard from the per-hole rows, summing only the fields that are present. */
-        fun fromHoles(holes: List<GolfHole>): GolfScorecard? {
-            if (holes.isEmpty()) return null
+        fun fromHoles(rawHoles: List<GolfHole>): GolfScorecard? {
+            if (rawHoles.isEmpty()) return null
+            val holes = trimEmptyBackNine(rawHoles)
 
             fun sum(sel: (GolfHole) -> Int?): Int? {
                 val vals = holes.mapNotNull(sel)

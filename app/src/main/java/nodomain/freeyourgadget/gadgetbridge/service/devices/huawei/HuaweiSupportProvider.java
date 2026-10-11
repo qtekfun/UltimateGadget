@@ -559,21 +559,26 @@ public class HuaweiSupportProvider {
                 @Override
                 public void call() {
                     int status = deviceStatusReq.status;
+                    LOG.warn("[UG-PAIR] device status byte = {} (hex {})", status, Integer.toHexString(status & 0xff));
                     if (status == -0x01 || status == 0x00 || status == 0x01) {
+                        LOG.warn("[UG-PAIR] status in {{-1,0,1}} -> DealHiChain");
                         initializeDeviceDealHiChain(linkParamsReq);
                     } else {
+                        LOG.warn("[UG-PAIR] status NOT in {{-1,0,1}} -> Notify + DealHiChain");
                         initializeDeviceNotify(linkParamsReq);
                     }
                 }
 
                 @Override
                 public void handleException(Request.ResponseParseException e) {
-                    LOG.error("Status TLV exception", e);
+                    LOG.error("[UG-PAIR] Status TLV exception", e);
                 }
             };
             if (huaweiType == HuaweiDeviceType.BLE) { //Only BLE known, check later for AW and SMART
+                LOG.warn("[UG-PAIR] huaweiType=BLE -> skip status, DealHiChain directly");
                 initializeDeviceDealHiChain(linkParamsReq);
             } else {
+                LOG.warn("[UG-PAIR] huaweiType={} (non-BLE) -> query device status", huaweiType);
                 deviceStatusReq.setFinalizeReq(finalizeReq);
                 deviceStatusReq.doPerform();
             }
@@ -608,6 +613,8 @@ public class HuaweiSupportProvider {
 
     protected void initializeDeviceDealHiChain(final Request linkParamsReq) {
         try {
+            LOG.warn("[UG-PAIR] DealHiChain: deviceSupportType={} isHiChain={} isHiChainLite={} supportsPake={}",
+                    paramsProvider.getDeviceSupportType(), isHiChain(), isHiChainLite(), getCoordinator().supportsHiChainPake());
             if (isHiChain()) {
 
                 if (paramsProvider.getDeviceSupportType() == 4)
@@ -663,13 +670,17 @@ public class HuaweiSupportProvider {
      */
     protected void finalizeSecurityNegotiationHiChain(final GetSecurityNegotiationRequest securityNegoReq,
                                                       final Request linkParamsReq) {
+        LOG.warn("[UG-PAIR] finalizeSecurityNegotiationHiChain authType={} (hex {})",
+                securityNegoReq.authType, Integer.toHexString(securityNegoReq.authType));
         if (securityNegoReq.authType == 0x0186A0 || isHiChain3(securityNegoReq.authType)) {
-            LOG.debug("HiChain mode");
+            LOG.warn("[UG-PAIR] -> HiChain mode");
             initializeDeviceHiChainMode();
         } else if (securityNegoReq.authType == 0x01 || securityNegoReq.authType == 0x02) {
-            LOG.debug("HiChain Lite mode");
+            LOG.warn("[UG-PAIR] -> HiChain Lite mode");
             // Keep track the gadget is connected
             initializeDeviceHiChainLiteMode(linkParamsReq);
+        } else {
+            LOG.warn("[UG-PAIR] authType matched NO branch -> handshake stops here");
         }
     }
 
@@ -702,6 +713,7 @@ public class HuaweiSupportProvider {
             }
         };
         try {
+            LOG.warn("[UG-PAIR] initializeDeviceNotify: sending status notify, will continue bind");
             final GetDeviceStatusRequest deviceNotifyReq = new GetDeviceStatusRequest(this, false);
             deviceNotifyReq.setFinalizeReq(proceed);
             deviceNotifyReq.doPerform();
