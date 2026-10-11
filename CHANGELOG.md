@@ -2,6 +2,10 @@
 
 <!-- For contributors: do not modify this file - the project maintainers will update it as needed -->
 
+#### 0.115.2
+
+* Copia de seguridad: restaurar en **UltimateGadget Play** una copia hecha con la app normal (o al revés) ya recupera los **ajustes de la app**; antes solo entraba la base de datos porque el fichero de ajustes llevaba el nombre del otro paquete
+
 #### 0.115.1
 
 * Inicio: la tarjeta de **último entreno** ya muestra la distancia (el golf salía siempre "0,0 km"); si el reloj no la envía se calcula del recorrido GPS
