@@ -4225,6 +4225,8 @@
     <string name="pref_force_smart_alarm_summary">Force smart alarms support.\nUSE AT YOUR OWN RISK</string>
     <string name="pref_force_wear_location">Force wear location</string>
     <string name="pref_force_wear_location_summary">Force wear location support.\nUSE AT YOUR OWN RISK</string>
+    <string name="pref_force_activate_on_lift">Force raise to wake</string>
+    <string name="pref_force_activate_on_lift_summary">Force raise-to-wake support if the watch did not report it.\nUSE AT YOUR OWN RISK</string>
     <string name="pref_force_dnd_support">Force Do Not Disturb support</string>
     <string name="pref_force_dnd_support_summary">Force Do Not Disturb support.\nUSE AT YOUR OWN RISK</string>
     <string name="pref_force_enable_heartrate_support">Force heart rate support</string>

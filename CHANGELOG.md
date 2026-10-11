@@ -2,6 +2,11 @@
 
 <!-- For contributors: do not modify this file - the project maintainers will update it as needed -->
 
+#### 0.108.0
+
+* Primer arranque: corregido que tras la pantalla de bienvenida/permisos la app se cerraba al pulsar atrás (no llevaba a ningún sitio). Ahora el onboarding termina abriendo la pantalla principal, con un botón "Continuar" para entrar aunque se omitan permisos
+* "Levantar para activar": si el reloj no reporta la capacidad, se puede **forzar** desde Ajustes → Avanzado → Forzar opciones → "Forzar levantar para activar"; entonces aparece el ajuste en Pantalla y gestos
+
 #### 0.107.0
 
 * Ajustes del dispositivo **100% en la UI nueva** (relojes Huawei): se acabó el "abrir en ajustes clásicos". Ahora se pintan nativos los **selectores de hora** (No molestar, inactividad), los ajustes de **batería** (sondeo e intervalo), y las **acciones** (contactos, mapas offline, música, ajustes de pulso, calibrar estrés, icono de notificaciones, calendario) abren directamente su pantalla propia
