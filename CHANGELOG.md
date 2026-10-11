@@ -2,6 +2,10 @@
 
 <!-- For contributors: do not modify this file - the project maintainers will update it as needed -->
 
+#### 0.105.0
+
+* Emparejamiento (relojes Huawei): corregido de verdad el fallo del **primer emparejamiento** en el que el reloj pedía "empareja desde la app de Huawei Health" y solo el segundo intento funcionaba. Causa real: al completarse el vínculo Bluetooth, el sistema muestra su diálogo de permiso (acceso a contactos/historial) que pausaba la pantalla de emparejamiento justo cuando llegaba el aviso de "vinculado", y la app se lo perdía y no llegaba a conectar. Ahora, al volver a la pantalla, la app comprueba si el reloj ya quedó vinculado y continúa la conexión igualmente
+
 #### 0.104.0
 
 * Golf: la tarjeta ahora distingue rondas de **9 o 18 hoyos** — si la vuelta de atrás llega con par 0 (no saliste a los segundos 9), la ronda se muestra como de 9 hoyos y los totales dejan de contar hoyos vacíos
