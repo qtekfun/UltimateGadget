@@ -2,6 +2,11 @@
 
 <!-- For contributors: do not modify this file - the project maintainers will update it as needed -->
 
+#### 0.115.1
+
+* Inicio: la tarjeta de **último entreno** ya muestra la distancia (el golf salía siempre "0,0 km"); si el reloj no la envía se calcula del recorrido GPS
+* Inicio: la tarjeta de **pasos** mostraba la distancia ×100 (355 km en vez de 3,5 km) y las calorías de relojes Huawei ×1000 (374889 kcal). Ya salen en sus unidades
+
 #### 0.115.0
 
 * Nueva variante **UltimateGadget Play** (todo en uno): se instala junto a la normal y **descarga dentro de la propia app** los mapas base del catálogo, los campos de golf de Huawei (y los envía al reloj) y las efemérides A-GNSS, sin app compañera. También obtiene la clave Bluetooth de relojes Amazfit/Zepp de tu cuenta (Ajustes). Lleva permiso de internet a propósito; la app normal sigue sin él
