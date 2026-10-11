@@ -30,4 +30,20 @@ object InAppNetworkImpl : InAppNetwork {
 
     override fun downloadMap(context: Context, id: String, onProgress: (done: Long, total: Long) -> Unit): String =
         throw UnsupportedOperationException("This build has no network access")
+
+    override fun golfCountries(): List<GolfCountry> = throw UnsupportedOperationException("This build has no network access")
+
+    override fun golfCities(country: GolfCountry): List<GolfCity> =
+        throw UnsupportedOperationException("This build has no network access")
+
+    override fun golfCourses(country: GolfCountry, city: GolfCity): List<GolfCourseInfo> =
+        throw UnsupportedOperationException("This build has no network access")
+
+    override fun downloadGolfCourse(context: Context, country: GolfCountry, course: GolfCourseInfo): GolfCourseDownload =
+        throw UnsupportedOperationException("This build has no network access")
+
+    override val huamiRegions: List<String> = emptyList()
+
+    override fun fetchHuamiKeys(email: String, password: String, regionIndex: Int): List<HuamiKey> =
+        throw UnsupportedOperationException("This build has no network access")
 }

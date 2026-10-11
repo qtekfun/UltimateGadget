@@ -64,6 +64,19 @@ acordada:
 - Es de uso voluntario y solo sobre la cuenta propia, por interoperabilidad; el host de listado de
   dispositivos es seleccionable por región.
 
+### Variante `play` (todo en uno)
+
+Decisión acordada, a propósito **fuera de la regla** "cero red en la app principal": el flavor `play`
+(`com.qtekfun.ultimategadget.play`, se instala junto a `mainline`) lleva permiso `INTERNET` y hace en
+la propia app lo que hace la app compañera: descarga de mapas base del catálogo, campos de golf de
+Huawei (envío directo al reloj), A-GNSS y la clave Bluetooth Amazfit/Zepp. No es un build de tienda.
+
+- `mainline` y `banglejs` no cambian: `mainline` sigue sin `INTERNET` y con la compañera aparte.
+- La lógica de red vive en el módulo `:mapsdl-core`, compartido con la compañera; solo `play` lo
+  enlaza. El resto del código accede por el contrato `InAppNetwork` (stub inerte sin red).
+- La clave Zepp/Amazfit sigue las mismas reglas: solo cuenta propia, credenciales únicamente para el
+  login HTTPS, sin almacenarlas ni registrarlas (pantalla con `FLAG_SECURE`, estado solo en memoria).
+
 ## 5. Fases
 
 - **Fase 0 — Spike de protocolo (en el equipo de Z, con el reloj por adb).** Ver `01-prompt-fase0-spike.md`. Entregable: informe con la conclusión sobre cómo se activa el golf y cómo se transfieren los mapas, y la decisión A/B/C.

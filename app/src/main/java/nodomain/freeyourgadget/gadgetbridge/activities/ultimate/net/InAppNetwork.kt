@@ -32,6 +32,16 @@ class AgnssPayload(
 /** One map of the online catalog that can be downloaded into the phone map store. */
 class RemoteMap(val id: String, val name: String, val parent: String, val sizeBytes: Long)
 
+class GolfCountry(val id: String, val code: String, val name: String)
+class GolfCity(val id: String, val name: String, val province: String)
+class GolfCourseInfo(val id: Long, val name: String, val totalLength: Int, val version: String)
+
+/** A golf course map already downloaded to [file], named like the companion app names them. */
+class GolfCourseDownload(val courseId: Int, val version: Int, val friendlyName: String, val file: java.io.File)
+
+/** One Amazfit/Zepp device of the account with its paste-ready Bluetooth auth key. */
+class HuamiKey(val mac: String, val active: Boolean, val authKey: String)
+
 /**
  * Seam between the network-free core and the `play` flavor. Every flavor provides an object named
  * [InAppNetworkImpl] in this package: src/noplay (mainline, banglejs) is an inert stub, src/play
@@ -55,4 +65,28 @@ interface InAppNetwork {
      */
     @Throws(Exception::class)
     fun downloadMap(context: Context, id: String, onProgress: (done: Long, total: Long) -> Unit): String
+
+    /** Blocking. Huawei golf catalog: countries. */
+    @Throws(Exception::class)
+    fun golfCountries(): List<GolfCountry>
+
+    @Throws(Exception::class)
+    fun golfCities(country: GolfCountry): List<GolfCity>
+
+    @Throws(Exception::class)
+    fun golfCourses(country: GolfCountry, city: GolfCity): List<GolfCourseInfo>
+
+    /** Blocking. Fetches the course map .bin of [course] into the app cache, ready to send to the watch. */
+    @Throws(Exception::class)
+    fun downloadGolfCourse(context: Context, country: GolfCountry, course: GolfCourseInfo): GolfCourseDownload
+
+    /** Region labels accepted by [fetchHuamiKeys], in order. Empty when unsupported. */
+    val huamiRegions: List<String>
+
+    /**
+     * Blocking. Logs in to Huami/Zepp over HTTPS and returns the account's devices with auth keys.
+     * The credentials are used for this call only and never stored or logged.
+     */
+    @Throws(Exception::class)
+    fun fetchHuamiKeys(email: String, password: String, regionIndex: Int): List<HuamiKey>
 }

@@ -62,7 +62,7 @@ jobs:
           else
             echo "SIGNED=debug" >> "$GITHUB_ENV"
           fi
-          ./gradlew --no-daemon assembleMainlineRelease
+          ./gradlew --no-daemon assembleMainlineRelease assemblePlayRelease
           rm -f "$RUNNER_TEMP/release.jks"
 
       - name: Publish the GitHub Release
@@ -92,6 +92,13 @@ jobs:
             f="$out/app-mainline-${abi}-release.apk"
             [ -f "$f" ] && cp "$f" "UltimateGadget-${ver}-${abi}.apk" && assets+=("UltimateGadget-${ver}-${abi}.apk")
           done
+          # All-in-one "play" build (in-app map/golf/A-GNSS downloads, has INTERNET): universal + arm64 only.
+          play_out=app/build/outputs/apk/play/release
+          for abi in universal arm64-v8a; do
+            f="$play_out/app-play-${abi}-release.apk"
+            [ -f "$f" ] && cp "$f" "UltimateGadget-Play-${ver}-${abi}.apk" && assets+=("UltimateGadget-Play-${ver}-${abi}.apk")
+          done
+          printf '\n**Variante Play (todo en uno):** `UltimateGadget-Play-*.apk` descarga mapas, campos de golf y A-GNSS dentro de la propia app y por eso lleva permiso de internet. Se instala junto a la normal. La normal sigue sin internet.\n' >> notes.md
           # The map-downloader sidecar is published as its own independent release (see
           # .github/workflows/sidecar.yml), only when it changes — not with every app version.
           printf '\n**Descargador de mapas (sidecar):** se publica aparte en su propia release: https://github.com/qtekfun/UltimateGadget/releases/tag/maps-downloader\n' >> notes.md
