@@ -19,7 +19,11 @@ package nodomain.freeyourgadget.gadgetbridge.activities.ultimate.net
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import com.qtekfun.ultimategadget.mapsdl.Downloader
+import com.qtekfun.ultimategadget.mapsdl.MapRegion
 import com.qtekfun.ultimategadget.mapsdl.agnss.AgnssDownloader
+import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.phonemaps.PhoneMapStore
+import java.io.File
 
 /** `play` flavor: runs the shared :mapsdl-core downloaders in-process. */
 object InAppNetworkImpl : InAppNetwork {
@@ -43,5 +47,23 @@ object InAppNetworkImpl : InAppNetwork {
         val cm = context.getSystemService(ConnectivityManager::class.java) ?: return false
         val caps = cm.getNetworkCapabilities(cm.activeNetwork) ?: return false
         return caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
+    }
+
+    @Volatile
+    private var catalog: Map<String, MapRegion> = emptyMap()
+
+    override fun fetchMapCatalog(): List<RemoteMap> {
+        val regions = Downloader.fetchCatalog()
+        catalog = regions.associateBy { it.id }
+        return regions.map { RemoteMap(it.id, it.name, it.parent, it.size) }
+    }
+
+    override fun downloadMap(context: Context, id: String, onProgress: (done: Long, total: Long) -> Unit): String {
+        val region = catalog[id] ?: throw IllegalStateException("Mapa no encontrado en el catálogo")
+        // The file name comes from the remote catalog: keep only the last path segment.
+        val name = region.file.substringAfterLast('/').replace("\u0000", "")
+            .let { if (it.endsWith(".pmtiles")) it else "$it.pmtiles" }
+        Downloader.downloadToFile(region, File(PhoneMapStore.mapsDir(context), name), onProgress)
+        return name
     }
 }

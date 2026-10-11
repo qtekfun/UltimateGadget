@@ -24,4 +24,10 @@ object InAppNetworkImpl : InAppNetwork {
 
     override fun fetchAgnss(context: Context, wifiOnly: Boolean): AgnssPayload =
         throw UnsupportedOperationException("This build has no network access")
+
+    override fun fetchMapCatalog(): List<RemoteMap> =
+        throw UnsupportedOperationException("This build has no network access")
+
+    override fun downloadMap(context: Context, id: String, onProgress: (done: Long, total: Long) -> Unit): String =
+        throw UnsupportedOperationException("This build has no network access")
 }

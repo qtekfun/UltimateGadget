@@ -35,6 +35,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -42,6 +43,8 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -55,6 +58,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.net.InAppNetworkImpl
+import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.net.RemoteMap
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.theme.LocalUltimatePalette
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.theme.UltimateTheme
 
@@ -72,6 +79,12 @@ private fun PhoneMapsScreen(onBack: () -> Unit) {
     val context = LocalContext.current
     val palette = LocalUltimatePalette.current
     var maps by remember { mutableStateOf(PhoneMapStore.installed(context)) }
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    var catalog by remember { mutableStateOf<List<RemoteMap>?>(null) }
+    var loadingCatalog by remember { mutableStateOf(false) }
+    var catalogError by remember { mutableStateOf<String?>(null) }
+    var downloadingId by remember { mutableStateOf<String?>(null) }
+    var progress by remember { mutableStateOf(0f) }
 
     val picker = androidx.activity.compose.rememberLauncherForActivityResult(
         ActivityResultContracts.OpenDocument(),
@@ -106,7 +119,8 @@ private fun PhoneMapsScreen(onBack: () -> Unit) {
         ) {
             Text(
                 "Mapas base para el visor (planificador y entrenos). Descarga un .pmtiles de las releases de " +
-                    "UltimateGadget-maps / ultimate-maps-data (o con UltimateMaps) e impórtalo aquí.",
+                    "UltimateGadget-maps / ultimate-maps-data (o con UltimateMaps) e impórtalo aquí." +
+                    if (InAppNetworkImpl.available) " También puedes descargarlos del catálogo." else "",
                 style = MaterialTheme.typography.bodyMedium,
                 color = palette.onSurfaceVariant,
             )
@@ -114,36 +128,98 @@ private fun PhoneMapsScreen(onBack: () -> Unit) {
                 Icon(Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(18.dp))
                 Text("  Importar mapa (.pmtiles)")
             }
-            if (maps.isEmpty()) {
-                Text("No hay mapas instalados.", style = MaterialTheme.typography.bodyMedium, color = palette.onSurfaceVariant)
-            } else {
-                LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    items(maps, key = { it.name }) { m ->
+            if (InAppNetworkImpl.available) {
+                OutlinedButton(
+                    enabled = !loadingCatalog,
+                    onClick = {
+                        loadingCatalog = true; catalogError = null
+                        scope.launch(Dispatchers.IO) {
+                            runCatching { InAppNetworkImpl.fetchMapCatalog() }
+                                .onSuccess { catalog = it }
+                                .onFailure { catalogError = it.message ?: "Error de red" }
+                            loadingCatalog = false
+                        }
+                    },
+                ) { Text(if (loadingCatalog) "Cargando catálogo…" else "Descargar del catálogo") }
+                catalogError?.let { Text(it, color = palette.error, style = MaterialTheme.typography.bodySmall) }
+            }
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                val remote = catalog
+                if (remote != null) {
+                    item(key = "catalog-header") {
+                        Text("Catálogo", style = MaterialTheme.typography.titleSmall, color = palette.onSurfaceVariant)
+                    }
+                    items(remote, key = { "remote-" + it.id }) { r ->
+                        val busy = downloadingId == r.id
                         Card(
                             Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(16.dp),
                             colors = CardDefaults.cardColors(containerColor = palette.surfaceContainer),
                         ) {
-                            Row(
-                                Modifier.fillMaxWidth().padding(14.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                            ) {
-                                Icon(Icons.Filled.Map, contentDescription = null, tint = palette.secondary)
-                                Column(Modifier.weight(1f)) {
-                                    Text(m.name, style = MaterialTheme.typography.titleMedium, color = palette.onSurface)
-                                    Text(
-                                        Formatter.formatShortFileSize(context, m.sizeBytes),
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = palette.onSurfaceVariant,
-                                    )
+                            Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                    Column(Modifier.weight(1f)) {
+                                        Text(r.name, style = MaterialTheme.typography.titleMedium, color = palette.onSurface)
+                                        Text(
+                                            Formatter.formatShortFileSize(context, r.sizeBytes),
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = palette.onSurfaceVariant,
+                                        )
+                                    }
+                                    IconButton(
+                                        enabled = downloadingId == null,
+                                        onClick = {
+                                            downloadingId = r.id; progress = 0f; catalogError = null
+                                            scope.launch(Dispatchers.IO) {
+                                                runCatching {
+                                                    InAppNetworkImpl.downloadMap(context, r.id) { done, total ->
+                                                        progress = if (total > 0) (done.toFloat() / total).coerceIn(0f, 1f) else 0f
+                                                    }
+                                                }.onFailure { catalogError = it.message ?: "Error de descarga" }
+                                                maps = PhoneMapStore.installed(context)
+                                                downloadingId = null
+                                            }
+                                        },
+                                    ) { Icon(Icons.Filled.Download, contentDescription = "Descargar", tint = palette.secondary) }
                                 }
-                                IconButton(onClick = {
-                                    PhoneMapStore.delete(context, m.name)
-                                    maps = PhoneMapStore.installed(context)
-                                }) {
-                                    Icon(Icons.Filled.Delete, contentDescription = "Borrar", tint = palette.error)
-                                }
+                                if (busy) LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth())
+                            }
+                        }
+                    }
+                    item(key = "installed-header") {
+                        Text("Instalados", style = MaterialTheme.typography.titleSmall, color = palette.onSurfaceVariant)
+                    }
+                }
+                if (maps.isEmpty()) {
+                    item(key = "none") {
+                        Text("No hay mapas instalados.", style = MaterialTheme.typography.bodyMedium, color = palette.onSurfaceVariant)
+                    }
+                }
+                items(maps, key = { it.name }) { m ->
+                    Card(
+                        Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = palette.surfaceContainer),
+                    ) {
+                        Row(
+                            Modifier.fillMaxWidth().padding(14.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        ) {
+                            Icon(Icons.Filled.Map, contentDescription = null, tint = palette.secondary)
+                            Column(Modifier.weight(1f)) {
+                                Text(m.name, style = MaterialTheme.typography.titleMedium, color = palette.onSurface)
+                                Text(
+                                    Formatter.formatShortFileSize(context, m.sizeBytes),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = palette.onSurfaceVariant,
+                                )
+                            }
+                            IconButton(onClick = {
+                                PhoneMapStore.delete(context, m.name)
+                                maps = PhoneMapStore.installed(context)
+                            }) {
+                                Icon(Icons.Filled.Delete, contentDescription = "Borrar", tint = palette.error)
                             }
                         }
                     }
