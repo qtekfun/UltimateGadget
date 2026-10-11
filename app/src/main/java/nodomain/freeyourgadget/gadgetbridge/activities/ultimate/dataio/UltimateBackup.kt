@@ -151,7 +151,8 @@ object UltimateBackup {
         // Read every entry into memory first; the DB import reopens/validates the DB and we must not
         // leave the install half-restored because of a bad entry discovered mid-way.
         var dbBytes: ByteArray? = null
-        val prefs = LinkedHashMap<String, ByteArray>()
+        var sourcePackage: String? = null
+        val rawPrefs = LinkedHashMap<String, ByteArray>()
         val routes = LinkedHashMap<String, ByteArray>()
 
         ZipInputStream(ByteArrayInputStream(zipBytes)).use { zis ->
@@ -161,10 +162,12 @@ object UltimateBackup {
                 if (!entry.isDirectory) {
                     when {
                         name == ENTRY_DB -> dbBytes = readEntry(zis)
-                        name == ENTRY_MANIFEST -> readEntry(zis) // parsed for info only; skip
+                        name == ENTRY_MANIFEST -> sourcePackage = runCatching {
+                            JSONObject(String(readEntry(zis), Charsets.UTF_8)).optString("packageName")
+                        }.getOrNull()?.takeIf { it.isNotBlank() }
                         name.startsWith(PREFIX_PREFS) -> {
                             val leaf = safeLeaf(name.removePrefix(PREFIX_PREFS), ".xml")
-                            if (leaf != null) prefs[leaf] = readEntry(zis)
+                            if (leaf != null) rawPrefs[leaf] = readEntry(zis)
                         }
                         name.startsWith(PREFIX_ROUTES) -> {
                             val leaf = safeLeaf(name.removePrefix(PREFIX_ROUTES), ".gpx")
@@ -180,12 +183,21 @@ object UltimateBackup {
 
         val db = dbBytes ?: throw IOException("La copia no contiene base de datos (db/Gadgetbridge)")
 
+        // The default preferences file is named after the package, so a backup taken in another
+        // flavor (e.g. mainline -> play) would otherwise land in a file this install never reads.
+        val prefs = LinkedHashMap<String, ByteArray>()
+        for ((leaf, bytes) in rawPrefs) {
+            prefs[remapPrefsName(leaf, sourcePackage ?: inferSourcePackage(rawPrefs.keys), context.packageName)] = bytes
+        }
+
         // 1) Database – core importer: writes the file, reopens and checks integrity.
         GBDatabaseManager.importDB(ByteArrayInputStream(db))
 
         // 2) SharedPreferences – write the .xml back into shared_prefs.
         val prefsDir = sharedPrefsDir(context).apply { mkdirs() }
         for ((leaf, bytes) in prefs) {
+            // A stale `.bak` would make Android discard the file we are writing on next load.
+            File(prefsDir, "$leaf.bak").delete()
             File(prefsDir, leaf).outputStream().use { it.write(bytes) }
         }
 
@@ -203,6 +215,26 @@ object UltimateBackup {
     // ---------------------------------------------------------------------------------------------
     // Helpers
     // ---------------------------------------------------------------------------------------------
+
+    private const val DEFAULT_PREFS_SUFFIX = "_preferences.xml"
+
+    /**
+     * Maps a preferences file name from the backup to this install. Only the default file
+     * (`<package>_preferences.xml`) carries the package; per-device and widget files do not.
+     */
+    internal fun remapPrefsName(leaf: String, sourcePackage: String?, targetPackage: String): String =
+        if (sourcePackage != null && leaf == sourcePackage + DEFAULT_PREFS_SUFFIX) {
+            targetPackage + DEFAULT_PREFS_SUFFIX
+        } else {
+            leaf
+        }
+
+    /** Backups without a package in the manifest: the package is the prefix of the default file. */
+    internal fun inferSourcePackage(leaves: Collection<String>): String? =
+        leaves.firstOrNull {
+            it.endsWith(DEFAULT_PREFS_SUFFIX) &&
+                !it.startsWith("devicesettings_") && !it.startsWith("widgetsettings_")
+        }?.removeSuffix(DEFAULT_PREFS_SUFFIX)
 
     private fun sharedPrefsDir(context: Context): File =
         File(context.applicationInfo.dataDir, "shared_prefs")
