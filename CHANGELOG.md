@@ -2,6 +2,11 @@
 
 <!-- For contributors: do not modify this file - the project maintainers will update it as needed -->
 
+#### 0.115.0
+
+* Nueva variante **UltimateGadget Play** (todo en uno): se instala junto a la normal y **descarga dentro de la propia app** los mapas base del catálogo, los campos de golf de Huawei (y los envía al reloj) y las efemérides A-GNSS, sin app compañera. También obtiene la clave Bluetooth de relojes Amazfit/Zepp de tu cuenta (Ajustes). Lleva permiso de internet a propósito; la app normal sigue sin él
+* Golf: la tarjeta de resultados marca cada hoyo con el color de su resultado frente al par (amarillo +1, naranja +2, rojo +3 o más, par en verde, "-" si no se jugó) y se anima al entrar. Como la app de Huawei
+
 #### 0.114.0
 
 * "Buscar dispositivo" (relojes Huawei): ahora **funciona** — hace sonar/vibrar el reloj y muestra un diálogo para pararlo (antes era un stub "próximamente"). Usa la función de Gadgetbridge que ya existía; requiere que el reloj soporte "find device"
