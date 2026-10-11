@@ -63,6 +63,29 @@ data class SleepDayData(
     /** Down-sampled nocturnal SpO2 readings for the bar chart. */
     val spo2Samples: List<Int>,
     val naps: List<NapInfo>,
+    /**
+     * Huawei TrueSleep extras, present only when the watch stored its own sleep stats for this
+     * night (then [trueSleep] is true). Each is null when the watch did not record it; never
+     * invented. All read verbatim from HuaweiSleepStatsSample for the night.
+     */
+    val trueSleep: Boolean = false,
+    /** Minutes from going to bed until actually falling asleep. */
+    val sleepLatencyMin: Int? = null,
+    /** Sleep efficiency 0..100 (% of time in bed actually asleep). */
+    val sleepEfficiency: Int? = null,
+    val hrAvg: Int? = null,
+    val hrMin: Int? = null,
+    val hrMax: Int? = null,
+    /** Average nocturnal breathing rate (breaths/min). */
+    val breathAvg: Int? = null,
+    /** Average nocturnal HRV (ms). */
+    val hrvAvg: Int? = null,
+    /** Snore events the watch counted. */
+    val snoreCount: Int? = null,
+    /** Respiratory-disturbance index (sleep-apnea episodes/h) the watch flagged. */
+    val apneaIndex: Int? = null,
+    /** Times the watch detected turning over during the night. */
+    val turnOverCount: Int? = null,
 ) {
     companion object {
         fun empty(dayStartMillis: Long) = SleepDayData(

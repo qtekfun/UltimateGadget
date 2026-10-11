@@ -104,6 +104,8 @@ class SleepRepository(private val app: Application) {
             val native = loadNativeScore(device, session, main.sleepStart.time, main.sleepEnd.time)
             val score = native ?: heuristicScore(totalMin, deepMin, remMin, awakenings, awakeMin)
 
+            val trueSleep = loadHuaweiTrueSleep(device, session, main.sleepStart.time, main.sleepEnd.time)
+
             val naps = sessions
                 .filter { it !== main && it.sleepStart.time >= dayStartMillis }
                 .mapNotNull { nap ->
@@ -133,9 +135,51 @@ class SleepRepository(private val app: Application) {
                 spo2Avg = spo2Avg,
                 spo2Samples = spo2Samples,
                 naps = naps,
+                trueSleep = trueSleep != null,
+                sleepLatencyMin = trueSleep?.sleepLatencyMin,
+                sleepEfficiency = trueSleep?.sleepEfficiency,
+                hrAvg = trueSleep?.hrAvg,
+                hrMin = trueSleep?.hrMin,
+                hrMax = trueSleep?.hrMax,
+                breathAvg = trueSleep?.breathAvg,
+                hrvAvg = trueSleep?.hrvAvg,
+                snoreCount = trueSleep?.snoreCount,
+                apneaIndex = trueSleep?.apneaIndex,
+                turnOverCount = trueSleep?.turnOverCount,
             )
         }
     }
+
+    /** Extras Huawei TrueSleep stores per night (HuaweiSleepStatsSample). Null when none for this night. */
+    private data class TrueSleep(
+        val sleepLatencyMin: Int?, val sleepEfficiency: Int?,
+        val hrAvg: Int?, val hrMin: Int?, val hrMax: Int?,
+        val breathAvg: Int?, val hrvAvg: Int?,
+        val snoreCount: Int?, val apneaIndex: Int?, val turnOverCount: Int?,
+    )
+
+    private fun loadHuaweiTrueSleep(
+        device: GBDevice,
+        session: nodomain.freeyourgadget.gadgetbridge.entities.DaoSession,
+        fromMs: Long,
+        toMs: Long,
+    ): TrueSleep? = runCatching {
+        // The watch records one stats row per night; match the one whose timestamp falls in (or
+        // nearest to) this night's window. The provider queries the Huawei table by device id, so
+        // for a non-Huawei device it simply returns nothing.
+        val samples = nodomain.freeyourgadget.gadgetbridge.devices.huawei.HuaweiSleepStatsSampleProvider(device, session)
+            .getAllSamples(fromMs - HOUR_MS, toMs + HOUR_MS)
+        val s = samples.maxByOrNull { it.timestamp } ?: return null
+        // notNull ints default to -1 when the watch didn't record them; surface those as absent.
+        fun pos(v: Int): Int? = if (v > 0) v else null
+        TrueSleep(
+            sleepLatencyMin = pos(s.sleepLatency),
+            sleepEfficiency = pos(s.sleepEfficiency),
+            hrAvg = pos(s.avgHeartRate), hrMin = pos(s.minHeartRate), hrMax = pos(s.maxHeartRate),
+            breathAvg = pos(s.avgBreathRate), hrvAvg = pos(s.avgHrv),
+            snoreCount = pos(s.snoreFreq), apneaIndex = pos(s.rdi), turnOverCount = pos(s.turnOverCount),
+        )
+    }.getOrNull()
 
     /** Build the hypnogram: merge consecutive same-phase samples inside the main session. */
     private fun buildSegments(samples: List<ActivitySample>, startSec: Long, endSec: Long): List<SleepSegment> {
