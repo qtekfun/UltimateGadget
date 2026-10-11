@@ -20,6 +20,9 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import com.qtekfun.ultimategadget.mapsdl.Downloader
+import com.qtekfun.ultimategadget.mapsdl.GolfApi
+import com.qtekfun.ultimategadget.mapsdl.HuamiRegion
+import com.qtekfun.ultimategadget.mapsdl.HuamiToken
 import com.qtekfun.ultimategadget.mapsdl.MapRegion
 import com.qtekfun.ultimategadget.mapsdl.agnss.AgnssDownloader
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.phonemaps.PhoneMapStore
@@ -65,5 +68,33 @@ object InAppNetworkImpl : InAppNetwork {
             .let { if (it.endsWith(".pmtiles")) it else "$it.pmtiles" }
         Downloader.downloadToFile(region, File(PhoneMapStore.mapsDir(context), name), onProgress)
         return name
+    }
+
+    override fun golfCountries(): List<GolfCountry> =
+        GolfApi.countries().map { GolfCountry(it.id, it.code, it.name) }
+
+    override fun golfCities(country: GolfCountry): List<GolfCity> =
+        GolfApi.cities(country.id, country = country.code).map { GolfCity(it.id, it.name, it.province) }
+
+    override fun golfCourses(country: GolfCountry, city: GolfCity): List<GolfCourseInfo> =
+        GolfApi.courses(city.id, country = country.code).map { GolfCourseInfo(it.id, it.name, it.totalLength, it.version) }
+
+    override fun downloadGolfCourse(context: Context, country: GolfCountry, course: GolfCourseInfo): GolfCourseDownload {
+        val map = GolfApi.courseMap(course.id, country = country.code)
+            ?: throw IllegalStateException("Sin datos de mapa para este campo")
+        val (_, bytes) = GolfApi.downloadMapBin(map.url)
+        val id = course.id.toInt()
+        // Same convention as the companion's file names: the id and version travel with the course.
+        val version = map.version.filter { it.isDigit() }.toIntOrNull() ?: 0
+        val file = File(context.cacheDir, "golf_import_$id.bin")
+        file.writeBytes(bytes)
+        return GolfCourseDownload(id, version, course.name.trim(), file)
+    }
+
+    override val huamiRegions: List<String> = HuamiRegion.values().map { it.label }
+
+    override fun fetchHuamiKeys(email: String, password: String, regionIndex: Int): List<HuamiKey> {
+        val region = HuamiRegion.values().getOrElse(regionIndex) { HuamiRegion.GLOBAL }
+        return HuamiToken.fetchAuthKeys(email, password, region).map { HuamiKey(it.mac, it.active, it.pasteKey) }
     }
 }

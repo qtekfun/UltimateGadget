@@ -64,6 +64,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import nodomain.freeyourgadget.gadgetbridge.GBApplication
+import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.net.InAppNetworkImpl
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.theme.LocalUltimatePalette
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.theme.UltimateTheme
 import nodomain.freeyourgadget.gadgetbridge.devices.huawei.HuaweiConstants
@@ -135,6 +136,19 @@ class UltimateGolfCoursesActivity : AppCompatActivity() {
 
     private val pickBin = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
         if (uri != null) importAndSend(uri)
+    }
+
+    /** Result of the in-app catalog (builds with network only): a downloaded .bin to send. */
+    private val pickFromCatalog = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { r ->
+        val data = r.data ?: return@registerForActivityResult
+        val d = device
+        if (r.resultCode != RESULT_OK || d == null || !d.isInitialized) return@registerForActivityResult
+        val id = data.getIntExtra(UltimateGolfCatalogActivity.EXTRA_COURSE_ID, -1)
+        val path = data.getStringExtra(UltimateGolfCatalogActivity.EXTRA_PATH) ?: return@registerForActivityResult
+        if (id < 0) return@registerForActivityResult
+        val friendly = data.getStringExtra(UltimateGolfCatalogActivity.EXTRA_NAME).orEmpty()
+        if (friendly.isNotBlank()) saveName(id, friendly)
+        sendCourseFile(d, File(path), id, data.getIntExtra(UltimateGolfCatalogActivity.EXTRA_VERSION, 0))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -221,6 +235,15 @@ class UltimateGolfCoursesActivity : AppCompatActivity() {
             contentResolver.openInputStream(uri)!!.use { input ->
                 dest.outputStream().use { input.copyTo(it) }
             }
+            sendCourseFile(d, dest, courseId, version)
+        } catch (e: Exception) {
+            Toast.makeText(this, "Error al leer el fichero: ${e.message}", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    /** Hand a local course .bin to the watch service and optimistically show it in the list. */
+    private fun sendCourseFile(d: GBDevice, dest: File, courseId: Int, version: Int) {
+        try {
             GBApplication.deviceService(d).onSendConfiguration(
                 HuaweiConstants.PREF_HUAWEI_GOLF_SEND_PREFIX + dest.absolutePath + "|" + courseId + "|" + version,
             )
@@ -236,7 +259,7 @@ class UltimateGolfCoursesActivity : AppCompatActivity() {
             // only a long fallback in case the upload never reports completion.
             requestListDelayed(20000)
         } catch (e: Exception) {
-            Toast.makeText(this, "Error al leer el fichero: ${e.message}", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "Error al enviar el fichero: ${e.message}", Toast.LENGTH_LONG).show()
         }
     }
 
@@ -298,6 +321,21 @@ class UltimateGolfCoursesActivity : AppCompatActivity() {
                         contentAlignment = Alignment.Center,
                     ) {
                         Text("Importar y enviar mapa de campo", color = palette.onPrimary, fontWeight = FontWeight.Bold)
+                    }
+                    if (InAppNetworkImpl.available) {
+                        Box(
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(top = 8.dp)
+                                .background(palette.surfaceContainer, RoundedCornerShape(16.dp))
+                                .clickable(enabled = device?.isInitialized == true) {
+                                    pickFromCatalog.launch(Intent(this@UltimateGolfCoursesActivity, UltimateGolfCatalogActivity::class.java))
+                                }
+                                .padding(vertical = 14.dp),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Text("Buscar y enviar desde el catálogo", color = palette.onSurface, fontWeight = FontWeight.Bold)
+                        }
                     }
                     Text(
                         "Elige un .bin descargado con la app de mapas (su nombre lleva el id del campo). El reloj lo mostrará en su app de golf.",

@@ -66,6 +66,8 @@ import nodomain.freeyourgadget.gadgetbridge.R
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.onboarding.UltimatePermissionsActivity
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.dataio.UltimateDataIOActivity
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.notifications.UltimateNotificationsActivity
+import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.net.InAppNetworkImpl
+import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.net.UltimateHuamiKeyActivity
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.phonemaps.PhoneMapsActivity
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.theme.LocalUltimatePalette
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.theme.UltimateTheme
@@ -255,6 +257,11 @@ fun UltimateSettingsScreen(onBack: () -> Unit) {
                 }
                 NavRow("Mapas del móvil") {
                     context.startActivity(Intent(context, PhoneMapsActivity::class.java))
+                }
+                if (InAppNetworkImpl.available) {
+                    NavRow("Clave Bluetooth Amazfit / Zepp") {
+                        context.startActivity(Intent(context, UltimateHuamiKeyActivity::class.java))
+                    }
                 }
                 NavRow("Permisos") {
                     context.startActivity(UltimatePermissionsActivity.intent(context))

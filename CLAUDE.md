@@ -36,4 +36,5 @@ Fases: 0 spike, 1 golf mínimo + A-GNSS, 2 mapas, 3 rondas, 4 UI, 5 Nextcloud, 6
 - No tocar sin necesidad: `app/src/main/java/.../devices/` y `.../service/devices/` de otras marcas, `external/`, `GBDaoGenerator/`, traducciones (`values-*`).
 - Cambios propios hasta ahora: `applicationId`, autoridad del provider de Pebble y nombre visible, solo en el flavor `mainline`, para instalar junto a Gadgetbridge.
 - Código nuevo de Huawei golf/A-GNSS: servicios P2P nuevos junto al soporte existente (`service/devices/huawei/p2p/`), aislados y sin reescribir el núcleo.
+- Flavor `play` (todo en uno, con `INTERNET`, decidido por el usuario): descargas en la propia app vía `:mapsdl-core` y contrato `InAppNetwork` (stub en `app/src/noplay`, real en `app/src/play`). No tocar `mainline`: sin `INTERNET`. Ver spec §4.
 - Upstream: remote `upstream` (Codeberg, rama `master`); integrar con merges periódicos.
