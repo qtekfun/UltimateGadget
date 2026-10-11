@@ -38,7 +38,9 @@ public class SetNavigateOnRotateRequest extends Request {
 
     @Override
     protected boolean requestSupported() {
-        return supportProvider.getDeviceState().supportsRotateToCycleInfo();
+        // Shown unconditionally for Huawei watches (capability detection is unreliable); send the
+        // user's choice and let a watch without the gesture ignore it.
+        return true;
     }
 
     @Override

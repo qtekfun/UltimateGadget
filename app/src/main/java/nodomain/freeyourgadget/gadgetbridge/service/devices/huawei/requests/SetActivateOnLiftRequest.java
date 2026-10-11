@@ -38,7 +38,10 @@ public class SetActivateOnLiftRequest extends Request {
 
     @Override
     protected boolean requestSupported() {
-        return supportProvider.getDeviceState().supportsActivateOnLift();
+        // Send whatever the user chose: capability detection for this gesture proved unreliable
+        // (it needs a full init handshake that may not have happened), and the setting is now shown
+        // unconditionally for Huawei watches. A watch without the gesture just ignores the value.
+        return true;
     }
 
     @Override
