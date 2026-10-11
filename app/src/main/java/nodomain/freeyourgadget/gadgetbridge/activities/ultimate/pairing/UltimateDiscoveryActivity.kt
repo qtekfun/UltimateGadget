@@ -129,6 +129,12 @@ class UltimateDiscoveryActivity : AppCompatActivity(), BondingInterface, GBScanE
     private var scanning = false
     private var deviceTarget: GBDeviceCandidate? = null
 
+    /**
+     * Guards against handling the bond completion twice: once from the live ACTION_BOND_STATE_CHANGED
+     * broadcast and once from the onResume reconciliation (see [checkPendingBondCompleted]).
+     */
+    private var bondHandled = false
+
     private val bleScanCallback = BleScanCallback()
     private val bluetoothReceiver = BluetoothReceiver()
     private val deviceFoundProcessor = GBScanEventProcessor(this)
@@ -205,6 +211,35 @@ class UltimateDiscoveryActivity : AppCompatActivity(), BondingInterface, GBScanE
         loadSettings()
         hasPermissions.value = hasAllPermissions()
         registerBroadcastReceivers()
+        // A system dialog (e.g. the Bluetooth phonebook-access permission prompt) can come to the
+        // foreground right as a fresh bond completes, pausing us — which unregisters our receiver —
+        // so we miss the BOND_BONDED broadcast and never start the connection. The watch then times
+        // out the pairing and tells the user to pair from Huawei Health; a second attempt works only
+        // because the bond already exists. Reconcile on resume: if the device we were pairing is now
+        // bonded, proceed as if we had seen the broadcast.
+        checkPendingBondCompleted()
+    }
+
+    /**
+     * If a bond for the device we are pairing completed while we were paused (so the live
+     * ACTION_BOND_STATE_CHANGED broadcast was missed), continue the bonding flow now.
+     */
+    private fun checkPendingBondCompleted() {
+        if (bondHandled) return
+        val target = deviceTarget ?: return
+        val mac = target.macAddress ?: return
+        val btAdapter = (getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager)?.adapter ?: return
+        val bonded = try {
+            btAdapter.getRemoteDevice(mac).bondState == BluetoothDevice.BOND_BONDED
+        } catch (e: Exception) {
+            LOG.warn("Could not read bond state for {} on resume", mac, e)
+            false
+        }
+        if (bonded) {
+            LOG.info("Device {} is already bonded on resume (missed BOND_BONDED broadcast), continuing", mac)
+            bondHandled = true
+            BondingUtil.handleDeviceBonded(this, target)
+        }
     }
 
     override fun onPause() {
@@ -511,6 +546,7 @@ class UltimateDiscoveryActivity : AppCompatActivity(), BondingInterface, GBScanE
             }
             try {
                 deviceTarget = deviceCandidate
+                bondHandled = false
                 BondingUtil.initiateCorrectBonding(this, deviceCandidate, coordinator)
             } catch (e: Exception) {
                 LOG.error("Error pairing device {}", deviceCandidate.macAddress, e)
@@ -635,7 +671,10 @@ class UltimateDiscoveryActivity : AppCompatActivity(), BondingInterface, GBScanE
                         LOG.debug("ignore due to MAC address: got {} but expected {}", macAddress, expected)
                     } else if (bondState != BluetoothDevice.BOND_BONDED) {
                         LOG.debug("ignore due bonding state: {}", BleNamesResolver.getBondStateString(bondState))
+                    } else if (bondHandled) {
+                        LOG.debug("bond for {} already handled, ignoring duplicate", macAddress)
                     } else {
+                        bondHandled = true
                         BondingUtil.handleDeviceBonded(this@UltimateDiscoveryActivity, getCandidateFromMAC(device))
                     }
                 }
