@@ -2,6 +2,10 @@
 
 <!-- For contributors: do not modify this file - the project maintainers will update it as needed -->
 
+#### 0.112.0
+
+* Sueño (TrueSleep de Huawei): la pantalla de sueño añade una tarjeta **TrueSleep** con los datos propios del reloj cuando existen — eficiencia, latencia, pulso (mín–máx/medio), respiración, HRV media, ronquidos, índice de apnea (RDI) y vueltas en la cama. Solo se muestran los campos que el reloj realmente registró
+
 #### 0.111.0
 
 * "Levantar para activar" y "Girar la muñeca para cambiar info" (relojes Huawei): ahora **aparecen siempre** en Ajustes del dispositivo → Pantalla y gestos (antes dependían de una detección de capacidad poco fiable y podían no salir) y el cambio **se envía de verdad al reloj** al activarlos

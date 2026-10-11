@@ -101,6 +101,7 @@ fun SleepScreen(
                     ScoreCard(d)
                     HypnogramCard(d)
                     SummaryCard(d)
+                    if (d.trueSleep) TrueSleepCard(d)
                     if (d.spo2Avg > 0) Spo2Card(d)
                     if (d.naps.isNotEmpty()) NapsCard(d)
                 }
@@ -257,6 +258,35 @@ private fun SummaryCard(d: SleepDayData) {
             Stat("Ligero", hoursMinutes(d.lightMin), scheme.onSurface)
             Stat("Despierto", hoursMinutes(d.awakeMin), scheme.onSurface)
             Stat("Despertares", "${d.awakenings}", scheme.onSurface)
+        }
+    }
+}
+
+/** Huawei TrueSleep extras the watch recorded for the night (only the fields actually present). */
+@Composable
+private fun TrueSleepCard(d: SleepDayData) {
+    val scheme = MaterialTheme.colorScheme
+    val items = buildList {
+        d.sleepEfficiency?.let { add("Eficiencia" to "$it%") }
+        d.sleepLatencyMin?.let { add("Latencia" to "$it min") }
+        if (d.hrMin != null && d.hrMax != null) add("Pulso" to "${d.hrMin}–${d.hrMax} bpm")
+        else d.hrAvg?.let { add("Pulso medio" to "$it bpm") }
+        d.breathAvg?.let { add("Respiración" to "$it/min") }
+        d.hrvAvg?.let { add("HRV media" to "$it ms") }
+        d.snoreCount?.let { add("Ronquidos" to "$it") }
+        d.apneaIndex?.let { add("Apnea (RDI)" to "$it") }
+        d.turnOverCount?.let { add("Vueltas" to "$it") }
+    }
+    if (items.isEmpty()) return
+    DashboardCard {
+        SectionLabel("TrueSleep (Huawei)")
+        Spacer(Modifier.height(10.dp))
+        items.chunked(3).forEachIndexed { i, row ->
+            if (i > 0) Spacer(Modifier.height(12.dp))
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                row.forEach { (l, v) -> Stat(l, v, scheme.onSurface) }
+                repeat(3 - row.size) { Stat("", "", scheme.onSurface) }
+            }
         }
     }
 }
