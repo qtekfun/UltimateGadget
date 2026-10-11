@@ -2,6 +2,11 @@
 
 <!-- For contributors: do not modify this file - the project maintainers will update it as needed -->
 
+#### 0.107.0
+
+* Ajustes del dispositivo **100% en la UI nueva** (relojes Huawei): se acabó el "abrir en ajustes clásicos". Ahora se pintan nativos los **selectores de hora** (No molestar, inactividad), los ajustes de **batería** (sondeo e intervalo), y las **acciones** (contactos, mapas offline, música, ajustes de pulso, calibrar estrés, icono de notificaciones, calendario) abren directamente su pantalla propia
+* "Levantar para activar" aparece en Pantalla y gestos cuando el reloj reporta esa capacidad
+
 #### 0.106.0
 
 * Entrenos: ahora se guardan **para siempre** en la app y se ven **aunque el reloj no esté conectado** (antes solo aparecían con el reloj conectado). Además se **mezclan los de todos los dispositivos**, descartando los que se solapan en el tiempo (el mismo entreno sincronizado desde dos relojes no sale duplicado). Al abrir un entreno se usa el dispositivo que lo registró, para que su ruta GPS salga aunque sea de otro reloj o esté desconectado

@@ -85,6 +85,27 @@ sealed interface PrefNode {
         val dependency: String?,
     ) : PrefNode
 
+    /** A time-of-day picker ([nodomain.freeyourgadget.gadgetbridge.util.XTimePreference]), persisted as "HH:mm". */
+    data class TimePicker(
+        val key: String,
+        val title: String,
+        val summary: String?,
+        val iconRes: Int,
+        val default: String,
+        val dependency: String?,
+    ) : PrefNode
+
+    /**
+     * A click-action preference (plain {@code <Preference>}): it opens a dedicated editor activity
+     * or fires a device command, instead of persisting a value. The host decides what each key does.
+     */
+    data class Action(
+        val key: String?,
+        val title: String,
+        val summary: String?,
+        val iconRes: Int,
+    ) : PrefNode
+
     /** A nested, navigable screen (androidx nested {@code PreferenceScreen}). */
     data class SubScreen(
         val key: String?,
@@ -320,7 +341,24 @@ object DeviceSettingsParser {
                 }
             }
 
-            // Plain <Preference> or any custom preference class: not something we persist generically.
+            // Time-of-day picker (XTimePreference and subclasses), persisted as "HH:mm".
+            simple == "XTimePreference" -> {
+                if (key == null) emptyList() else listOf(
+                    PrefNode.TimePicker(
+                        key, title, summary, icon,
+                        default = attrDefaultString(parser, res).ifEmpty { "00:00" },
+                        dependency = dependency,
+                    ),
+                )
+            }
+
+            // Plain <Preference>: a click-action row (opens an editor activity or fires a command).
+            simple == "Preference" -> {
+                if (title.isEmpty()) emptyList()
+                else listOf(PrefNode.Action(key, title, summary, icon))
+            }
+
+            // Any other custom preference class we do not model.
             else -> delegated(key, title, summary, icon)
         }
     }
