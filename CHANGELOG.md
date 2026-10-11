@@ -2,6 +2,10 @@
 
 <!-- For contributors: do not modify this file - the project maintainers will update it as needed -->
 
+#### 0.106.0
+
+* Entrenos: ahora se guardan **para siempre** en la app y se ven **aunque el reloj no esté conectado** (antes solo aparecían con el reloj conectado). Además se **mezclan los de todos los dispositivos**, descartando los que se solapan en el tiempo (el mismo entreno sincronizado desde dos relojes no sale duplicado). Al abrir un entreno se usa el dispositivo que lo registró, para que su ruta GPS salga aunque sea de otro reloj o esté desconectado
+
 #### 0.105.0
 
 * Emparejamiento (relojes Huawei): corregido de verdad el fallo del **primer emparejamiento** en el que el reloj pedía "empareja desde la app de Huawei Health" y solo el segundo intento funcionaba. Causa real: al completarse el vínculo Bluetooth, el sistema muestra su diálogo de permiso (acceso a contactos/historial) que pausaba la pantalla de emparejamiento justo cuando llegaba el aviso de "vinculado", y la app se lo perdía y no llegaba a conectar. Ahora, al volver a la pantalla, la app comprueba si el reloj ya quedó vinculado y continúa la conexión igualmente
