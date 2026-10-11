@@ -21,6 +21,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import nodomain.freeyourgadget.gadgetbridge.GBApplication
 import nodomain.freeyourgadget.gadgetbridge.activities.devicesettings.DeviceSettingsActivity
 import nodomain.freeyourgadget.gadgetbridge.activities.devicesettings.DeviceSpecificSettings
 import nodomain.freeyourgadget.gadgetbridge.activities.devicesettings.DeviceSpecificSettingsScreen
@@ -73,9 +74,10 @@ class UltimateDeviceSettingsActivity : AppCompatActivity() {
                     rootTitle = (device.aliasOrName ?: "").ifBlank { "Ajustes del dispositivo" },
                     rootNodes = nodes,
                     store = DeviceSettingsStore(device),
-                    hasClassicFallback = true,
+                    hasClassicFallback = false,
                     onBack = { finish() },
                     onDelegate = { openClassic(device) },
+                    onAction = { key -> onAction(key, device) },
                 )
             }
         }
@@ -106,7 +108,65 @@ class UltimateDeviceSettingsActivity : AppCompatActivity() {
                 }
             }
         }
+
+        // Battery polling is added programmatically by the legacy fragment (not via the coordinator's
+        // XML), so reproduce it natively here from the known keys/defaults, as a sub-screen. This is
+        // what the old "classic settings" row used to cover.
+        if (runCatching { coordinator?.addBatteryPollingSettings() }.getOrDefault(false) == true) {
+            nodes.add(
+                PrefNode.SubScreen(
+                    key = "pref_battery_polling_header",
+                    title = getString(nodomain.freeyourgadget.gadgetbridge.R.string.pref_battery_polling_configuration),
+                    summary = getString(nodomain.freeyourgadget.gadgetbridge.R.string.pref_battery_polling_summary),
+                    iconRes = 0,
+                    children = listOf(
+                        PrefNode.Switch(
+                            key = nodomain.freeyourgadget.gadgetbridge.activities.devicesettings.DeviceSettingsPreferenceConst.PREF_BATTERY_POLLING_ENABLE,
+                            title = getString(nodomain.freeyourgadget.gadgetbridge.R.string.pref_battery_polling_enable),
+                            summary = null, iconRes = 0, default = true, dependency = null,
+                        ),
+                        PrefNode.Text(
+                            key = nodomain.freeyourgadget.gadgetbridge.activities.devicesettings.DeviceSettingsPreferenceConst.PREF_BATTERY_POLLING_INTERVAL,
+                            title = getString(nodomain.freeyourgadget.gadgetbridge.R.string.pref_battery_polling_interval),
+                            summary = null, iconRes = 0, default = "15", numeric = true, dependency = null,
+                        ),
+                    ),
+                ),
+            )
+        }
         return nodes
+    }
+
+    /**
+     * Runs a click-action preference ([PrefNode.Action]) natively: opens the dedicated editor
+     * activity it maps to (the same one the legacy settings screen launched), or, for command-style
+     * actions, fires the device's {@code onSendConfiguration} so nothing has to drop to the classic
+     * preference screen.
+     */
+    private fun onAction(key: String?, device: GBDevice) {
+        if (key == null) return
+        fun open(cls: Class<*>) = startActivity(
+            Intent(this, cls).putExtra(GBDevice.EXTRA_DEVICE, device),
+        )
+        when (key) {
+            "pref_huawei_offline_maps_manage" ->
+                open(nodomain.freeyourgadget.gadgetbridge.devices.huawei.ui.HuaweiMapManagementActivity::class.java)
+            "pref_music_management" ->
+                startActivity(nodomain.freeyourgadget.gadgetbridge.activities.ultimate.music.UltimateMusicActivity.intent(this, device))
+            "pref_contacts" ->
+                open(nodomain.freeyourgadget.gadgetbridge.activities.ConfigureContacts::class.java)
+            "pref_perform_heart_rate_settings" ->
+                open(nodomain.freeyourgadget.gadgetbridge.activities.heartratezones.HeartRateSettingsActivity::class.java)
+            "pref_upload_notifications_app_icon" ->
+                open(nodomain.freeyourgadget.gadgetbridge.activities.NotificationsAppIconUploadActivity::class.java)
+            "calendar_blacklist" ->
+                open(nodomain.freeyourgadget.gadgetbridge.activities.CalendarSelectionActivity::class.java)
+            "pref_huawei_stress_perform_calibrate" ->
+                open(nodomain.freeyourgadget.gadgetbridge.devices.huawei.ui.HuaweiStressCalibrationActivity::class.java)
+            // Command-style actions (send canned messages, debug request, …): fire the same signal
+            // the legacy screen's change-handler would, so the device support handles it.
+            else -> runCatching { GBApplication.deviceService(device).onSendConfiguration(key) }
+        }
     }
 
     private fun openClassic(device: GBDevice) {

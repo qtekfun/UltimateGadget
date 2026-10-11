@@ -64,6 +64,7 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
@@ -84,6 +85,7 @@ fun UltimateDeviceSettingsScreen(
     hasClassicFallback: Boolean,
     onBack: () -> Unit,
     onDelegate: (PrefNode.Delegated?) -> Unit,
+    onAction: (String?) -> Unit,
 ) {
     val palette = LocalUltimatePalette.current
 
@@ -145,6 +147,7 @@ fun UltimateDeviceSettingsScreen(
                     states = states,
                     onOpenSubScreen = { title, children -> stack.add(Level(title, children)) },
                     onDelegate = onDelegate,
+                    onAction = onAction,
                 )
             }
             if (stack.size == 1 && hasClassicFallback) {
@@ -170,6 +173,7 @@ private fun PrefRow(
     states: SnapshotStateMap<String, Any?>,
     onOpenSubScreen: (String, List<PrefNode>) -> Unit,
     onDelegate: (PrefNode.Delegated?) -> Unit,
+    onAction: (String?) -> Unit,
 ) {
     when (node) {
         is PrefNode.Category -> SectionHeader(node.title)
@@ -286,6 +290,45 @@ private fun PrefRow(
             )
         }
 
+        is PrefNode.TimePicker -> {
+            val context = LocalContext.current
+            val enabled = depEnabled(node.dependency, states, store)
+            val value = stringState(node.key, node.default, states, store)
+            SimpleRow(
+                title = node.title,
+                summary = if (value.isNotEmpty()) value else node.summary,
+                iconRes = node.iconRes,
+                enabled = enabled,
+                onClick = if (enabled) {
+                    {
+                        val parts = value.split(":")
+                        val h = parts.getOrNull(0)?.toIntOrNull()?.coerceIn(0, 23) ?: 0
+                        val m = parts.getOrNull(1)?.toIntOrNull()?.coerceIn(0, 59) ?: 0
+                        android.app.TimePickerDialog(
+                            context,
+                            { _, nh, nm ->
+                                val nv = String.format(java.util.Locale.ROOT, "%02d:%02d", nh, nm)
+                                states[node.key] = nv
+                                store.putString(node.key, nv)
+                            },
+                            h, m, android.text.format.DateFormat.is24HourFormat(context),
+                        ).show()
+                    }
+                } else null,
+            )
+        }
+
+        is PrefNode.Action -> {
+            val palette = LocalUltimatePalette.current
+            SimpleRow(
+                title = node.title,
+                summary = node.summary,
+                iconRes = node.iconRes,
+                onClick = { onAction(node.key) },
+                trailing = { Icon(Icons.Filled.ChevronRight, contentDescription = null, tint = palette.onSurfaceVariant) },
+            )
+        }
+
         is PrefNode.Delegated -> {
             val palette = LocalUltimatePalette.current
             SimpleRow(
@@ -309,6 +352,7 @@ private fun seedStates(nodes: List<PrefNode>, states: SnapshotStateMap<String, A
             is PrefNode.SingleChoice -> states[node.key] = store.getString(node.key, node.default)
             is PrefNode.Text -> states[node.key] = store.getString(node.key, node.default)
             is PrefNode.Slider -> states[node.key] = store.getInt(node.key, node.default)
+            is PrefNode.TimePicker -> states[node.key] = store.getString(node.key, node.default)
             is PrefNode.SubScreen -> seedStates(node.children, states, store)
             else -> {}
         }
