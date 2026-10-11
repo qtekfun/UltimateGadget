@@ -73,18 +73,19 @@ class UltimateHealthDetailActivity : AppCompatActivity() {
                     loading = loading,
                     onBack = { finish() },
                     onOpenWorkout = { row ->
+                        // Resolve the device that actually recorded this workout (not just the
+                        // active one), so a round from another or a disconnected watch still opens
+                        // with its own GPS track.
+                        val dev = deviceForSummary(this@UltimateHealthDetailActivity, row.deviceId)
                         if (row.isGolf) {
                             // Golf rounds open the scorecard; pass the device so the round's GPS
                             // track can be drawn on the course map below the card.
                             startActivity(
-                                UltimateGolfActivity.intent(
-                                    this@UltimateHealthDetailActivity, row.id,
-                                    activeDevice(this@UltimateHealthDetailActivity),
-                                ),
+                                UltimateGolfActivity.intent(this@UltimateHealthDetailActivity, row.id, dev),
                             )
                         } else {
-                            activeDevice(this@UltimateHealthDetailActivity)?.let { dev ->
-                                startActivity(UltimateWorkoutMapActivity.intent(this@UltimateHealthDetailActivity, row.id, dev))
+                            dev?.let {
+                                startActivity(UltimateWorkoutMapActivity.intent(this@UltimateHealthDetailActivity, row.id, it))
                             }
                         }
                     },
@@ -106,20 +107,48 @@ class UltimateHealthDetailActivity : AppCompatActivity() {
             return dm.devices.firstOrNull { it.isInitialized } ?: dm.devices.firstOrNull()
         }
 
+        /**
+         * The known [GBDevice] that recorded the workout with this DB device id (matched by MAC),
+         * even when it is not connected, falling back to [activeDevice] when it cannot be resolved.
+         */
+        fun deviceForSummary(context: Context, deviceId: Long): GBDevice? {
+            if (deviceId <= 0) return activeDevice(context)
+            val mac = runCatching {
+                GBApplication.acquireDB().use { db -> db.daoSession.deviceDao.load(deviceId)?.identifier }
+            }.getOrNull()
+            val dm = (context.applicationContext as GBApplication).deviceManager
+            return dm.devices.firstOrNull { it.address.equals(mac, ignoreCase = true) } ?: activeDevice(context)
+        }
+
         fun loadRecentWorkouts(context: Context, limit: Int): List<WorkoutRow> {
-            val device = activeDevice(context) ?: return emptyList()
             // Gadgetbridge applies its language override to the application context, not to
             // these plain AppCompatActivity screens, so resolve localized labels against it.
             val localizedContext = GBApplication.getContext() ?: context.applicationContext
             return runCatching {
                 GBApplication.acquireDB().use { db ->
                     val session = db.daoSession
-                    val dbDevice = DBHelper.findDevice(device, session) ?: return emptyList()
-                    session.baseActivitySummaryDao.queryBuilder()
-                        .where(BaseActivitySummaryDao.Properties.DeviceId.eq(dbDevice.id))
+                    // Every workout ever synced, from every device — these rows live in the DB for
+                    // good, independent of whether a watch is currently connected. Newest first.
+                    val all = session.baseActivitySummaryDao.queryBuilder()
                         .orderDesc(BaseActivitySummaryDao.Properties.StartTime)
-                        .limit(limit)
                         .list()
+                    // Merge across devices: keep a workout only when it does not overlap in time
+                    // with one already kept, so the same session synced from two watches (or a
+                    // phone + a watch) is not listed twice. Non-overlapping workouts from any
+                    // device are all kept.
+                    val kept = ArrayList<nodomain.freeyourgadget.gadgetbridge.entities.BaseActivitySummary>()
+                    for (s in all) {
+                        val start = s.startTime?.time ?: continue
+                        val end = s.endTime?.time ?: start
+                        val overlaps = kept.any { k ->
+                            val ks = k.startTime?.time ?: return@any false
+                            val ke = k.endTime?.time ?: ks
+                            start < ke && ks < end
+                        }
+                        if (!overlaps) kept += s
+                        if (kept.size >= limit) break
+                    }
+                    kept
                         .map { s ->
                             val start = s.startTime
                             val end = s.endTime
@@ -151,6 +180,7 @@ class UltimateHealthDetailActivity : AppCompatActivity() {
                                 whenLabel = start?.let { FMT.format(it) } ?: "",
                                 durationSeconds = dur,
                                 isGolf = isGolf,
+                                deviceId = s.deviceId ?: -1L,
                             )
                         }
                 }
@@ -175,4 +205,6 @@ data class WorkoutRow(
     val durationSeconds: Long,
     /** True when this workout is a golf round (opens the golf scorecard instead of the map). */
     val isGolf: Boolean = false,
+    /** DB id of the device that recorded this workout, to resolve its track/device when opened. */
+    val deviceId: Long = -1L,
 )
