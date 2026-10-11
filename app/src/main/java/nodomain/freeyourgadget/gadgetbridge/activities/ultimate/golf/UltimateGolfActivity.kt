@@ -19,8 +19,18 @@ package nodomain.freeyourgadget.gadgetbridge.activities.ultimate.golf
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.provider.Settings
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.border
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.delay
+import kotlin.math.roundToInt
+import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.theme.LocalUltimatePalette
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -451,26 +461,31 @@ private fun GolfScorecardCard(card: GolfScorecard) {
         Spacer(Modifier.height(4.dp))
         HorizontalDivider(color = scheme.outlineVariant)
 
-        card.holes.forEach { hole ->
-            ScoreRow(
-                cells = listOf(
-                    hole.number.toString(),
-                    hole.par.orDash(),
-                    hole.score.orDash(),
-                    hole.toPar.toParDash(),
-                    hole.putts.orDash(),
-                ),
-                color = scheme.onSurface,
-            )
+        val animate = rememberAnimationsEnabled()
+        val light = LocalUltimatePalette.current.isLight
+        card.holes.forEachIndexed { index, hole ->
+            HoleRow(hole, index, animate, light)
         }
 
         HorizontalDivider(color = scheme.outlineVariant)
         Spacer(Modifier.height(4.dp))
+        // Total strokes count up from 0 when the card appears.
+        val totalScore = card.totalScore
+        val shownTotal = if (totalScore != null) {
+            val counter = remember(totalScore, animate) { Animatable(if (animate) 0f else totalScore.toFloat()) }
+            LaunchedEffect(totalScore, animate) {
+                if (animate) {
+                    delay(GolfScoreStyle.staggerDelayMs(card.holes.size).toLong())
+                    counter.animateTo(totalScore.toFloat(), tween(700))
+                }
+            }
+            counter.value.roundToInt().toString()
+        } else "—"
         ScoreRow(
             cells = listOf(
                 "Total",
                 card.totalPar.orDash(),
-                card.totalScore.orDash(),
+                shownTotal,
                 card.totalToPar.toParDash(),
                 card.totalPutts.orDash(),
             ),
@@ -556,6 +571,76 @@ private fun ScoreRow(
                 textAlign = if (index == 0) TextAlign.Start else TextAlign.Center,
             )
         }
+    }
+}
+
+/** False when the system "remove animations" / animator scale 0 is set: then nothing animates. */
+@Composable
+private fun rememberAnimationsEnabled(): Boolean {
+    val resolver = LocalContext.current.contentResolver
+    return remember {
+        runCatching {
+            Settings.Global.getFloat(resolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) != 0f
+        }.getOrDefault(true)
+    }
+}
+
+/**
+ * One hole row: same columns as before, with the strokes in a box whose border colour follows the
+ * difference against par (see [GolfScoreStyle]), par in green, "-" when not played; the row fades
+ * and scales in staggered by hole.
+ */
+@Composable
+private fun HoleRow(hole: GolfHole, index: Int, animate: Boolean, light: Boolean) {
+    val scheme = MaterialTheme.colorScheme
+    val progress = remember { Animatable(if (animate) 0f else 1f) }
+    LaunchedEffect(animate) {
+        if (animate) {
+            delay(GolfScoreStyle.staggerDelayMs(index).toLong())
+            progress.animateTo(1f, tween(280))
+        } else progress.snapTo(1f)
+    }
+    val category = GolfScoreStyle.category(hole.score, hole.par)
+    val border = GolfScoreStyle.borderColor(category, light)
+    val played = category != ScoreCategory.UNPLAYED
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .padding(vertical = 3.dp)
+            .graphicsLayer {
+                val p = progress.value
+                alpha = p
+                scaleX = 0.9f + 0.1f * p
+                scaleY = 0.9f + 0.1f * p
+            },
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        val body = MaterialTheme.typography.bodyMedium
+        Text(hole.number.toString(), Modifier.weight(1.2f), style = body, color = scheme.onSurface)
+        Text(
+            hole.par.orDash(), Modifier.weight(1f), style = body, textAlign = TextAlign.Center,
+            color = if (hole.par != null && hole.par > 0) GolfScoreStyle.parColor(light) else scheme.onSurface,
+        )
+        Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
+            val shape = RoundedCornerShape(6.dp)
+            Text(
+                if (played) hole.score.orDash() else "-",
+                modifier = Modifier
+                    .then(
+                        if (border != null) Modifier.border(1.5.dp, border, shape)
+                        else if (played) Modifier.border(1.dp, scheme.outlineVariant, shape)
+                        else Modifier
+                    )
+                    .padding(horizontal = 9.dp, vertical = 2.dp),
+                style = body,
+                fontWeight = if (border != null) FontWeight.SemiBold else FontWeight.Normal,
+                color = scheme.onSurface,
+            )
+        }
+        Text(hole.toPar.toParDash(), Modifier.weight(1f), style = body,
+            textAlign = TextAlign.Center, color = scheme.onSurface)
+        Text(hole.putts.orDash(), Modifier.weight(1f), style = body,
+            textAlign = TextAlign.Center, color = scheme.onSurface)
     }
 }
 
