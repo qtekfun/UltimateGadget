@@ -81,3 +81,10 @@ acordada:
 - Documentado el formato de un mapa de campo y cómo llega al reloj.
 - Documentado cómo llegan al reloj las actualizaciones A-GNSS (origen, formato, caducidad, transferencia) y si se puede enviar un paquete desde un cliente propio.
 - Decisión A/B/C justificada con la evidencia.
+
+## 7. Backlog / ideas futuras
+
+Ítems anotados para abordar más adelante (sin fase asignada todavía):
+
+- **Actualización de firmware de los relojes Huawei.** Objetivo: poder descargar el firmware con la app sidecar de mapas (que sí tiene internet) y transferirlo al reloj desde UltimateGadget, sin Huawei Health ni HMS. Probablemente requiera ingeniería inversa del origen/formato de descarga y del protocolo de transferencia e instalación en el reloj. Analizar solo sobre el reloj y la cuenta propios, por interoperabilidad; parar y consultar si exige romper cifrado/autenticación de Huawei más allá de observar la sesión propia. No redistribuir binarios de firmware.
+- **Editor de watchfaces.** Editor propio en la UI nueva para crear/personalizar esferas (más allá de instalar/activar las que ya existen). Pendiente de definir alcance (elementos, fondos, complicaciones) y el formato de esfera del GT Runner 2.
