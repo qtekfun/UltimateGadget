@@ -226,7 +226,7 @@ private fun cardTitle(id: DashboardCardId) = when (id) {
 }
 
 private fun cardSubtitle(id: DashboardCardId) = when (id) {
-    DashboardCardId.READINESS -> "Recuperación estimada de hoy"
+    DashboardCardId.READINESS -> "Today's estimated recovery"
     DashboardCardId.STEPS -> "Daily steps, distance and goal"
     DashboardCardId.LAST_WORKOUT -> "Your most recent session"
     DashboardCardId.HEART -> "Current, resting and oxygen"

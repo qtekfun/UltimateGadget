@@ -142,8 +142,8 @@ private fun WelcomeScreen(onStart: () -> Unit) {
                 textAlign = TextAlign.Center,
             )
             Text(
-                "Tu reloj, tus datos. Sincroniza, visualiza y controla tu dispositivo sin nubes " +
-                    "ni cuentas de terceros.",
+                "Your watch, your data. Sync, view and control your device without clouds " +
+                    "or third-party accounts.",
                 style = MaterialTheme.typography.bodyLarge,
                 color = palette.onSurfaceVariant,
                 textAlign = TextAlign.Center,
@@ -153,18 +153,18 @@ private fun WelcomeScreen(onStart: () -> Unit) {
 
             FeatureRow(
                 icon = Icons.Filled.Lock,
-                title = "Privado por diseño",
-                summary = "Tus datos de salud y actividad se quedan en tu teléfono.",
+                title = "Private by design",
+                summary = "Your health and activity data stay on your phone.",
             )
             FeatureRow(
                 icon = Icons.Filled.CloudOff,
-                title = "Sin servicios en la nube",
-                summary = "Funciona en local; nada se envía a servidores de terceros.",
+                title = "No cloud services",
+                summary = "Works locally; nothing is sent to third-party servers.",
             )
             FeatureRow(
                 icon = Icons.Filled.Watch,
-                title = "Hecho para tu reloj",
-                summary = "Golf, mapas y sincronización pensados para Huawei y más.",
+                title = "Made for your watch",
+                summary = "Golf, maps and sync designed for Huawei and more.",
             )
 
             Spacer(Modifier.height(8.dp))

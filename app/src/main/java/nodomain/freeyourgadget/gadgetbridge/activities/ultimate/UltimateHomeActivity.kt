@@ -77,8 +77,8 @@ import java.util.Calendar
 
 /**
  * Host for the new UltimateGadget UI. Bottom nav with two sections:
- *  - "Inicio": placeholder for the health dashboard (built separately). See [HomeDashboardSlot].
- *  - "Dispositivos": the device list (this file).
+ *  - "Home": placeholder for the health dashboard (built separately). See [HomeDashboardSlot].
+ *  - "Devices": the device list (this file).
  *
  * To plug the dashboard in, replace the body of [HomeDashboardSlot] with the dashboard composable;
  * the theme (UltimateTheme / LocalUltimatePalette) and this host are already set up for it.
@@ -150,14 +150,14 @@ class UltimateHomeActivity : AppCompatActivity() {
                                 selected = tab == 0,
                                 onClick = { tab = 0 },
                                 icon = { Icon(Icons.Filled.Favorite, contentDescription = null) },
-                                label = { Text("Inicio") },
+                                label = { Text("Home") },
                                 colors = itemColors,
                             )
                             NavigationBarItem(
                                 selected = tab == 1,
                                 onClick = { tab = 1 },
                                 icon = { Icon(Icons.Filled.Watch, contentDescription = null) },
-                                label = { Text("Dispositivos") },
+                                label = { Text("Devices") },
                                 colors = itemColors,
                             )
                         }

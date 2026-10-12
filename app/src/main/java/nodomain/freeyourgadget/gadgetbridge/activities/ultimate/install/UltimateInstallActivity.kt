@@ -451,19 +451,19 @@ private fun InstallScreen(
                 OutlinedTextField(
                     value = ui.trackName,
                     onValueChange = { ui.trackName = it },
-                    label = { Text("Nombre de la ruta") },
+                    label = { Text("Route name") },
                     singleLine = true,
                     isError = ui.trackName.isBlank(),
                     modifier = Modifier.fillMaxWidth(),
                 )
                 if (ui.supportsTbt) {
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        Text("Navegación giro a giro", Modifier.weight(1f), color = palette.onSurface)
+                        Text("Turn-by-turn navigation", Modifier.weight(1f), color = palette.onSurface)
                         Switch(checked = ui.navEnabled, onCheckedChange = { ui.navEnabled = it })
                     }
                     if (ui.navEnabled) {
                         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                            Text("Navegación en línea recta", Modifier.weight(1f), color = palette.onSurface)
+                            Text("Straight-line navigation", Modifier.weight(1f), color = palette.onSurface)
                             Switch(checked = ui.straightNavEnabled, onCheckedChange = { ui.straightNavEnabled = it })
                         }
                     }
@@ -507,7 +507,7 @@ private fun InstallScreen(
             if (ui.installEnabled) {
                 Button(onClick = onInstall, modifier = Modifier.fillMaxWidth()) {
                     Icon(Icons.Filled.Download, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Text("  Instalar")
+                    Text("  Install")
                 }
             }
             if (ui.closeEnabled) {

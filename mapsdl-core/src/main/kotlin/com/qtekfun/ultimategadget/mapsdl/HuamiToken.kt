@@ -326,7 +326,7 @@ object HuamiToken {
             setRequestProperty("user-agent", USER_AGENT)
         }
         try {
-            if (conn.responseCode !in 200..299) throw HuamiException("Descarga A-GPS falló (HTTP ${conn.responseCode}).")
+            if (conn.responseCode !in 200..299) throw HuamiException("A-GPS download failed (HTTP ${conn.responseCode}).")
             return conn.inputStream.readBytes()
         } finally { conn.disconnect() }
     }
@@ -355,9 +355,9 @@ object HuamiToken {
     /** Assemble the UIHH A-GNSS container from the downloaded cep_7days.zip + lle_1week.zip. */
     private fun buildGpsUihh(files: Map<String, ByteArray>): ByteArray {
         val cepZip = files.entries.firstOrNull { it.key.contains("cep_7days") && it.key.endsWith(".zip") }?.value
-            ?: throw HuamiException("La cuenta no devolvió el A-GPS (cep_7days.zip). ¿El reloj tiene GPS y A-GPS activado?")
+            ?: throw HuamiException("The account returned no A-GPS (cep_7days.zip). Does the watch have GPS and A-GPS enabled?")
         val lleZip = files.entries.firstOrNull { it.key.contains("lle_1week") && it.key.endsWith(".zip") }?.value
-            ?: throw HuamiException("La cuenta no devolvió el A-GPS (lle_1week.zip).")
+            ?: throw HuamiException("The account returned no A-GPS (lle_1week.zip).")
         val cep = readZipEntries(cepZip)
         val lle = readZipEntries(lleZip)
         // file name -> UIHH file-type id (same mapping huami-token uses).
@@ -369,7 +369,7 @@ object HuamiToken {
         val content = java.io.ByteArrayOutputStream()
         for ((fname, type) in spec) {
             val fc = (if (type >= 0x86) lle[fname] else cep[fname])
-                ?: throw HuamiException("Falta $fname en el paquete A-GPS")
+                ?: throw HuamiException("$fname is missing from the A-GPS package")
             content.write(byteArrayOf(0x01, type.toByte()))
             content.write(le32(fc.size.toLong()))
             content.write(le32(crc32(fc)))

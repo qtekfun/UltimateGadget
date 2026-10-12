@@ -136,7 +136,7 @@ class UltimateDeviceActivity : AppCompatActivity() {
             // Phone-side countdown timer (the watch has no timer protocol); always available.
             options += DeviceOptionUi("timers", "Timers", "Countdown on the phone", section = sWatch)
             if (cap { coordinator.supportsWatchfaceManagement(device) }) {
-                options += DeviceOptionUi("watchfaces", "Esferas", "View, activate and delete watchfaces", section = sWatch)
+                options += DeviceOptionUi("watchfaces", "Watchfaces", "View, activate and delete watchfaces", section = sWatch)
             }
             if (cap { coordinator.supportsMusicInfo(device) }) {
                 options += DeviceOptionUi("music", "Music", "View, upload and delete watch music", section = sWatch)

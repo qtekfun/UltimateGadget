@@ -118,7 +118,7 @@ fun UltimateDeviceSettingsScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = { if (stack.size > 1) stack.removeAt(stack.lastIndex) else onBack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -154,8 +154,8 @@ fun UltimateDeviceSettingsScreen(
                 item {
                     Spacer(Modifier.height(4.dp))
                     SimpleRow(
-                        title = "Ajustes clásicos (avanzado)",
-                        summary = "Batería, desarrollador, autenticación y otros ajustes aún no migrados",
+                        title = "Classic settings (advanced)",
+                        summary = "Battery, developer, authentication and other settings not yet migrated",
                         iconRes = 0,
                         trailing = { Icon(Icons.Filled.OpenInNew, contentDescription = null, tint = palette.onSurfaceVariant) },
                         onClick = { onDelegate(null) },
@@ -333,7 +333,7 @@ private fun PrefRow(
             val palette = LocalUltimatePalette.current
             SimpleRow(
                 title = node.title,
-                summary = node.summary ?: "Abrir en los ajustes clásicos",
+                summary = node.summary ?: "Open in classic settings",
                 iconRes = node.iconRes,
                 onClick = { onDelegate(node) },
                 trailing = { Icon(Icons.Filled.OpenInNew, contentDescription = null, tint = palette.onSurfaceVariant) },
@@ -505,7 +505,7 @@ private fun ChoiceDialog(
             }
         },
         confirmButton = {},
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
     )
 }
 
@@ -533,8 +533,8 @@ private fun TextDialog(
                 ),
             )
         },
-        confirmButton = { TextButton(onClick = { onConfirm(text) }) { Text("Aceptar") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } },
+        confirmButton = { TextButton(onClick = { onConfirm(text) }) { Text("OK") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
     )
 }
 
@@ -543,7 +543,7 @@ private fun EmptyNotice() {
     val palette = LocalUltimatePalette.current
     Column(Modifier.fillMaxWidth().padding(top = 40.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
-            "No hay ajustes que mostrar para este dispositivo.",
+            "There are no settings to show for this device.",
             style = MaterialTheme.typography.bodyMedium,
             color = palette.onSurfaceVariant,
         )

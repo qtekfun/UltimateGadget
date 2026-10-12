@@ -264,7 +264,7 @@ class PerformanceRepository(private val app: Application) {
                 return Vo2MaxData(
                     value = vdot,
                     method = Vo2Method.RUNNING_VDOT,
-                    detail = "VDOT de carrera (%.1f km en %.0f min)".format(run.distanceMeters / 1000.0, t),
+                    detail = "Run VDOT (%.1f km in %.0f min)".format(run.distanceMeters / 1000.0, t),
                 )
             }
         }
@@ -274,7 +274,7 @@ class PerformanceRepository(private val app: Application) {
                 return Vo2MaxData(
                     value = value,
                     method = Vo2Method.HR_RATIO,
-                    detail = "Ratio FC (FCmáx $hrMax / FCreposo $restingHr)",
+                    detail = "HR ratio (HRmax $hrMax / HRrest $restingHr)",
                 )
             }
         }

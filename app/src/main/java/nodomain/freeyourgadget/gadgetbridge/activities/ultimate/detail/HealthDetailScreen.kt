@@ -304,6 +304,6 @@ private fun titleFor(card: DashboardCardId) = when (card) {
     DashboardCardId.STEPS -> "Steps and activity"
     DashboardCardId.HEART -> "Heart rate and SpO₂"
     DashboardCardId.SLEEP_STRESS -> "Sleep and stress"
-    DashboardCardId.LAST_WORKOUT -> "Entrenos"
+    DashboardCardId.LAST_WORKOUT -> "Workouts"
     DashboardCardId.READINESS -> "Readiness"
 }

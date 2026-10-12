@@ -360,7 +360,7 @@ private fun TimezonePickerDialog(
                     value = query,
                     onValueChange = { query = it },
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Buscar") },
+                    label = { Text("Search") },
                     singleLine = true,
                 )
                 Spacer(Modifier.height(8.dp))

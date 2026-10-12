@@ -177,7 +177,7 @@ private fun OptionRow(opt: DeviceOptionUi, onClick: () -> Unit) {
 @Preview(showBackground = true, backgroundColor = 0xFF0F1115L)
 @Composable
 private fun DeviceScreenPreview() {
-    val d = DeviceCardUi("A", "HUAWEI WATCH GT Runner 2", "Huawei", "Conectado", true, false, 82, "GT Runner 2", R.drawable.ic_device_default, 0)
+    val d = DeviceCardUi("A", "HUAWEI WATCH GT Runner 2", "Huawei", "Connected", true, false, 82, "GT Runner 2", R.drawable.ic_device_default, 0)
     val opts = listOf(
         DeviceOptionUi("disconnect", "Desconectar", "Drop the connection"),
         DeviceOptionUi("settings", "Device settings", "Notifications, alarms, displays…"),

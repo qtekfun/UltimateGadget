@@ -117,7 +117,7 @@ private fun bar(title: String, onBack: (() -> Unit)?, actions: @Composable () ->
     TopAppBar(
         title = { Text(title, fontWeight = FontWeight.Bold) },
         navigationIcon = {
-            if (onBack != null) TextButton(onClick = onBack) { Text("‹  Atrás") }
+            if (onBack != null) TextButton(onClick = onBack) { Text("‹  Back") }
         },
         actions = { actions() },
         colors = TopAppBarDefaults.topAppBarColors(
@@ -153,8 +153,8 @@ private fun FolderCard(folderLabel: String, onPick: () -> Unit) {
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             Column(Modifier.weight(1f)) {
-                Text("Carpeta de destino", color = Scheme.onSurface, fontWeight = FontWeight.SemiBold)
-                Hint(if (folderLabel.isNotBlank()) folderLabel else "Sin elegir — las descargas la necesitan")
+                Text("Destination folder", color = Scheme.onSurface, fontWeight = FontWeight.SemiBold)
+                Hint(if (folderLabel.isNotBlank()) folderLabel else "Not chosen — downloads need it")
             }
             OutlinedButton(onClick = onPick) { Text(if (folderLabel.isNotBlank()) "Cambiar" else "Elegir") }
         }
@@ -174,9 +174,9 @@ private fun writeInto(context: Context, folderUri: Uri, subdir: String?, name: S
     val root = DocumentFile.fromTreeUri(context, folderUri) ?: throw RuntimeException("carpeta no accesible")
     val dir = if (subdir == null) root
     else root.findFile(subdir)?.takeIf { it.isDirectory } ?: root.createDirectory(subdir)
-        ?: throw RuntimeException("no se pudo crear la carpeta $subdir")
+        ?: throw RuntimeException("could not create the folder $subdir")
     dir.findFile(name)?.delete()
-    val file = dir.createFile("application/octet-stream", name) ?: throw RuntimeException("no se pudo crear el fichero")
+    val file = dir.createFile("application/octet-stream", name) ?: throw RuntimeException("could not create the file")
     context.contentResolver.openOutputStream(file.uri)?.use { it.write(bytes) } ?: throw RuntimeException("no se pudo escribir")
 }
 
@@ -187,20 +187,20 @@ private fun writeInto(context: Context, folderUri: Uri, subdir: String?, name: S
 private fun HomeScreen(folderLabel: String, onPick: () -> Unit, onOpen: (String) -> Unit, onQuit: () -> Unit) {
     Scaffold(
         containerColor = Scheme.background,
-        topBar = { bar("UltimateGadget", onBack = null, actions = { TextButton(onClick = onQuit) { Text("Salir") } }) },
+        topBar = { bar("UltimateGadget", onBack = null, actions = { TextButton(onClick = onQuit) { Text("Exit") } }) },
     ) { inner ->
         Column(
             Modifier.padding(inner).fillMaxSize().padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Hint("Utilidades con conexión para UltimateGadget: descargan datos a la carpeta y luego se usan desde la app o el reloj.")
+            Hint("Online utilities for UltimateGadget: they download data to the folder, then it is used from the app or the watch.")
             FolderCard(folderLabel, onPick)
             Spacer(Modifier.height(4.dp))
             SectionLabel("HERRAMIENTAS")
-            ToolTile("🗺️", "Mapas offline", "Mapas base (.pmtiles) para el reloj") { onOpen("maps") }
-            ToolTile("⛳", "Campos de golf", "Mapas de campos para enviar al reloj") { onOpen("golf") }
-            ToolTile("🛰️", "A-GNSS (GPS)", "Efemérides para que el reloj fije antes") { onOpen("agnss") }
-            ToolTile("🔑", "Auth key (Amazfit/Zepp/Xiaomi)", "Clave Bluetooth sin la app oficial") { onOpen("authkey") }
+            ToolTile("🗺️", "Offline maps", "Base maps (.pmtiles) for the watch") { onOpen("maps") }
+            ToolTile("⛳", "Golf courses", "Mapas de campos para enviar al reloj") { onOpen("golf") }
+            ToolTile("🛰️", "A-GNSS (GPS)", "Ephemeris so the watch fixes faster") { onOpen("agnss") }
+            ToolTile("🔑", "Auth key (Amazfit/Zepp/Xiaomi)", "Bluetooth key without the official app") { onOpen("authkey") }
         }
     }
 }
@@ -245,12 +245,12 @@ private fun MapsScreen(folder: Uri?, onPick: () -> Unit, onBack: () -> Unit) {
     }
     androidx.compose.runtime.LaunchedEffect(folder) { refreshInstalled() }
 
-    Scaffold(containerColor = Scheme.background, topBar = { bar("Mapas offline", onBack) }) { inner ->
+    Scaffold(containerColor = Scheme.background, topBar = { bar("Offline maps", onBack) }) { inner ->
         Column(
             Modifier.padding(inner).fillMaxSize().padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Hint("Descarga mapas base (.pmtiles) y luego impórtalos en UltimateGadget.")
+            Hint("Download base maps (.pmtiles), then import them in UltimateGadget.")
             FolderCard(folderName(context, folder), onPick)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                 Button(onClick = {
@@ -258,10 +258,10 @@ private fun MapsScreen(folder: Uri?, onPick: () -> Unit, onBack: () -> Unit) {
                     scope.launch {
                         runCatching { withContext(Dispatchers.IO) { Downloader.fetchCatalog() } }
                             .onSuccess { regions = it; status = "${it.size} regiones disponibles" }
-                            .onFailure { status = "Error al cargar el catálogo: ${it.message}"; error = true }
+                            .onFailure { status = "Error loading the catalog: ${it.message}"; error = true }
                         loading = false
                     }
-                }) { Text("Cargar catálogo") }
+                }) { Text("Load catalog") }
                 if (loading) CircularProgressIndicator(Modifier.padding(start = 4.dp))
             }
             StatusLine(status, error)
@@ -301,7 +301,7 @@ private fun MapsScreen(folder: Uri?, onPick: () -> Unit, onBack: () -> Unit) {
                                     refreshInstalled()
                                 }
                             },
-                        ) { Text(if (folder == null) "Elige carpeta" else "Descargar") }
+                        ) { Text(if (folder == null) "Choose folder" else "Download") }
                     }
                 }
             }
@@ -354,18 +354,18 @@ private fun AgnssScreen(folder: Uri?, onPick: () -> Unit, onBack: () -> Unit) {
                 .verticalScroll(androidx.compose.foundation.rememberScrollState()).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Hint("Datos de satélites para que el reloj fije el GPS en segundos. Elige la sección de tu reloj.")
+            Hint("Satellite data so the watch fixes GPS in seconds. Choose your watch's section.")
             FolderCard(folderName(context, folder), onPick)
 
             // --- Huawei ---
             SectionLabel("HUAWEI (GT RUNNER 2, GT…)")
-            Hint("En relojes Huawei esto es automático: hazlo desde UltimateGadget (dispositivo → Actualizar GPS). Este botón es un respaldo manual: guarda 'agnss/ephemeris.zip'.")
+            Hint("On Huawei watches this is automatic: do it from UltimateGadget (device → Update GPS). This button is a manual fallback: it saves 'agnss/ephemeris.zip'.")
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                 Button(
                     enabled = folder != null && !hwLoading,
                     onClick = {
                         val f = folder ?: return@Button
-                        hwLoading = true; hwStatus = "Descargando efemérides…"; hwError = false
+                        hwLoading = true; hwStatus = "Downloading ephemeris…"; hwError = false
                         scope.launch {
                             runCatching {
                                 withContext(Dispatchers.IO) {
@@ -381,21 +381,21 @@ private fun AgnssScreen(folder: Uri?, onPick: () -> Unit, onBack: () -> Unit) {
                             hwLoading = false
                         }
                     },
-                ) { Text(if (folder == null) "Elige carpeta" else "Generar (Huawei)") }
+                ) { Text(if (folder == null) "Choose folder" else "Generar (Huawei)") }
                 if (hwLoading) CircularProgressIndicator(Modifier.padding(start = 4.dp))
             }
             StatusLine(hwStatus, hwError)
 
             // --- Amazfit / Zepp OS ---
             SectionLabel("AMAZFIT / ZEPP OS")
-            Hint("Inicia sesión en tu cuenta Zepp/Amazfit para bajar el A-GPS (EPO) de tu cuenta y generar el paquete del reloj. El email y la contraseña solo se usan para el login y no se guardan. Luego instálalo en UltimateGadget (dispositivo → Actualizar GPS → elige el fichero).")
+            Hint("Sign in to your Zepp/Amazfit account to download the A-GPS (EPO) from your account and generate the watch package. The email and password are used only for the login and not stored. Then install it in UltimateGadget (device → Update GPS → choose the file).")
             androidx.compose.material3.OutlinedTextField(
-                value = email, onValueChange = { email = it }, label = { Text("Email de la cuenta Zepp/Amazfit") },
+                value = email, onValueChange = { email = it }, label = { Text("Zepp/Amazfit account email") },
                 singleLine = true, modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Email),
             )
             androidx.compose.material3.OutlinedTextField(
-                value = password, onValueChange = { password = it }, label = { Text("Contraseña") },
+                value = password, onValueChange = { password = it }, label = { Text("Password") },
                 singleLine = true, modifier = Modifier.fillMaxWidth(),
                 visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
                 keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Password),
@@ -405,7 +405,7 @@ private fun AgnssScreen(folder: Uri?, onPick: () -> Unit, onBack: () -> Unit) {
                     enabled = folder != null && !azLoading && email.isNotBlank() && password.isNotBlank(),
                     onClick = {
                         val f = folder ?: return@Button
-                        azLoading = true; azStatus = "Iniciando sesión y descargando A-GPS…"; azError = false
+                        azLoading = true; azStatus = "Signing in and downloading A-GPS…"; azError = false
                         val e = email.trim(); val p = password
                         scope.launch {
                             runCatching {
@@ -414,13 +414,13 @@ private fun AgnssScreen(folder: Uri?, onPick: () -> Unit, onBack: () -> Unit) {
                                     writeInto(context, f, "agnss", "amazfit-agps-uihh.bin", uihh); uihh.size
                                 }
                             }.onSuccess { sz ->
-                                azStatus = "Generado: amazfit-agps-uihh.bin (${fmt(sz.toLong())}). Instálalo en UltimateGadget."
+                                azStatus = "Generated: amazfit-agps-uihh.bin (${fmt(sz.toLong())}). Install it in UltimateGadget."
                                 azError = false
                             }.onFailure { azStatus = it.message ?: "Error"; azError = true }
                             azLoading = false
                         }
                     },
-                ) { Text(if (folder == null) "Elige carpeta" else "Generar (Amazfit)") }
+                ) { Text(if (folder == null) "Choose folder" else "Generate (Amazfit)") }
                 if (azLoading) CircularProgressIndicator(Modifier.padding(start = 4.dp))
             }
             StatusLine(azStatus, azError)
@@ -465,8 +465,8 @@ private fun GolfScreen(folder: Uri?, onPick: () -> Unit, onBack: () -> Unit) {
 
     val title = when (level) {
         "cities" -> country?.name ?: "Ciudades"
-        "courses" -> city?.name ?: "Campos"
-        else -> "Campos de golf"
+        "courses" -> city?.name ?: "Courses"
+        else -> "Golf courses"
     }
     val back: () -> Unit = {
         when (level) {
@@ -482,7 +482,7 @@ private fun GolfScreen(folder: Uri?, onPick: () -> Unit, onBack: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             if (level == "countries") {
-                Hint("Explora y descarga campos (datos anónimos de Huawei). Se guardan como .bin en 'golf/', listos para enviar al reloj desde UltimateGadget.")
+                Hint("Browse and download courses (anonymous Huawei data). They are saved as .bin in 'golf/', ready to send to the watch from UltimateGadget.")
                 FolderCard(folderName(context, folder), onPick)
             }
             if (loading) CircularProgressIndicator(Modifier.padding(4.dp))
@@ -518,7 +518,7 @@ private fun GolfScreen(folder: Uri?, onPick: () -> Unit, onBack: () -> Unit) {
                                     load {
                                         val saved = withContext(Dispatchers.IO) {
                                             val map = GolfApi.courseMap(co.id, country = country?.code ?: "ES")
-                                                ?: throw RuntimeException("sin datos de mapa")
+                                                ?: throw RuntimeException("no map data")
                                             val (_, bytes) = GolfApi.downloadMapBin(map.url)
                                             val fname = golfFileName(countryName, co.name, co.id, co.version)
                                             writeInto(context, folder!!, "golf", fname, bytes)
@@ -527,7 +527,7 @@ private fun GolfScreen(folder: Uri?, onPick: () -> Unit, onBack: () -> Unit) {
                                         status = "Guardado: $saved"
                                     }
                                 },
-                            ) { Text(if (folder == null) "Elige carpeta" else "Descargar") }
+                            ) { Text(if (folder == null) "Choose folder" else "Download") }
                         }
                     }
                 }
@@ -589,7 +589,7 @@ private fun AuthKeyScreen(onBack: () -> Unit) {
 
     fun copy(key: String, set: (String) -> Unit) {
         clipboard.setText(androidx.compose.ui.text.AnnotatedString(key))
-        set("Clave copiada")
+        set("Key copied")
     }
 
     Scaffold(containerColor = Scheme.background, topBar = { bar("Auth key", onBack) }) { inner ->
@@ -599,16 +599,16 @@ private fun AuthKeyScreen(onBack: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Hint(
-                "Obtén la clave Bluetooth de tu reloj/banda desde los servidores del fabricante, para emparejarlo " +
-                    "en UltimateGadget sin la app oficial (mantén pulsado el dispositivo al descubrir → Auth key). " +
-                    "El email y la contraseña se usan solo para el login (HTTPS) y no se guardan.",
+                "Get the Bluetooth key of your watch/band from the vendor's servers, to pair it " +
+                    "in UltimateGadget without the official app (long-press the device during discovery → Auth key). " +
+                    "The email and password are used only for the login (HTTPS) and not stored.",
             )
 
             // --- Amazfit / Zepp ---
             SectionLabel("AMAZFIT / ZEPP (Y MI BAND VÍA ZEPP)")
             androidx.compose.material3.OutlinedTextField(
                 value = email, onValueChange = { email = it },
-                label = { Text("Email de la cuenta Zepp/Amazfit") }, singleLine = true,
+                label = { Text("Zepp/Amazfit account email") }, singleLine = true,
                 keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
                     keyboardType = androidx.compose.ui.text.input.KeyboardType.Email,
                 ),
@@ -616,14 +616,14 @@ private fun AuthKeyScreen(onBack: () -> Unit) {
             )
             androidx.compose.material3.OutlinedTextField(
                 value = password, onValueChange = { password = it },
-                label = { Text("Contraseña") }, singleLine = true,
+                label = { Text("Password") }, singleLine = true,
                 visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
                 keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
                     keyboardType = androidx.compose.ui.text.input.KeyboardType.Password,
                 ),
                 modifier = Modifier.fillMaxWidth(),
             )
-            Hint("Región de la cuenta (si no aparecen dispositivos, prueba otra):")
+            Hint("Account region (if no devices appear, try another):")
             androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 HuamiRegion.entries.forEach { r ->
                     androidx.compose.material3.FilterChip(selected = region == r, onClick = { region = r }, label = { Text(r.label) })
@@ -642,7 +642,7 @@ private fun AuthKeyScreen(onBack: () -> Unit) {
                             loading = false
                         }
                     },
-                ) { Text("Obtener claves (Zepp)") }
+                ) { Text("Get keys (Zepp)") }
                 if (loading) CircularProgressIndicator(Modifier.padding(start = 4.dp))
             }
             StatusLine(status, error)
@@ -654,10 +654,10 @@ private fun AuthKeyScreen(onBack: () -> Unit) {
 
             // --- Xiaomi (Mi Fitness) ---
             SectionLabel("XIAOMI (MI FITNESS: MI BAND 8/9, RELOJES XIAOMI)")
-            Hint("Para los dispositivos que emparejaste con la app Mi Fitness / Xiaomi Wear. El 2FA y el captcha no están soportados.")
+            Hint("For devices you paired with the Mi Fitness / Xiaomi Wear app. 2FA and captcha are not supported.")
             androidx.compose.material3.OutlinedTextField(
                 value = xEmail, onValueChange = { xEmail = it },
-                label = { Text("Email de la cuenta Xiaomi") }, singleLine = true,
+                label = { Text("Xiaomi account email") }, singleLine = true,
                 keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
                     keyboardType = androidx.compose.ui.text.input.KeyboardType.Email,
                 ),
@@ -665,7 +665,7 @@ private fun AuthKeyScreen(onBack: () -> Unit) {
             )
             androidx.compose.material3.OutlinedTextField(
                 value = xPassword, onValueChange = { xPassword = it },
-                label = { Text("Contraseña") }, singleLine = true,
+                label = { Text("Password") }, singleLine = true,
                 visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
                 keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
                     keyboardType = androidx.compose.ui.text.input.KeyboardType.Password,
@@ -685,7 +685,7 @@ private fun AuthKeyScreen(onBack: () -> Unit) {
                             xLoading = false
                         }
                     },
-                ) { Text("Obtener claves (Xiaomi)") }
+                ) { Text("Get keys (Xiaomi)") }
                 if (xLoading) CircularProgressIndicator(Modifier.padding(start = 4.dp))
             }
             StatusLine(xStatus, xError)

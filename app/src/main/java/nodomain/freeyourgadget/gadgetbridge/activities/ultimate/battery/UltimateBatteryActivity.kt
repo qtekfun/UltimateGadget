@@ -93,7 +93,7 @@ class UltimateBatteryActivity : AppCompatActivity() {
                 }
 
                 BatteryScreen(
-                    title = (device.aliasOrName ?: "").ifBlank { "Batería" },
+                    title = (device.aliasOrName ?: "").ifBlank { "Battery" },
                     rangeDays = rangeDays,
                     onRange = { rangeDays = it },
                     samples = samples,
@@ -137,7 +137,7 @@ private fun BatteryScreen(
                 title = { Text(title, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -167,15 +167,15 @@ private fun BatteryScreen(
                     Modifier.fillMaxWidth().height(240.dp).clip(RoundedCornerShape(16.dp))
                         .background(palette.surfaceContainer),
                     contentAlignment = Alignment.Center,
-                ) { Text("Sin datos de batería en este periodo", color = palette.onSurfaceVariant) }
+                ) { Text("No battery data in this period", color = palette.onSurfaceVariant) }
                 else -> {
                     val last = list.last().value.toInt()
                     val min = list.minOf { it.value }.toInt()
                     val max = list.maxOf { it.value }.toInt()
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         StatCard("Actual", "$last%", Modifier.weight(1f))
-                        StatCard("Mínimo", "$min%", Modifier.weight(1f))
-                        StatCard("Máximo", "$max%", Modifier.weight(1f))
+                        StatCard("Minimum", "$min%", Modifier.weight(1f))
+                        StatCard("Maximum", "$max%", Modifier.weight(1f))
                     }
                     BatteryChartCard(list)
                 }
@@ -204,7 +204,7 @@ private fun BatteryChartCard(samples: List<BatteryMetric.Sample>) {
         Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(palette.surfaceContainer).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Text("Nivel de batería (%)", style = MaterialTheme.typography.labelLarge, color = palette.onSurfaceVariant)
+        Text("Battery level (%)", style = MaterialTheme.typography.labelLarge, color = palette.onSurfaceVariant)
         val line = palette.primary
         val grid = palette.outlineVariant
         Canvas(Modifier.fillMaxWidth().height(200.dp)) {

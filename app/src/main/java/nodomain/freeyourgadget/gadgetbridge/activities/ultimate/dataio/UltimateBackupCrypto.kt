@@ -64,7 +64,7 @@ object UltimateBackupCrypto {
 
     /** Thrown when decryption fails the GCM auth check: wrong password or corrupted/altered file. */
     class WrongPasswordException(cause: Throwable?) :
-        IOException("Contraseña incorrecta o fichero corrupto", cause)
+        IOException("Wrong password or corrupt file", cause)
 
     private fun deriveKey(password: CharArray, salt: ByteArray): SecretKeySpec {
         val factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
@@ -119,11 +119,11 @@ object UltimateBackupCrypto {
         val magic = ByteArray(4)
         din.readFully(magic)
         if (!magic.contentEquals(MAGIC)) {
-            throw IOException("Este fichero no es una copia de UltimateGadget (.ugbak)")
+            throw IOException("This file is not an UltimateGadget backup (.ugbak)")
         }
         val version = din.readUnsignedByte()
         if (version != VERSION) {
-            throw IOException("Versión de copia no soportada: $version")
+            throw IOException("Unsupported backup version: $version")
         }
         din.readUnsignedByte() // reserved
         val salt = ByteArray(SALT_LEN).also { din.readFully(it) }

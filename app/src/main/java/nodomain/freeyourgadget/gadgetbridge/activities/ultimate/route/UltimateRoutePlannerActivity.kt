@@ -157,7 +157,7 @@ class UltimateRoutePlannerActivity : AppCompatActivity() {
                                 .padding(horizontal = 14.dp, vertical = 10.dp),
                         ) {
                             Text(
-                                if (count == 0) "Toca el mapa para añadir puntos"
+                                if (count == 0) "Tap the map to add points"
                                 else "$count puntos · ${"%.2f".format(distanceKm)} km",
                                 color = palette.onSurface,
                                 style = MaterialTheme.typography.titleMedium,
@@ -170,7 +170,7 @@ class UltimateRoutePlannerActivity : AppCompatActivity() {
                             PillButton("Limpiar", Icons.Filled.Clear, palette.surfaceHigh, palette.onSurface, enabled = count > 0) {
                                 waypoints.clear(); pushMap()
                             }
-                            PillButton("Enviar", Icons.Filled.Send, palette.primary, palette.onPrimary, enabled = count >= 2) {
+                            PillButton("Send", Icons.Filled.Send, palette.primary, palette.onPrimary, enabled = count >= 2) {
                                 showName = true
                             }
                         }
@@ -180,10 +180,10 @@ class UltimateRoutePlannerActivity : AppCompatActivity() {
                         AlertDialog(
                             onDismissRequest = { showName = false },
                             confirmButton = {
-                                TextButton(onClick = { showName = false; sendRoute(routeName) }) { Text("Enviar") }
+                                TextButton(onClick = { showName = false; sendRoute(routeName) }) { Text("Send") }
                             },
-                            dismissButton = { TextButton(onClick = { showName = false }) { Text("Cancelar") } },
-                            title = { Text("Nombre de la ruta") },
+                            dismissButton = { TextButton(onClick = { showName = false }) { Text("Cancel") } },
+                            title = { Text("Route name") },
                             text = {
                                 OutlinedTextField(value = routeName, onValueChange = { routeName = it }, singleLine = true)
                             },
@@ -215,7 +215,7 @@ class UltimateRoutePlannerActivity : AppCompatActivity() {
     private fun sendRoute(name: String) {
         val device = plannerDevice()
         if (device == null) {
-            Toast.makeText(this, "Empareja un reloj compatible primero", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Pair a compatible watch first", Toast.LENGTH_SHORT).show()
             return
         }
         try {
@@ -234,7 +234,7 @@ class UltimateRoutePlannerActivity : AppCompatActivity() {
             )
             finish()
         } catch (e: Exception) {
-            Toast.makeText(this, "No se pudo preparar la ruta: ${e.message}", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "Could not prepare the route: ${e.message}", Toast.LENGTH_LONG).show()
         }
     }
 

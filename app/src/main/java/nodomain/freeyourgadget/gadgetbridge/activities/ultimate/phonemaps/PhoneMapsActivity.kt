@@ -219,7 +219,7 @@ private fun PhoneMapsScreen(onBack: () -> Unit) {
                                 PhoneMapStore.delete(context, m.name)
                                 maps = PhoneMapStore.installed(context)
                             }) {
-                                Icon(Icons.Filled.Delete, contentDescription = "Borrar", tint = palette.error)
+                                Icon(Icons.Filled.Delete, contentDescription = "Delete", tint = palette.error)
                             }
                         }
                     }

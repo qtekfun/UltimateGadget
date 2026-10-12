@@ -77,7 +77,7 @@ object AgnssDownloader {
             }
             cal.add(GregorianCalendar.DAY_OF_YEAR, -1)
         }
-        throw IllegalStateException("No se pudo obtener efemérides: ${lastError?.message ?: "sin datos"}")
+        throw IllegalStateException("Could not fetch ephemeris: ${lastError?.message ?: "no data"}")
     }
 
     private fun assemble(ephs: List<RinexNav.Eph>, source: String): Result {
@@ -111,9 +111,9 @@ object AgnssDownloader {
             val code = c.responseCode
             if (code in 300..399) {
                 val loc = c.getHeaderField("Location"); c.disconnect()
-                requireNotNull(loc) { "Redirección sin destino" }
+                requireNotNull(loc) { "Redirect with no target" }
                 current = if (loc.startsWith("http")) loc else URL(URL(current), loc).toString()
-                require(current.startsWith("https://")) { "Redirección no segura" }
+                require(current.startsWith("https://")) { "Insecure redirect" }
                 return@repeat
             }
             if (code !in 200..299) { c.disconnect(); throw IllegalStateException("HTTP $code") }

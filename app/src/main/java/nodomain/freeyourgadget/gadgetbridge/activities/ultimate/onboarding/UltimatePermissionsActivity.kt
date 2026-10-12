@@ -199,8 +199,8 @@ private fun PermissionsScreen(showDoNotAsk: Boolean, returnToHome: Boolean, onDo
             title = { Text("No volver a preguntar", color = palette.onSurface) },
             text = {
                 Text(
-                    "UltimateGadget puede no funcionar correctamente sin estos permisos. " +
-                        "¿Seguro que no quieres que te los vuelva a pedir?",
+                    "UltimateGadget may not work correctly without these permissions. " +
+                        "Are you sure you don't want to be asked again?",
                     color = palette.onSurfaceVariant,
                 )
             },
@@ -211,11 +211,11 @@ private fun PermissionsScreen(showDoNotAsk: Boolean, returnToHome: Boolean, onDo
                         .apply()
                     showDoNotAskDialog = false
                     onDone()
-                }) { Text("Aceptar", color = palette.primary) }
+                }) { Text("OK", color = palette.primary) }
             },
             dismissButton = {
                 TextButton(onClick = { showDoNotAskDialog = false }) {
-                    Text("Cancelar", color = palette.onSurfaceVariant)
+                    Text("Cancel", color = palette.onSurfaceVariant)
                 }
             },
         )
@@ -225,7 +225,7 @@ private fun PermissionsScreen(showDoNotAsk: Boolean, returnToHome: Boolean, onDo
         containerColor = palette.background,
         topBar = {
             TopAppBar(
-                title = { Text("Permisos") },
+                title = { Text("Permissions") },
                 navigationIcon = {
                     IconButton(onClick = onDone) {
                         Icon(Icons.Filled.ArrowBack, contentDescription = null)
@@ -244,8 +244,8 @@ private fun PermissionsScreen(showDoNotAsk: Boolean, returnToHome: Boolean, onDo
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text(
-                "UltimateGadget necesita estos permisos para comunicarse con tu reloj y mostrar " +
-                    "notificaciones, llamadas, calendario y ubicación. Todo se procesa en local.",
+                "UltimateGadget needs these permissions to communicate with your watch and show " +
+                    "notifications, calls, calendar and location. Everything is processed locally.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = palette.onSurfaceVariant,
             )
@@ -278,7 +278,7 @@ private fun PermissionsScreen(showDoNotAsk: Boolean, returnToHome: Boolean, onDo
                 OutlinedButton(
                     onClick = onDone,
                     modifier = Modifier.fillMaxWidth(),
-                ) { Text(if (allGranted) "Continuar" else "Continuar de todas formas", color = palette.primary) }
+                ) { Text(if (allGranted) "Continue" else "Continue anyway", color = palette.primary) }
             }
 
             LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {

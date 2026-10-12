@@ -52,7 +52,7 @@ private fun NoData(label: String) {
     val scheme = MaterialTheme.colorScheme
     SectionLabel(label)
     Spacer(Modifier.height(8.dp))
-    Text("Sin datos todavía", style = MaterialTheme.typography.titleMedium, color = scheme.onSurfaceVariant)
+    Text("No data yet", style = MaterialTheme.typography.titleMedium, color = scheme.onSurfaceVariant)
 }
 
 /** STEPS: big count, weekly bar sparkline, goal progress. */
@@ -249,7 +249,7 @@ fun ReadinessCard(
 private fun factorShort(id: nodomain.freeyourgadget.gadgetbridge.activities.ultimate.readiness.ReadinessFactorId) = when (id) {
     nodomain.freeyourgadget.gadgetbridge.activities.ultimate.readiness.ReadinessFactorId.HRV -> "HRV"
     nodomain.freeyourgadget.gadgetbridge.activities.ultimate.readiness.ReadinessFactorId.RHR -> "FC"
-    nodomain.freeyourgadget.gadgetbridge.activities.ultimate.readiness.ReadinessFactorId.SLEEP -> "Sueño"
+    nodomain.freeyourgadget.gadgetbridge.activities.ultimate.readiness.ReadinessFactorId.SLEEP -> "Sleep"
     nodomain.freeyourgadget.gadgetbridge.activities.ultimate.readiness.ReadinessFactorId.LOAD -> "Carga"
 }
 
