@@ -55,6 +55,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import nodomain.freeyourgadget.gadgetbridge.GBApplication
 import nodomain.freeyourgadget.gadgetbridge.util.GBPrefs
 import nodomain.freeyourgadget.gadgetbridge.util.PermissionsUtils
+import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.dashboard.CrossDeviceSteps
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.dashboard.DashboardScreen
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.dashboard.DashboardViewModel
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.detail.UltimateHealthDetailActivity
@@ -245,7 +246,7 @@ class UltimateHomeActivity : AppCompatActivity() {
             ?: return
 
         // Connect just the last-used watch.
-        GBApplication.deviceService(last).connect()
+        GBApplication.deviceService(last).connectAutomatically()
     }
 
     private fun openDevice(d: DeviceCardUi) {
@@ -278,13 +279,12 @@ class UltimateHomeActivity : AppCompatActivity() {
                 val device = app.deviceManager.devices.firstOrNull { it.address == address }
                     ?: return@withContext null
 
-                val totals = runCatching {
-                    DailyTotals.getDailyTotalsForDevice(device, Calendar.getInstance())
-                }.getOrNull()
+                // Summed over every watch worn today, not only the one shown.
+                val totals = CrossDeviceSteps.dailyTotals(Calendar.getInstance(), device)
                 val steps = totals?.steps?.toInt()?.takeIf { it > 0 }
                 // Totals are in centimetres; devices without distance fall back to steps x step length.
                 val distanceKm = totals?.let {
-                    HealthUnits.distanceKm(it.distance, it.steps, ActivityUser().stepLengthCm)
+                    HealthUnits.distanceKm(it.distanceCm, it.steps, ActivityUser().stepLengthCm)
                 }?.takeIf { it > 0.0 }
                 val goal = runCatching { ActivityUser().stepsGoal }.getOrNull()?.takeIf { it > 0 }
 

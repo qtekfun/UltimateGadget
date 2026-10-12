@@ -68,19 +68,26 @@ class DbHealthRepository(private val app: Application) : HealthRepository {
     private fun loadSteps(device: GBDevice): StepsData? {
         val weekly = ArrayList<Int>(7)
         var todayTotals: DailyTotals? = null
+        var todaySteps = 0L
+        var todayDistance = 0L
         for (daysAgo in 6 downTo 0) {
             val day = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, -daysAgo) }
-            val t = DailyTotals.getDailyTotalsForDevice(device, day)
-            weekly.add(t.steps.toInt())
-            if (daysAgo == 0) todayTotals = t
+            // Steps and distance add up across watches (one in the morning, another in the afternoon).
+            val merged = CrossDeviceSteps.dailyTotals(day, device)
+            weekly.add((merged?.steps ?: 0L).toInt())
+            if (daysAgo == 0) {
+                todayTotals = DailyTotals.getDailyTotalsForDevice(device, day)
+                todaySteps = merged?.steps ?: todayTotals.steps
+                todayDistance = merged?.distanceCm ?: todayTotals.distance
+            }
         }
         val today = todayTotals ?: return null
-        if (today.steps <= 0 && weekly.all { it <= 0 }) return null
+        if (todaySteps <= 0 && weekly.all { it <= 0 }) return null
         val goal = runCatching { ActivityUser().stepsGoal }.getOrDefault(10000).coerceAtLeast(1)
         return StepsData(
-            steps = today.steps.toInt(),
+            steps = todaySteps.toInt(),
             goal = goal,
-            distanceKm = HealthUnits.distanceKm(today.distance, today.steps, ActivityUser().stepLengthCm),
+            distanceKm = HealthUnits.distanceKm(todayDistance, todaySteps, ActivityUser().stepLengthCm),
             kcal = (
                 HealthUnits.activeKcal(today.activeCalories, device.deviceCoordinator is HuaweiCoordinator) +
                     today.restingCalories
