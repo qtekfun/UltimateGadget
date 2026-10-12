@@ -493,16 +493,16 @@ class UltimateDiscoveryActivity : AppCompatActivity(), BondingInterface, GBScanE
             return
         }
         // If the authentication value is already configured for this device, pairing is safe, so
-        // the pairing button is a plain "Emparejar" rather than the "…de todas formas" warning.
+        // the pairing button is a plain "Pair" rather than the "…de todas formas" warning.
         val alreadyConfigured = hasAuthConfigured(deviceCandidate.macAddress)
-        val pairLabel = if (alreadyConfigured) "Emparejar" else "Emparejar de todas formas"
+        val pairLabel = if (alreadyConfigured) "Pair" else "Pair anyway"
         MaterialAlertDialogBuilder(this)
-            .setTitle("¿Configurar autenticación?")
+            .setTitle("Configure authentication?")
             .setMessage(
-                "Este dispositivo puede necesitar que configures la autenticación (por ejemplo, una " +
-                    "cuenta Huawei) antes de emparejar. Emparejar sin ella puede hacer que el reloj se " +
-                    "desvincule y se restablezca de fábrica.\n\nConfigúrala ahora y vuelve a tocar el " +
-                    "dispositivo para emparejar — o empareja de todas formas.",
+                "This device may require you to configure authentication (for example, a " +
+                    "Huawei account) before pairing. Pairing without it can make the watch " +
+                    "unlink and factory-reset itself.\n\nConfigure it now and tap the device " +
+                    "again to pair — or pair anyway.",
             )
             .setIcon(R.drawable.ic_vpn_key)
             .setPositiveButton("Configurar") { _, _ ->
@@ -515,7 +515,7 @@ class UltimateDiscoveryActivity : AppCompatActivity(), BondingInterface, GBScanE
                 startActivity(startIntent)
             }
             .setNegativeButton(pairLabel) { _, _ -> startPair(deviceCandidate, coordinator) }
-            .setNeutralButton("Cancelar", null)
+            .setNeutralButton("Cancel", null)
             .show()
     }
 
@@ -752,15 +752,15 @@ private fun DiscoveryScreen(
         containerColor = palette.background,
         topBar = {
             TopAppBar(
-                title = { Text("Añadir dispositivo") },
+                title = { Text("Add device") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = "Atrás")
+                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 actions = {
                     IconButton(onClick = onOpenPairingPrefs) {
-                        Icon(Icons.Filled.Tune, contentDescription = "Ajustes de emparejamiento")
+                        Icon(Icons.Filled.Tune, contentDescription = "Pairing settings")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -783,7 +783,7 @@ private fun DiscoveryScreen(
                         contentDescription = null,
                     )
                     Spacer(Modifier.size(8.dp))
-                    Text(if (scanning) "Detener" else "Buscar", fontWeight = FontWeight.Bold)
+                    Text(if (scanning) "Detener" else "Scan", fontWeight = FontWeight.Bold)
                 }
             }
         },
@@ -830,7 +830,7 @@ private fun ScanStatusRow(scanning: Boolean, count: Int) {
             )
         }
         Text(
-            if (scanning) "BUSCANDO DISPOSITIVOS" else "BÚSQUEDA DETENIDA",
+            if (scanning) "BUSCANDO DISPOSITIVOS" else "SCAN STOPPED",
             style = SectionLabelStyle,
             color = palette.secondary,
         )
@@ -885,7 +885,7 @@ private fun DeviceCandidateCard(device: DiscoveredDevice, onClick: () -> Unit) {
                     color = palette.onSurfaceVariant,
                 )
                 val badges = buildList {
-                    if (device.bonded) add("Emparejado")
+                    if (device.bonded) add("Paired")
                     if (!device.supported) add("No compatible")
                     if (device.experimental) add("Experimental")
                 }
@@ -936,14 +936,14 @@ private fun EmptyState(scanning: Boolean) {
         )
         Spacer(Modifier.height(16.dp))
         Text(
-            if (scanning) "Buscando dispositivos cercanos…" else "No se encontraron dispositivos",
+            if (scanning) "Searching for nearby devices…" else "No devices found",
             style = MaterialTheme.typography.bodyLarge,
             color = palette.onSurfaceVariant,
             textAlign = TextAlign.Center,
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            "Pon el dispositivo en modo de emparejamiento y mantenlo cerca.",
+            "Put the device in pairing mode and keep it close.",
             style = MaterialTheme.typography.bodyMedium,
             color = palette.onSurfaceVariant,
             textAlign = TextAlign.Center,
@@ -978,7 +978,7 @@ private fun PermissionPrompt(onRequestPermissions: () -> Unit) {
         )
         Spacer(Modifier.height(12.dp))
         Text(
-            "Necesitamos permiso de Bluetooth (y ubicación en versiones antiguas de Android) para buscar dispositivos.",
+            "We need Bluetooth permission (and location on older Android versions) to scan for devices.",
             style = MaterialTheme.typography.bodyMedium,
             color = palette.onSurfaceVariant,
             textAlign = TextAlign.Center,
