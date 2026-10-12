@@ -109,65 +109,65 @@ class UltimateDeviceActivity : AppCompatActivity() {
         val options = mutableListOf<DeviceOptionUi>()
 
         // --- Conexión: estado y sincronización ---
-        val sConn = "Conexión"
+        val sConn = "Connection"
         val connecting = !device.isConnected && !device.isInitialized && device.state != GBDevice.State.NOT_CONNECTED
         if (device.isConnected || device.isInitialized) {
-            options += DeviceOptionUi("disconnect", "Desconectar", "Cortar la conexión", section = sConn)
-            options += DeviceOptionUi("sync", "Sincronizar actividad", "Descargar datos nuevos", section = sConn)
+            options += DeviceOptionUi("disconnect", "Disconnect", "Drop the connection", section = sConn)
+            options += DeviceOptionUi("sync", "Sync activity", "Download new data", section = sConn)
         } else if (connecting) {
-            options += DeviceOptionUi("disconnect", "Cancelar conexión", "Detener el intento de conexión", section = sConn)
+            options += DeviceOptionUi("disconnect", "Cancel connection", "Stop the connection attempt", section = sConn)
         } else {
-            options += DeviceOptionUi("connect", "Conectar", "Conectar con el dispositivo", section = sConn)
+            options += DeviceOptionUi("connect", "Connect", "Connect to the device", section = sConn)
         }
 
         // --- Reloj: ajustes y funciones del propio reloj ---
-        val sWatch = "Reloj"
-        options += DeviceOptionUi("settings", "Ajustes del dispositivo", "Notificaciones, pantallas, gestos…", section = sWatch)
+        val sWatch = "Watch"
+        options += DeviceOptionUi("settings", "Device settings", "Notificaciones, pantallas, gestos…", section = sWatch)
         if (coordinator != null) {
             if (runCatching { coordinator.getAlarmSlotCount(device) }.getOrDefault(0) > 0) {
-                options += DeviceOptionUi("alarms", "Alarmas", "Despertadores del reloj", section = sWatch)
+                options += DeviceOptionUi("alarms", "Alarmas", "Watch alarms", section = sWatch)
             }
             if (runCatching { coordinator.getReminderSlotCount(device) }.getOrDefault(0) > 0) {
-                options += DeviceOptionUi("reminders", "Recordatorios", "Avisos con fecha y hora", section = sWatch)
+                options += DeviceOptionUi("reminders", "Recordatorios", "Date and time reminders", section = sWatch)
             }
             if (runCatching { coordinator.getWorldClocksSlotCount() }.getOrDefault(0) > 0) {
-                options += DeviceOptionUi("worldclocks", "Relojes mundiales", "Otras zonas horarias", section = sWatch)
+                options += DeviceOptionUi("worldclocks", "World clocks", "Otras zonas horarias", section = sWatch)
             }
             // Phone-side countdown timer (the watch has no timer protocol); always available.
-            options += DeviceOptionUi("timers", "Temporizadores", "Cuenta atrás en el teléfono", section = sWatch)
+            options += DeviceOptionUi("timers", "Timers", "Countdown on the phone", section = sWatch)
             if (cap { coordinator.supportsWatchfaceManagement(device) }) {
-                options += DeviceOptionUi("watchfaces", "Esferas", "Ver, activar y borrar esferas del reloj", section = sWatch)
+                options += DeviceOptionUi("watchfaces", "Esferas", "View, activate and delete watchfaces", section = sWatch)
             }
             if (cap { coordinator.supportsMusicInfo(device) }) {
-                options += DeviceOptionUi("music", "Música", "Ver, subir y borrar música del reloj", section = sWatch)
+                options += DeviceOptionUi("music", "Music", "View, upload and delete watch music", section = sWatch)
             }
             if (cap { coordinator.supportsInstalledAppManagement(device) }) {
-                options += DeviceOptionUi("watchapps", "Apps", "Ver, borrar e instalar apps del reloj", section = sWatch)
+                options += DeviceOptionUi("watchapps", "Apps", "View, delete and install watch apps", section = sWatch)
             }
         }
 
         // --- Mapas y navegación ---
-        val sNav = "Mapas y navegación"
+        val sNav = "Maps and navigation"
         if (coordinator is HuaweiCoordinator) {
-            options += DeviceOptionUi("maps", "Mapas offline", "Instalar y borrar mapas del reloj", section = sNav)
+            options += DeviceOptionUi("maps", "Mapas offline", "Install and delete watch maps", section = sNav)
             options += DeviceOptionUi("routes", "Rutas", "Planificar y enviar rutas", section = sNav)
-            options += DeviceOptionUi("golf", "Campos de golf", "Enviar y borrar mapas de campos del reloj", section = sNav)
-            options += DeviceOptionUi("agnss", "Actualizar GPS (A-GNSS)", "Datos de satélites para fijar antes", section = sNav)
+            options += DeviceOptionUi("golf", "Golf courses", "Send and delete course maps on the watch", section = sNav)
+            options += DeviceOptionUi("agnss", "Actualizar GPS (A-GNSS)", "Satellite data for a faster fix", section = sNav)
         }
         if (supportsAgps(device)) {
-            options += DeviceOptionUi("agps", "Actualizar GPS (A-GNSS)", "Instalar datos de satélites para fijar antes", section = sNav)
+            options += DeviceOptionUi("agps", "Actualizar GPS (A-GNSS)", "Install satellite data for a faster fix", section = sNav)
         }
 
         // --- Dispositivo: acciones sobre el emparejamiento ---
-        val sDev = "Dispositivo"
-        options += DeviceOptionUi("find", "Buscar dispositivo", "Hacer sonar el dispositivo", section = sDev)
+        val sDev = "Device"
+        options += DeviceOptionUi("find", "Find device", "Ring the device", section = sDev)
         // Apagado: solo si el dispositivo lo soporta y está inicializado (hace falta estar conectado
         // para enviar el comando). El gating es genérico: cubre los anillos Colmi/Yawell y cualquier
         // otro dispositivo cuyo coordinator declare supportsPowerOff.
         if (coordinator != null && device.isInitialized && cap { coordinator.supportsPowerOff(device) }) {
-            options += DeviceOptionUi("poweroff", "Apagar", "Apagar el dispositivo", section = sDev)
+            options += DeviceOptionUi("poweroff", "Power off", "Power off the device", section = sDev)
         }
-        options += DeviceOptionUi("remove", "Quitar dispositivo", "Desvincular de UltimateGadget", destructive = true, section = sDev)
+        options += DeviceOptionUi("remove", "Remove device", "Unlink from UltimateGadget", destructive = true, section = sDev)
         return options
     }
 
@@ -177,7 +177,7 @@ class UltimateDeviceActivity : AppCompatActivity() {
             "disconnect" -> GBApplication.deviceService(device).disconnect()
             "sync" -> {
                 GBApplication.deviceService(device).onFetchRecordedData(RecordedDataTypes.TYPE_SYNC)
-                toast("Sincronizando…")
+                toast("Syncing…")
             }
             "settings" -> startActivity(
                 nodomain.freeyourgadget.gadgetbridge.activities.ultimate.devsettings.UltimateDeviceSettingsActivity.intent(this, device),
@@ -220,7 +220,7 @@ class UltimateDeviceActivity : AppCompatActivity() {
             )
             "agps" -> {
                 agpsDevice = device
-                toast("Elige el fichero A-GNSS descargado")
+                toast("Choose the downloaded A-GNSS file")
                 agpsPicker.launch(arrayOf("*/*"))
             }
             "find" -> {
@@ -229,9 +229,9 @@ class UltimateDeviceActivity : AppCompatActivity() {
                 // stop it; dismissing (button, back, outside) stops the ringing.
                 GBApplication.deviceService(device).onFindDevice(true)
                 androidx.appcompat.app.AlertDialog.Builder(this)
-                    .setTitle("Buscar dispositivo")
-                    .setMessage("El reloj está sonando/vibrando. Pulsa Parar cuando lo encuentres.")
-                    .setPositiveButton("Parar", null)
+                    .setTitle("Find device")
+                    .setMessage("The watch is ringing/vibrating. Tap Stop when you find it.")
+                    .setPositiveButton("Stop", null)
                     .setOnDismissListener { GBApplication.deviceService(device).onFindDevice(false) }
                     .show()
             }
@@ -239,13 +239,13 @@ class UltimateDeviceActivity : AppCompatActivity() {
                 // Gadgetbridge ya implementa el apagado (onPowerOff → comando del dispositivo).
                 // Confirmamos antes porque luego hay que encenderlo a mano para reconectar.
                 androidx.appcompat.app.AlertDialog.Builder(this)
-                    .setTitle("Apagar dispositivo")
-                    .setMessage("¿Apagar el dispositivo? Tendrás que encenderlo manualmente para volver a conectarlo.")
-                    .setPositiveButton("Apagar") { _, _ ->
+                    .setTitle("Power off device")
+                    .setMessage("Power off the device? You'll have to turn it on manually to connect again.")
+                    .setPositiveButton("Power off") { _, _ ->
                         GBApplication.deviceService(device).onPowerOff()
                         toast("Apagando…")
                     }
-                    .setNegativeButton("Cancelar", null)
+                    .setNegativeButton("Cancel", null)
                     .show()
             }
             "remove" -> startActivity(

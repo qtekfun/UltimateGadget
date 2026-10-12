@@ -138,10 +138,10 @@ fun UltimateSettingsScreen(onBack: () -> Unit) {
         containerColor = palette.background,
         topBar = {
             TopAppBar(
-                title = { Text("Ajustes") },
+                title = { Text("Settings") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -162,24 +162,24 @@ fun UltimateSettingsScreen(onBack: () -> Unit) {
         ) {
             // --- General ---
             SettingsSection("General") {
-                ToggleRow("Iniciar al arrancar el teléfono", "general_autostartonboot", true)
-                ToggleRow("Conectar automáticamente por Bluetooth", "general_autoconnectonbluetooth", false)
+                ToggleRow("Start when the phone boots", "general_autostartonboot", true)
+                ToggleRow("Auto-connect over Bluetooth", "general_autoconnectonbluetooth", false)
                 ToggleRow(
-                    "Reconectar solo a dispositivos ya conectados",
+                    "Reconnect only to already-connected devices",
                     "general_reconnectonlytoconnected", true,
                 )
-                ToggleRow("Avisos de permisos", "permission_pestering", true)
-                ToggleRow("Mostrar registro de cambios tras actualizar", "show_changelog", true)
+                ToggleRow("Permission reminders", "permission_pestering", true)
+                ToggleRow("Show changelog after updating", "show_changelog", true)
                 ToggleRow(
-                    "Ordenar la lista por última conexión",
+                    "Sort the list by last connection",
                     "general_prefs_key_sort_by_last_connected_ts", false,
                 )
             }
 
             // --- Language & units ---
-            SettingsSection("Idioma y unidades") {
+            SettingsSection("Language & units") {
                 SelectRow(
-                    title = "Idioma de la aplicación",
+                    title = "App language",
                     key = "language",
                     default = "default",
                     entriesRes = R.array.pref_language_options,
@@ -189,84 +189,84 @@ fun UltimateSettingsScreen(onBack: () -> Unit) {
                     GBApplication.setLanguage(value)
                 }
                 SelectRow(
-                    title = "Distancia",
+                    title = "Distance",
                     key = "unit_distance",
                     default = "metric",
                     entriesRes = R.array.pref_entries_unit_system,
                     valuesRes = R.array.pref_values_unit_system,
                 )
                 SelectRow(
-                    title = "Temperatura",
+                    title = "Temperature",
                     key = "unit_temperature",
                     default = "metric",
                     entriesRes = R.array.temperature_scales,
                     valuesRes = R.array.temperature_scales_values,
                 )
                 SelectRow(
-                    title = "Peso",
+                    title = "Weight",
                     key = "unit_weight",
                     default = "metric",
                     entriesRes = R.array.weight_scale_units,
                     valuesRes = R.array.weight_scale_values,
                 )
-                ToggleRow("Unidades náuticas", "units_nautical", true)
+                ToggleRow("Nautical units", "units_nautical", true)
             }
 
             // --- Date & time ---
-            SettingsSection("Fecha y hora") {
-                ToggleRow("Sincronizar la hora al conectar", "datetime_synconconnect", true)
+            SettingsSection("Date & time") {
+                ToggleRow("Sync time on connect", "datetime_synconconnect", true)
             }
 
             // --- Interface ---
-            SettingsSection("Interfaz") {
+            SettingsSection("Interface") {
                 SelectRow(
-                    title = "Tema (claro / oscuro / sistema)",
+                    title = "Theme (light / dark / system)",
                     key = "pref_key_theme",
                     default = context.getString(R.string.pref_theme_value_system),
                     entriesRes = R.array.pref_ultimate_theme_options,
                     valuesRes = R.array.pref_ultimate_theme_values,
                 )
-                ToggleRow("Colores dinámicos (Material You)", "pref_key_theme_dynamic", false)
-                ToggleRow("Fondo negro (AMOLED)", "pref_key_theme_amoled_black", false)
-                ToggleRow("Bloquear capturas de pantalla", "block_screenshots", false)
-                ToggleRow("Refrescar al deslizar hacia abajo", "pref_refresh_on_swipe", true)
-                ToggleRow("Botón flotante para añadir dispositivo", "display_add_device_fab", true)
-                ToggleRow("Barra de navegación inferior", "display_bottom_navigation_bar", true)
+                ToggleRow("Dynamic colors (Material You)", "pref_key_theme_dynamic", false)
+                ToggleRow("Black background (AMOLED)", "pref_key_theme_amoled_black", false)
+                ToggleRow("Block screenshots", "block_screenshots", false)
+                ToggleRow("Refresh on swipe down", "pref_refresh_on_swipe", true)
+                ToggleRow("Floating button to add a device", "display_add_device_fab", true)
+                ToggleRow("Bottom navigation bar", "display_bottom_navigation_bar", true)
             }
 
             // --- Developer ---
-            SettingsSection("Desarrollador") {
-                ToggleRow("Notificación al producirse un fallo", "crash_notification", false)
+            SettingsSection("Developer") {
+                ToggleRow("Notification when a crash occurs", "crash_notification", false)
                 ToggleRow(
-                    "Guardar registros en archivo (requiere reiniciar la app)",
+                    "Save logs to a file (requires restarting the app)",
                     "log_to_file", false,
                 )
                 ToggleRow(
-                    "Nivel de registro detallado (requiere reiniciar la app)",
+                    "Verbose log level (requires restarting the app)",
                     "log_level_trace", false,
                 )
             }
 
             // --- Links to existing Ultimate / classic screens (not reimplemented here) ---
-            SettingsSection("Más") {
-                NavRow("Exportar / importar datos") {
+            SettingsSection("More") {
+                NavRow("Export / import data") {
                     context.startActivity(Intent(context, UltimateDataIOActivity::class.java))
                 }
-                NavRow("Notificaciones") {
+                NavRow("Notifications") {
                     context.startActivity(UltimateNotificationsActivity.intent(context))
                 }
-                NavRow("Mapas del móvil") {
+                NavRow("Phone maps") {
                     context.startActivity(Intent(context, PhoneMapsActivity::class.java))
                 }
                 if (InAppNetworkImpl.available) {
-                    NavRow("Clave Bluetooth (Amazfit / Zepp / Xiaomi)") {
+                    NavRow("Bluetooth key (Amazfit / Zepp / Xiaomi)") {
                         context.startActivity(Intent(context, UltimateHuamiKeyActivity::class.java))
                     }
                 }
-                NavRow("Permisos") {
+                NavRow("Permissions") {
                     context.startActivity(UltimatePermissionsActivity.intent(context))
                 }
-                NavRow("Acerca de UltimateGadget") {
+                NavRow("About UltimateGadget") {
                     context.startActivity(UltimateAboutActivity.intent(context))
                 }
             }

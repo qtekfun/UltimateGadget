@@ -4,141 +4,141 @@
 
 #### 0.115.5
 
-* Clave Bluetooth del reloj: el inicio de sesión de **Amazfit / Zepp y Xiaomi** se abre ahora en la **página oficial del fabricante** dentro de la app, así que funcionan la **verificación en dos pasos, el OTP y el captcha** (el login directo con correo y contraseña ya no servía con esas cuentas). La clave se lee de la sesión; no se escribe ni se guarda ningún correo ni contraseña. Sin validar en una cuenta real con OTP todavía
-* La entrada de ajustes pasa a llamarse **"Clave Bluetooth (Amazfit / Zepp / Xiaomi)"**
+* Watch Bluetooth key: signing in to **Amazfit / Zepp and Xiaomi** now opens the **vendor's own login page** inside the app, so **two-factor, OTP and captcha** all work (the direct email/password login no longer worked with those accounts). The key is read from the session; no email or password is entered or stored. Not yet validated against a real account with OTP
+* The settings entry is renamed to **"Bluetooth key (Amazfit / Zepp / Xiaomi)"**
 
 #### 0.115.4
 
-* Apagar el dispositivo: la pantalla del dispositivo muestra ahora **"Apagar"** siempre que el reloj/anillo lo soporte (todos los anillos Colmi/Yawell y cualquier otro que lo permita). Antes la opción existía en el núcleo pero no se ofrecía en la interfaz nueva
-* Ajustes del dispositivo: corregido un **cierre inesperado** al aplicar un cambio de hora/fecha (p. ej. al sincronizar un anillo Colmi) después de salir de la pantalla de ajustes
-* Clave Bluetooth **Xiaomi (Mi Fitness)**: se puede obtener la clave de Mi Band 8/9 y relojes Xiaomi iniciando sesión en la cuenta Xiaomi, igual que ya se hacía con Amazfit/Zepp (en **UltimateGadget Play** dentro de la app, y en la app compañera de mapas). El 2FA y el captcha no están soportados. Sin validar en un dispositivo real todavía
+* Power off the device: the device screen now shows **"Power off"** whenever the watch/ring supports it (all Colmi/Yawell rings and any other device that allows it). The option existed in the core before but was not offered in the new interface
+* Device settings: fixed an **unexpected crash** when applying a time/date change (for example when syncing a Colmi ring) after leaving the settings screen
+* **Xiaomi (Mi Fitness)** Bluetooth key: the key for Mi Band 8/9 and Xiaomi watches can be obtained by signing in to the Xiaomi account, just like Amazfit/Zepp already did (in **UltimateGadget Play** inside the app, and in the companion map app). 2FA and captcha are not supported. Not yet validated on a real device
 
 #### 0.115.3
 
-* Conexión: **un solo reloj a la vez**. La reconexión automática (arranque, reintentos, escaneo, app abierta) solo apunta al **último reloj usado** y no se busca ninguno mientras otro está conectando o conectado. Al conectarse un reloj se cancelan las búsquedas de los demás; conectar otro a mano toma el control y desconecta el actual
-* Pasos: la tarjeta de Inicio y el panel de pasos **suman los pasos y la distancia de todos los relojes** del día (uno por la mañana y otro por la tarde). Se fusionan por minuto para no contar doble si se llevan dos a la vez
-* A-GNSS: añadida la obtención del paquete de efemérides de Amazfit/Zepp OS desde la cuenta Huami en la app compañera de mapas (sin validar en un reloj real)
+* Connection: **one watch at a time**. Automatic reconnection (boot, retries, scan, app opened) targets only the **last used watch**, and none is scanned for while another is connecting or connected. When a watch connects, searches for the others are cancelled; connecting another one by hand takes over and disconnects the current one
+* Steps: the Home card and the steps panel **add up the steps and distance of all watches** for the day (one in the morning and another in the afternoon). They are merged per minute so two worn at once are not double-counted
+* A-GNSS: added fetching of the Amazfit/Zepp OS ephemeris package from the Huami account in the companion map app (not validated on a real watch)
 
 #### 0.115.2
 
-* Copia de seguridad: restaurar en **UltimateGadget Play** una copia hecha con la app normal (o al revés) ya recupera los **ajustes de la app**; antes solo entraba la base de datos porque el fichero de ajustes llevaba el nombre del otro paquete
+* Backup: restoring in **UltimateGadget Play** a backup made with the regular app (or vice versa) now also recovers the **app settings**; before, only the database was imported because the settings file carried the other package's name
 
 #### 0.115.1
 
-* Inicio: la tarjeta de **último entreno** ya muestra la distancia (el golf salía siempre "0,0 km"); si el reloj no la envía se calcula del recorrido GPS
-* Inicio: la tarjeta de **pasos** mostraba la distancia ×100 (355 km en vez de 3,5 km) y las calorías de relojes Huawei ×1000 (374889 kcal). Ya salen en sus unidades
+* Home: the **last workout** card now shows the distance (golf always showed "0.0 km"); if the watch does not send it, it is computed from the GPS track
+* Home: the **steps** card showed distance ×100 (355 km instead of 3.5 km) and Huawei watch calories ×1000 (374889 kcal). They now show in their proper units
 
 #### 0.115.0
 
-* Nueva variante **UltimateGadget Play** (todo en uno): se instala junto a la normal y **descarga dentro de la propia app** los mapas base del catálogo, los campos de golf de Huawei (y los envía al reloj) y las efemérides A-GNSS, sin app compañera. También obtiene la clave Bluetooth de relojes Amazfit/Zepp de tu cuenta (Ajustes). Lleva permiso de internet a propósito; la app normal sigue sin él
-* Golf: la tarjeta de resultados marca cada hoyo con el color de su resultado frente al par (amarillo +1, naranja +2, rojo +3 o más, par en verde, "-" si no se jugó) y se anima al entrar. Como la app de Huawei
+* New **UltimateGadget Play** variant (all-in-one): installs alongside the regular app and **downloads inside the app itself** the base maps from the catalog, the Huawei golf courses (and sends them to the watch) and the A-GNSS ephemeris, with no companion app. It also fetches the Bluetooth key of Amazfit/Zepp watches from your account (Settings). It carries the internet permission on purpose; the regular app still does not
+* Golf: the scorecard marks each hole with the color of its result against par (yellow +1, orange +2, red +3 or more, green for par, "-" if not played) and animates on entry. Like the Huawei app
 
 #### 0.114.0
 
-* "Buscar dispositivo" (relojes Huawei): ahora **funciona** — hace sonar/vibrar el reloj y muestra un diálogo para pararlo (antes era un stub "próximamente"). Usa la función de Gadgetbridge que ya existía; requiere que el reloj soporte "find device"
+* "Find device" (Huawei watches): now **works** — it rings/vibrates the watch and shows a dialog to stop it (it used to be a "coming soon" stub). It uses the Gadgetbridge function that already existed; requires the watch to support "find device"
 
 #### 0.113.0
 
-* Ajustes del dispositivo: las sub-pantallas (Pantalla, Salud, Notificaciones, Conexión…) ahora muestran un **resumen de lo que contienen**, para que no haya que adivinar. Así "Pantalla" indica que dentro están "Activar pantalla al levantar", "Girar la muñeca…", etc. ("Levantar para activar" ya estaba, pero quedaba oculto dentro de Pantalla)
+* Device settings: the sub-screens (Display, Health, Notifications, Connection…) now show a **summary of what they contain**, so there is no guessing. "Display" indicates that inside are "Turn on screen on lift", "Rotate wrist…", etc. ("Lift to wake" was already there, but was hidden inside Display)
 
 #### 0.112.0
 
-* Sueño (TrueSleep de Huawei): la pantalla de sueño añade una tarjeta **TrueSleep** con los datos propios del reloj cuando existen — eficiencia, latencia, pulso (mín–máx/medio), respiración, HRV media, ronquidos, índice de apnea (RDI) y vueltas en la cama. Solo se muestran los campos que el reloj realmente registró
+* Sleep (Huawei TrueSleep): the sleep screen adds a **TrueSleep** card with the watch's own data when present — efficiency, latency, heart rate (min–max/average), breathing, average HRV, snoring, apnea index (RDI) and tosses and turns in bed. Only the fields the watch actually recorded are shown
 
 #### 0.111.0
 
-* "Levantar para activar" y "Girar la muñeca para cambiar info" (relojes Huawei): ahora **aparecen siempre** en Ajustes del dispositivo → Pantalla y gestos (antes dependían de una detección de capacidad poco fiable y podían no salir) y el cambio **se envía de verdad al reloj** al activarlos
+* "Lift to wake" and "Rotate wrist to switch info" (Huawei watches): now **always appear** in Device settings → Display and gestures (they used to depend on an unreliable capability detection and could be missing) and the change is **actually sent to the watch** when toggled
 
 #### 0.110.0
 
-* Interno: el motor de mapas (MapLibre+PMTiles) pasa a vivir en su repo propio **ultimate-mapcore** (compartido con UltimateMaps) y la app lo consume como submódulo vía composite build de Gradle; se elimina la copia duplicada dentro de la app. Sin cambios visibles de funcionalidad. Al clonar el repo usa `--recursive` (o `git submodule update --init`)
+* Internal: the map engine (MapLibre+PMTiles) now lives in its own repo **ultimate-mapcore** (shared with UltimateMaps) and the app consumes it as a submodule via a Gradle composite build; the duplicated copy inside the app is removed. No visible functional changes. When cloning the repo use `--recursive` (or `git submodule update --init`)
 
 #### 0.109.0
 
-* Batería: la **gráfica de histórico** del dispositivo ahora es nativa (UI nueva), ya no abre la pantalla clásica. Se accede desde Ajustes del dispositivo → Batería → "Histórico de batería", con rangos de 24 h / 7 d / 30 d y resumen actual/mín/máx
+* Battery: the device's **history chart** is now native (new UI), no longer opening the classic screen. It is reached from Device settings → Battery → "Battery history", with 24 h / 7 d / 30 d ranges and a current/min/max summary
 
 #### 0.108.0
 
-* Primer arranque: corregido que tras la pantalla de bienvenida/permisos la app se cerraba al pulsar atrás (no llevaba a ningún sitio). Ahora el onboarding termina abriendo la pantalla principal, con un botón "Continuar" para entrar aunque se omitan permisos
-* "Levantar para activar": si el reloj no reporta la capacidad, se puede **forzar** desde Ajustes → Avanzado → Forzar opciones → "Forzar levantar para activar"; entonces aparece el ajuste en Pantalla y gestos
+* First launch: fixed the app closing when pressing back after the welcome/permissions screen (it led nowhere). Onboarding now ends by opening the main screen, with a "Continue" button to enter even if permissions are skipped
+* "Lift to wake": if the watch does not report the capability, it can be **forced** from Settings → Advanced → Force options → "Force lift to wake"; the setting then appears under Display and gestures
 
 #### 0.107.0
 
-* Ajustes del dispositivo **100% en la UI nueva** (relojes Huawei): se acabó el "abrir en ajustes clásicos". Ahora se pintan nativos los **selectores de hora** (No molestar, inactividad), los ajustes de **batería** (sondeo e intervalo), y las **acciones** (contactos, mapas offline, música, ajustes de pulso, calibrar estrés, icono de notificaciones, calendario) abren directamente su pantalla propia
-* "Levantar para activar" aparece en Pantalla y gestos cuando el reloj reporta esa capacidad
+* Device settings **100% in the new UI** (Huawei watches): no more "open in classic settings". The **time pickers** (Do not disturb, inactivity), the **battery** settings (polling and interval) are now drawn natively, and the **actions** (contacts, offline maps, music, heart-rate settings, stress calibration, notification icon, calendar) open their own screen directly
+* "Lift to wake" appears under Display and gestures when the watch reports that capability
 
 #### 0.106.0
 
-* Entrenos: ahora se guardan **para siempre** en la app y se ven **aunque el reloj no esté conectado** (antes solo aparecían con el reloj conectado). Además se **mezclan los de todos los dispositivos**, descartando los que se solapan en el tiempo (el mismo entreno sincronizado desde dos relojes no sale duplicado). Al abrir un entreno se usa el dispositivo que lo registró, para que su ruta GPS salga aunque sea de otro reloj o esté desconectado
+* Workouts: now kept **forever** in the app and visible **even when the watch is not connected** (before they only appeared with the watch connected). They are also **merged across all devices**, discarding those that overlap in time (the same workout synced from two watches is not duplicated). Opening a workout uses the device that recorded it, so its GPS track shows even if it is from another watch or disconnected
 
 #### 0.105.0
 
-* Emparejamiento (relojes Huawei): corregido de verdad el fallo del **primer emparejamiento** en el que el reloj pedía "empareja desde la app de Huawei Health" y solo el segundo intento funcionaba. Causa real: al completarse el vínculo Bluetooth, el sistema muestra su diálogo de permiso (acceso a contactos/historial) que pausaba la pantalla de emparejamiento justo cuando llegaba el aviso de "vinculado", y la app se lo perdía y no llegaba a conectar. Ahora, al volver a la pantalla, la app comprueba si el reloj ya quedó vinculado y continúa la conexión igualmente
+* Pairing (Huawei watches): really fixed the **first-pairing** failure where the watch asked to "pair from the Huawei Health app" and only the second attempt worked. Real cause: when the Bluetooth bond completes, the system shows its permission dialog (access to contacts/history) which paused the pairing screen right when the "bonded" notice arrived, and the app missed it and never connected. Now, on returning to the screen, the app checks whether the watch is already bonded and continues the connection anyway
 
 #### 0.104.0
 
-* Golf: la tarjeta ahora distingue rondas de **9 o 18 hoyos** — si la vuelta de atrás llega con par 0 (no saliste a los segundos 9), la ronda se muestra como de 9 hoyos y los totales dejan de contar hoyos vacíos
-* Golf: **debajo de la tarjeta se dibuja la ruta recorrida sobre el mapa del campo** (el mismo mapa offline del entreno), como cuando el golf salía como entreno normal
-* Emparejamiento (relojes Huawei por Bluetooth clásico): trazas de diagnóstico del primer emparejamiento para afinar el arreglo si todavía fallara en algún móvil
+* Golf: the card now distinguishes **9- or 18-hole** rounds — if the back nine arrives with par 0 (you did not play the second nine), the round is shown as 9 holes and the totals stop counting empty holes
+* Golf: **below the card, the route travelled is drawn over the course map** (the same offline workout map), as when golf used to show as a regular workout
+* Pairing (Huawei watches over Bluetooth classic): diagnostic traces of the first pairing to fine-tune the fix should it still fail on some phones
 
 #### 0.103.0
 
-* Emparejamiento (relojes Huawei por Bluetooth clásico, p.ej. Watch GT Runner 2): corregido el fallo por el que el **primer intento** de emparejar pedía "empareja desde la app de Huawei Health" y solo el segundo intento funcionaba. Ahora la app completa el vínculo también en el primer intento (envía el aviso de estado y continúa con el handshake de seguridad, igual que hace la app original)
+* Pairing (Huawei watches over Bluetooth classic, e.g. Watch GT Runner 2): fixed the failure where the **first attempt** to pair asked to "pair from the Huawei Health app" and only the second attempt worked. The app now completes the bond on the first attempt too (it sends the status notice and continues with the security handshake, just like the original app)
 
 #### 0.102.0
 
-* Golf (Huawei): la pantalla "Campos de golf" ahora permite **seleccionar varios campos y borrarlos de golpe**, muestra el **nombre** de cada campo (aprendido al enviarlo desde la app) en vez de solo el número, y **confirma** cada borrado/envío ("Borrados N ✓ · el reloj tiene X campos"). El borrado ahora funciona de forma fiable (usa un id de mensaje nuevo por petición) y la lista se refresca al terminar de enviar un campo
-* Corregido un cierre inesperado de la app que podía ocurrir al desconectarse el reloj mientras había una petición en curso
+* Golf (Huawei): the "Golf courses" screen now lets you **select several courses and delete them at once**, shows each course's **name** (learned when sending it from the app) instead of just the number, and **confirms** each delete/send ("Deleted N ✓ · the watch has X courses"). Deletion now works reliably (it uses a new message id per request) and the list refreshes when a course finishes sending
+* Fixed an unexpected app crash that could happen when the watch disconnected while a request was in progress
 
 #### 0.101.0
 
-* A-GNSS (GPS) para relojes Huawei: nueva pantalla "Actualizar GPS (A-GNSS)" que descarga datos de satélites (efemérides públicas IGS) a través de la app de mapas y los prepara para que el reloj fije el GPS en segundos, sin Huawei Health ni servidores de Huawei. Con botón manual, opción de actualizar al conectar y descarga solo por Wi-Fi; nada se envía al reloj a la fuerza (el reloj lo recoge solo)
-* App de mapas: nueva herramienta A-GNSS y servicio interno para dar los datos a UltimateGadget (que no tiene acceso a internet por diseño)
+* A-GNSS (GPS) for Huawei watches: new "Update GPS (A-GNSS)" screen that downloads satellite data (public IGS ephemeris) through the map app and prepares it so the watch gets a GPS fix in seconds, without Huawei Health or Huawei servers. With a manual button, an option to update on connect and Wi-Fi-only download; nothing is forced onto the watch (the watch picks it up on its own)
+* Map app: new A-GNSS tool and internal service to hand the data to UltimateGadget (which has no internet access by design)
 
 #### 0.100.0
 
-* Golf: nueva pantalla "Campos de golf" (relojes Huawei) para ver los campos que tiene el reloj, enviar al reloj un mapa de campo descargado con la app de mapas, y borrar campos — sin Huawei Health ni HMS en el móvil; el campo aparece y se notifica en el reloj igual que con la app original
-* App de mapas: el nombre del archivo de campo incluye la versión (para enviar la correcta al reloj) y nuevo botón "Salir" para cerrar la app
+* Golf: new "Golf courses" screen (Huawei watches) to see the courses on the watch, send the watch a course map downloaded with the map app, and delete courses — without Huawei Health or HMS on the phone; the course appears and is notified on the watch just like with the original app
+* Map app: the course file name includes the version (to send the right one to the watch) and a new "Exit" button to close the app
 
 #### 0.99.2
 
-* Dispositivos: la lista se refresca al volver a la app (p. ej. tras borrar un dispositivo, ya no se queda el que acabas de quitar)
-* Menú: nueva opción "Salir (detener la app)" para cerrar UltimateGadget y parar sus servicios
+* Devices: the list refreshes when returning to the app (e.g. after deleting a device, the one you just removed no longer lingers)
+* Menu: new "Exit (stop the app)" option to close UltimateGadget and stop its services
 
 #### 0.99.1
 
-* Emparejado: el paso de autenticación opcional (cuenta Huawei) ahora aparece también en la pantalla de añadir dispositivo de la interfaz nueva, no solo en la antigua; diálogo en español y botón "Emparejar" cuando el dispositivo ya tiene la autenticación configurada
+* Pairing: the optional authentication step (Huawei account) now also appears on the new interface's add-device screen, not just the old one; dialog and an "Pair" button when the device already has authentication configured
 
 #### 0.99.0
 
-* Emparejado: paso opcional y saltable para configurar la autenticación (p. ej. la cuenta Huawei) antes de vincular, para que el reloj no se desvincule ni se restablezca de fábrica
-* App de mapas: utilidad para obtener la clave Bluetooth (auth key) de relojes Amazfit/Zepp desde los servidores de Huami, con selector de región, para emparejarlos sin la app Zepp (el email y la contraseña solo se usan para el login y no se guardan)
+* Pairing: optional, skippable step to configure authentication (e.g. the Huawei account) before binding, so the watch is not unpaired or factory-reset
+* Map app: utility to obtain the Bluetooth key (auth key) of Amazfit/Zepp watches from Huami's servers, with a region selector, to pair them without the Zepp app (the email and password are used only for the login and not stored)
 
 #### 0.98.0
 
-* Copia de seguridad completa y cifrada (.ugbak): exporta entrenos, toda la configuración de la app, los ajustes por dispositivo y las rutas, protegidos con contraseña (AES-256-GCM); restaurable en otro teléfono (el emparejamiento Bluetooth hay que rehacerlo)
-* Botón "Reiniciar app" en Exportar/Importar para aplicar una importación
-* La app descargadora de mapas (sidecar) se publica también con cada release, firmada
+* Full, encrypted backup (.ugbak): exports workouts, the whole app configuration, per-device settings and routes, protected with a password (AES-256-GCM); restorable on another phone (Bluetooth pairing has to be redone)
+* "Restart app" button in Export/Import to apply an import
+* The map-downloader (sidecar) app is also published with every release, signed
 
 #### 0.97.0
 
-* Golf: scorecard por hoyo (par, golpes, ±, putts) con totales, leído de la sincronización normal de entrenos (sin root ni Huawei Health); las rondas de golf se identifican como Golf
-* Splash de arranque rehecho con la estética oscura de marca (adiós al naranja)
-* Visor de mapas extraído a una librería propia reutilizable (ultimate-mapcore)
+* Golf: per-hole scorecard (par, strokes, ±, putts) with totals, read from the normal workout sync (no root or Huawei Health); golf rounds are identified as Golf
+* Startup splash remade with the dark brand look (goodbye orange)
+* Map viewer extracted into its own reusable library (ultimate-mapcore)
 
 #### 0.96.0
 
-* Nueva interfaz UltimateGadget como app completa: Inicio (dashboard con datos reales + readiness), lista de dispositivos con tarjetas e iconos propios por categoría, y detalle de dispositivo agrupado por secciones
-* Sistema de temas: claro / oscuro / seguir sistema / colores dinámicos (Material You) / AMOLED, con cambio en caliente
-* Menú ⋮ unificado en ambas pestañas; "ordenar tarjetas" dentro del menú
-* Mapas offline del reloj (OpenStreetMap) + planificador de rutas (dibujar y enviar GPX) con visor MapLibre/PMTiles y botón de ubicación
-* Esferas (ver/activar/borrar/importar; la activación reenvía la hora para que se aplique del todo), apps del reloj, música con playlists, alarmas/recordatorios/relojes mundiales/temporizadores
-* Informes semanales/mensuales con gráficas y export a PDF, objetivos/rachas/medallas, sueño avanzado, rendimiento (PAI/carga/VO2max/HRV)
-* Entrenos filtrables por tipo con nombre localizado e icono; detección y tarjeta de ronda de golf
-* Export de entrenos a GPX/FIT, export/import de la base, notificaciones (apps + No molestar), A-GNSS para marcas soportadas
-* Widget de inicio + Quick Settings tiles; notificación en curso con pasos; reconexión del último reloj al abrir; sincronización periódica
-* Flujos de emparejamiento, instalación, ajustes y primer arranque reescritos en la estética nueva; UI clásica retirada
-* APK por arquitectura (ABI splits) para reducir tamaño
+* New UltimateGadget interface as a full app: Home (dashboard with real data + readiness), device list with its own cards and per-category icons, and device detail grouped into sections
+* Theme system: light / dark / follow system / dynamic colors (Material You) / AMOLED, with hot switching
+* Unified ⋮ menu on both tabs; "sort cards" inside the menu
+* Watch offline maps (OpenStreetMap) + route planner (draw and send GPX) with a MapLibre/PMTiles viewer and a location button
+* Watchfaces (view/activate/delete/import; activation re-sends the time so it fully applies), watch apps, music with playlists, alarms/reminders/world clocks/timers
+* Weekly/monthly reports with charts and PDF export, goals/streaks/medals, advanced sleep, performance (PAI/load/VO2max/HRV)
+* Workouts filterable by type with a localized name and icon; golf-round detection and card
+* Workout export to GPX/FIT, database export/import, notifications (apps + Do not disturb), A-GNSS for supported brands
+* Home widget + Quick Settings tiles; ongoing notification with steps; reconnection of the last watch on open; periodic sync
+* Pairing, installation, settings and first-launch flows rewritten in the new look; classic UI removed
+* Per-architecture APK (ABI splits) to reduce size
 
 #### 0.95.0
 

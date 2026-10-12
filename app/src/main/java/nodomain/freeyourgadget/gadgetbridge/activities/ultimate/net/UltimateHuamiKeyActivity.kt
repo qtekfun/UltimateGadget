@@ -101,13 +101,13 @@ private fun KeyScreen(onBack: () -> Unit) {
         if (res.resultCode != Activity.RESULT_OK || data == null) return@rememberLauncherForActivityResult
         val userId = data.getStringExtra(UltimateAccountLoginActivity.EXTRA_USER_ID).orEmpty()
         val token = data.getStringExtra(UltimateAccountLoginActivity.EXTRA_TOKEN).orEmpty()
-        if (userId.isBlank() || token.isBlank()) { error = "No se obtuvo el token de la sesión."; return@rememberLauncherForActivityResult }
+        if (userId.isBlank() || token.isBlank()) { error = "Could not read the session token."; return@rememberLauncherForActivityResult }
         busy = true; error = null; keys = null
         val r = region
         scope.launch {
             runCatching { withContext(Dispatchers.IO) { InAppNetworkImpl.fetchHuamiKeysWithToken(userId, token, r) } }
                 .onSuccess { keys = it }
-                .onFailure { error = it.message ?: "Error de red" }
+                .onFailure { error = it.message ?: "Network error" }
             busy = false
         }
     }
@@ -116,12 +116,12 @@ private fun KeyScreen(onBack: () -> Unit) {
         if (res.resultCode != Activity.RESULT_OK || data == null) return@rememberLauncherForActivityResult
         val userId = data.getStringExtra(UltimateAccountLoginActivity.EXTRA_USER_ID).orEmpty()
         val token = data.getStringExtra(UltimateAccountLoginActivity.EXTRA_TOKEN).orEmpty()
-        if (userId.isBlank() || token.isBlank()) { xError = "No se obtuvo el token de la sesión."; return@rememberLauncherForActivityResult }
+        if (userId.isBlank() || token.isBlank()) { xError = "Could not read the session token."; return@rememberLauncherForActivityResult }
         xBusy = true; xError = null; xKeys = null
         scope.launch {
             runCatching { withContext(Dispatchers.IO) { InAppNetworkImpl.fetchXiaomiKeysWithPassToken(userId, token) } }
                 .onSuccess { xKeys = it }
-                .onFailure { xError = it.message ?: "Error de red" }
+                .onFailure { xError = it.message ?: "Network error" }
             xBusy = false
         }
     }
@@ -130,7 +130,7 @@ private fun KeyScreen(onBack: () -> Unit) {
         containerColor = palette.background,
         topBar = {
             TopAppBar(
-                title = { Text("Clave Bluetooth del reloj") },
+                title = { Text("Watch Bluetooth key") },
                 navigationIcon = {
                     IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null) }
                 },
@@ -148,9 +148,8 @@ private fun KeyScreen(onBack: () -> Unit) {
         ) {
             Text("Amazfit / Zepp", style = MaterialTheme.typography.titleMedium, color = palette.onSurface)
             Text(
-                "Inicia sesión en tu propia cuenta Zepp/Amazfit (sirve también para Mi Band emparejadas con Zepp). " +
-                    "La sesión se abre en la página oficial de Zepp, así que funcionan la verificación en dos pasos, " +
-                    "el OTP y el captcha. No se guarda ningún dato.",
+                "Sign in to your own Zepp/Amazfit account (also works for Mi Bands paired with Zepp). The session " +
+                    "opens on Zepp's official page, so two-factor, OTP and captcha all work. Nothing is stored.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = palette.onSurfaceVariant,
             )
@@ -165,16 +164,15 @@ private fun KeyScreen(onBack: () -> Unit) {
                     error = null
                     zeppLogin.launch(UltimateAccountLoginActivity.intent(context, UltimateAccountLoginActivity.PROVIDER_ZEPP))
                 },
-            ) { Text(if (busy) "Consultando…" else "Iniciar sesión (Amazfit/Zepp)") }
+            ) { Text(if (busy) "Checking…" else "Sign in (Amazfit/Zepp)") }
             error?.let { Text(it, color = palette.error, style = MaterialTheme.typography.bodySmall) }
             keys?.let { list -> KeyList(list.map { Triple(it.mac, it.authKey, "") }, palette, context) }
 
             // --- Xiaomi (Mi Fitness) ---
             Text("Xiaomi (Mi Fitness)", style = MaterialTheme.typography.titleMedium, color = palette.onSurface)
             Text(
-                "Para Mi Band 8/9 y relojes Xiaomi emparejados con la app Mi Fitness / Xiaomi Wear. La sesión se abre " +
-                    "en la página oficial de Xiaomi, así que funcionan el OTP, el captcha y la verificación en dos pasos. " +
-                    "No se guarda ningún dato.",
+                "For Mi Band 8/9 and Xiaomi watches paired with the Mi Fitness / Xiaomi Wear app. The session opens " +
+                    "on Xiaomi's official page, so OTP, captcha and two-factor all work. Nothing is stored.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = palette.onSurfaceVariant,
             )
@@ -184,7 +182,7 @@ private fun KeyScreen(onBack: () -> Unit) {
                     xError = null
                     xiaomiLogin.launch(UltimateAccountLoginActivity.intent(context, UltimateAccountLoginActivity.PROVIDER_XIAOMI))
                 },
-            ) { Text(if (xBusy) "Consultando…" else "Iniciar sesión (Xiaomi)") }
+            ) { Text(if (xBusy) "Checking…" else "Sign in (Xiaomi)") }
             xError?.let { Text(it, color = palette.error, style = MaterialTheme.typography.bodySmall) }
             xKeys?.let { list -> KeyList(list.map { Triple(it.mac, it.authKey, it.name) }, palette, context) }
         }
@@ -199,7 +197,7 @@ private fun KeyList(
     context: Context,
 ) {
     if (items.isEmpty()) {
-        Text("La cuenta no tiene dispositivos con clave.", color = palette.onSurfaceVariant)
+        Text("The account has no devices with a key.", color = palette.onSurfaceVariant)
     }
     items.forEach { (mac, authKey, name) ->
         Card(
@@ -217,8 +215,8 @@ private fun KeyList(
                 TextButton(onClick = {
                     val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                     cm.setPrimaryClip(ClipData.newPlainText("auth key", authKey))
-                    Toast.makeText(context, "Clave copiada", Toast.LENGTH_SHORT).show()
-                }) { Text("Copiar clave") }
+                    Toast.makeText(context, "Key copied", Toast.LENGTH_SHORT).show()
+                }) { Text("Copy key") }
             }
         }
     }
