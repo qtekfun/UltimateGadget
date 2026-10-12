@@ -42,6 +42,9 @@ class GolfCourseDownload(val courseId: Int, val version: Int, val friendlyName: 
 /** One Amazfit/Zepp device of the account with its paste-ready Bluetooth auth key. */
 class HuamiKey(val mac: String, val active: Boolean, val authKey: String)
 
+/** One Xiaomi (Mi Fitness) device of the account with its paste-ready Bluetooth auth key. */
+class XiaomiKey(val name: String, val mac: String, val authKey: String)
+
 /**
  * Seam between the network-free core and the `play` flavor. Every flavor provides an object named
  * [InAppNetworkImpl] in this package: src/noplay (mainline, banglejs) is an inert stub, src/play
@@ -89,4 +92,12 @@ interface InAppNetwork {
      */
     @Throws(Exception::class)
     fun fetchHuamiKeys(email: String, password: String, regionIndex: Int): List<HuamiKey>
+
+    /**
+     * Blocking. Logs in to the Xiaomi (Mi Fitness) account over HTTPS and returns the account's
+     * wearables with auth keys. The credentials are used for this call only and never stored or
+     * logged. 2FA and captcha challenges are not supported.
+     */
+    @Throws(Exception::class)
+    fun fetchXiaomiKeys(email: String, password: String): List<XiaomiKey>
 }
