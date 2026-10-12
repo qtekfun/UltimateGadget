@@ -102,10 +102,10 @@ fun ReportsScreen(
         containerColor = scheme.background,
         topBar = {
             TopAppBar(
-                title = { Text("Informes", fontWeight = FontWeight.Bold) },
+                title = { Text("Reports", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 actions = {
@@ -128,7 +128,7 @@ fun ReportsScreen(
                         }
                     }
                     IconButton(onClick = onOpenGoals) {
-                        Icon(Icons.Filled.EmojiEvents, contentDescription = "Objetivos y medallas")
+                        Icon(Icons.Filled.EmojiEvents, contentDescription = "Goals and medals")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -154,11 +154,11 @@ fun ReportsScreen(
             item { PeriodSelector(state.period, onSetPeriod) }
 
             if (data == null || !data.hasDevice) {
-                item { InfoCard("Sin dispositivo", "Conecta un reloj para ver tus informes.") }
+                item { InfoCard("No device", "Connect a watch to see your reports.") }
                 return@LazyColumn
             }
             if (summary == null || summary.daysWithData == 0) {
-                item { InfoCard("Sin datos todavía", "Sincroniza el reloj para empezar a ver tus informes semanales y mensuales.") }
+                item { InfoCard("No data yet", "Sync the watch to start seeing your weekly and monthly reports.") }
                 return@LazyColumn
             }
 
@@ -180,8 +180,8 @@ private fun PeriodSelector(period: ReportPeriod, onSetPeriod: (ReportPeriod) -> 
         Modifier.fillMaxWidth().clip(androidx.compose.foundation.shape.RoundedCornerShape(14.dp)),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        PeriodChip("Semana", period == ReportPeriod.WEEK, Modifier.weight(1f)) { onSetPeriod(ReportPeriod.WEEK) }
-        PeriodChip("Mes", period == ReportPeriod.MONTH, Modifier.weight(1f)) { onSetPeriod(ReportPeriod.MONTH) }
+        PeriodChip("Week", period == ReportPeriod.WEEK, Modifier.weight(1f)) { onSetPeriod(ReportPeriod.WEEK) }
+        PeriodChip("Month", period == ReportPeriod.MONTH, Modifier.weight(1f)) { onSetPeriod(ReportPeriod.MONTH) }
     }
 }
 
@@ -211,16 +211,16 @@ private fun StatGrid(summary: ReportSummary) {
     val rhr = if (summary.avgRestingHr > 0) "${summary.avgRestingHr} bpm" else "—"
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            StatTile("Pasos / día", "%,d".format(summary.avgSteps), Modifier.weight(1f))
-            StatTile("Distancia", distance, Modifier.weight(1f))
+            StatTile("Steps / day", "%,d".format(summary.avgSteps), Modifier.weight(1f))
+            StatTile("Distance", distance, Modifier.weight(1f))
         }
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            StatTile("Sueño medio", sleep, Modifier.weight(1f))
+            StatTile("Average sleep", sleep, Modifier.weight(1f))
             StatTile("FC reposo", rhr, Modifier.weight(1f))
         }
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            StatTile("Entrenos", "${summary.workoutCount}", Modifier.weight(1f))
-            StatTile("Días con meta", "${summary.goalDays}", Modifier.weight(1f))
+            StatTile("Workouts", "${summary.workoutCount}", Modifier.weight(1f))
+            StatTile("Days on goal", "${summary.goalDays}", Modifier.weight(1f))
         }
     }
 }
@@ -244,7 +244,7 @@ private fun StatTile(label: String, value: String, modifier: Modifier = Modifier
 @Composable
 private fun StepsChartCard(summary: ReportSummary, barColor: Color, trackColor: Color, labelColor: Color) {
     val scheme = MaterialTheme.colorScheme
-    val heading = if (summary.period == ReportPeriod.WEEK) "Pasos por día" else "Pasos (media diaria por semana)"
+    val heading = if (summary.period == ReportPeriod.WEEK) "Steps per day" else "Steps (daily average per week)"
     DashboardCard {
         SectionLabel(heading)
         Spacer(Modifier.height(10.dp))
@@ -268,7 +268,7 @@ private fun SleepChartCard(summary: ReportSummary, barColor: Color, trackColor: 
     val scheme = MaterialTheme.colorScheme
     if (summary.points.none { it.sleepMinutes > 0 }) return
     DashboardCard {
-        SectionLabel("Sueño (horas)")
+        SectionLabel("Sleep (hours)")
         Spacer(Modifier.height(10.dp))
         LabeledBarChart(
             points = summary.points,
@@ -373,7 +373,7 @@ private fun InfoCard(title: String, body: String) {
 // --- previews ---
 
 private fun sampleSummary(period: ReportPeriod): ReportSummary {
-    val labels = if (period == ReportPeriod.WEEK) listOf("Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom")
+    val labels = if (period == ReportPeriod.WEEK) listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
     else listOf("S1", "S2", "S3", "S4", "S5")
     val steps = if (period == ReportPeriod.WEEK) listOf(9120, 7430, 11200, 6050, 12840, 8900, 8421)
     else listOf(9800, 10400, 7600, 11200, 9000)

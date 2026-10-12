@@ -107,7 +107,7 @@ class UltimateRemindersActivity : AppCompatActivity() {
     }
 }
 
-private val REPEAT_LABELS = arrayOf("Una vez", "Cada día", "Cada semana", "Cada mes", "Cada año")
+private val REPEAT_LABELS = arrayOf("Una vez", "Every day", "Cada semana", "Cada mes", "Every year")
 
 private fun loadReminders(device: GBDevice): List<Reminder> = DBHelper.getReminders(device)
 
@@ -169,7 +169,7 @@ private fun RemindersScreen(device: GBDevice, onBack: () -> Unit) {
     }
 
     ClockScaffold(
-        title = "Recordatorios",
+        title = "Reminders",
         onBack = onBack,
         floatingActionButton = {
             val palette = LocalUltimatePalette.current
@@ -178,16 +178,16 @@ private fun RemindersScreen(device: GBDevice, onBack: () -> Unit) {
                     val slots = coordinator.getReminderSlotCount(device) -
                         GBApplication.getDevicePrefs(device).reservedReminderCalendarSlots
                     if (reminders.size >= slots) {
-                        Toast.makeText(context, "No quedan huecos de recordatorio libres ($slots)", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "No free reminder slots left ($slots)", Toast.LENGTH_SHORT).show()
                     } else {
                         val r = createReminder(device)
                         if (r != null) editing = r
-                        else Toast.makeText(context, "Error al crear el recordatorio", Toast.LENGTH_SHORT).show()
+                        else Toast.makeText(context, "Error creating the reminder", Toast.LENGTH_SHORT).show()
                     }
                 },
                 containerColor = palette.primary,
                 contentColor = palette.onPrimary,
-            ) { Icon(Icons.Filled.Add, contentDescription = "Añadir recordatorio") }
+            ) { Icon(Icons.Filled.Add, contentDescription = "Add reminder") }
         },
     ) {
         if (reminders.isEmpty()) {
@@ -295,7 +295,7 @@ private fun ReminderEditor(
     fun currentDate(): Date = GregorianCalendar(year, month, day, hour, minute).time
 
     ClockScaffold(
-        title = "Recordatorio",
+        title = "Reminder",
         onBack = onCancel,
         actions = {
             TextButton(onClick = {
@@ -309,7 +309,7 @@ private fun ReminderEditor(
                     reminder.date = noonUtc.time
                 }
                 onSave()
-            }) { Text("Guardar", color = palette.primary, fontWeight = FontWeight.Bold) }
+            }) { Text("Save", color = palette.primary, fontWeight = FontWeight.Bold) }
         },
     ) {
         Column(
@@ -320,13 +320,13 @@ private fun ReminderEditor(
                 value = message,
                 onValueChange = { if (maxLen <= 0 || it.length <= maxLen) message = it },
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("Texto del recordatorio") },
+                label = { Text("Reminder text") },
             )
             PickerRow("Fecha", dateFmt.format(currentDate())) { showDatePicker = true }
             if (hasTime) {
-                PickerRow("Hora", formatTime(context, hour, minute)) { showTimePicker = true }
+                PickerRow("Time", formatTime(context, hour, minute)) { showTimePicker = true }
             }
-            PickerRow("Repetir", REPEAT_LABELS[repetition.coerceIn(0, REPEAT_LABELS.size - 1)]) { showRepeat = true }
+            PickerRow("Repeat", REPEAT_LABELS[repetition.coerceIn(0, REPEAT_LABELS.size - 1)]) { showRepeat = true }
         }
     }
 
@@ -346,7 +346,7 @@ private fun ReminderEditor(
                     showDatePicker = false
                 }) { Text("Aceptar") }
             },
-            dismissButton = { TextButton(onClick = { showDatePicker = false }) { Text("Cancelar") } },
+            dismissButton = { TextButton(onClick = { showDatePicker = false }) { Text("Cancel") } },
         ) { DatePicker(state = dpState) }
     }
 
@@ -359,7 +359,7 @@ private fun ReminderEditor(
                     Text("Aceptar")
                 }
             },
-            dismissButton = { TextButton(onClick = { showTimePicker = false }) { Text("Cancelar") } },
+            dismissButton = { TextButton(onClick = { showTimePicker = false }) { Text("Cancel") } },
             text = { Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { TimePicker(state = tpState) } },
         )
     }
@@ -368,7 +368,7 @@ private fun ReminderEditor(
         androidx.compose.material3.AlertDialog(
             onDismissRequest = { showRepeat = false },
             confirmButton = {},
-            title = { Text("Repetir") },
+            title = { Text("Repeat") },
             text = {
                 Column {
                     REPEAT_LABELS.forEachIndexed { i, label ->
@@ -397,6 +397,6 @@ private fun ReminderEmpty() {
         Spacer(Modifier.height(16.dp))
         Text("Sin recordatorios", style = MaterialTheme.typography.titleLarge, color = palette.onSurface)
         Spacer(Modifier.height(6.dp))
-        Text("Pulsa + para crear un recordatorio.", style = MaterialTheme.typography.bodyMedium, color = palette.onSurfaceVariant)
+        Text("Tap + to create a reminder.", style = MaterialTheme.typography.bodyMedium, color = palette.onSurfaceVariant)
     }
 }

@@ -174,7 +174,7 @@ private fun WatchfacesScreen(device: GBDevice, onBack: () -> Unit) {
         containerColor = palette.background,
         topBar = {
             TopAppBar(
-                title = { Text("Esferas") },
+                title = { Text("Watchfaces") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
@@ -199,8 +199,8 @@ private fun WatchfacesScreen(device: GBDevice, onBack: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             Text(
-                "Esferas instaladas en el reloj. Actívalas o bórralas, o importa una desde un fichero " +
-                    "(.watchface/.bin). No hay galería online: solo el reloj y tus ficheros.",
+                "Watchfaces installed on the watch. Activate or delete them, or import one from a file " +
+                    "(.watchface/.bin). There is no online gallery: only the watch and your files.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = palette.onSurfaceVariant,
             )
@@ -217,7 +217,7 @@ private fun WatchfacesScreen(device: GBDevice, onBack: () -> Unit) {
 
             if (watchfaces.isEmpty()) {
                 Text(
-                    "No hay esferas. Conecta el reloj y pulsa actualizar, o importa una.",
+                    "No watchfaces. Connect the watch and tap refresh, or import one.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = palette.onSurfaceVariant,
                 )
@@ -234,7 +234,7 @@ private fun WatchfacesScreen(device: GBDevice, onBack: () -> Unit) {
                             onActivate = {
                                 GBApplication.deviceService(device).onAppStart(wf.uuid, true)
                                 activeUuid = wf.uuid
-                                Toast.makeText(context, "Esfera activada", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, "Watchface activated", Toast.LENGTH_SHORT).show()
                                 requestList()
                             },
                             onDelete = { pendingDelete = wf },
@@ -250,10 +250,10 @@ private fun WatchfacesScreen(device: GBDevice, onBack: () -> Unit) {
         AlertDialog(
             containerColor = palette.surfaceContainer,
             onDismissRequest = { pendingDelete = null },
-            title = { Text("Borrar esfera", color = palette.onSurface) },
+            title = { Text("Delete watchface", color = palette.onSurface) },
             text = {
                 Text(
-                    "¿Borrar \"${toDelete.name}\" del reloj?",
+                    "Delete \"${toDelete.name}\" from the watch?",
                     color = palette.onSurfaceVariant,
                 )
             },
@@ -263,11 +263,11 @@ private fun WatchfacesScreen(device: GBDevice, onBack: () -> Unit) {
                     if (toDelete.uuid == activeUuid) activeUuid = null
                     pendingDelete = null
                     requestList()
-                }) { Text("Borrar", color = palette.error) }
+                }) { Text("Delete", color = palette.error) }
             },
             dismissButton = {
                 TextButton(onClick = { pendingDelete = null }) {
-                    Text("Cancelar", color = palette.onSurfaceVariant)
+                    Text("Cancel", color = palette.onSurfaceVariant)
                 }
             },
         )
@@ -335,7 +335,7 @@ private fun WatchfaceCard(
                         append("Activa")
                     } else if (isSystem) {
                         if (isNotEmpty()) append(" · ")
-                        append("De fábrica")
+                        append("Built-in")
                     }
                 }
                 if (subtitle.isNotBlank()) {
@@ -358,12 +358,12 @@ private fun WatchfaceCard(
                     enabled = canActivate,
                     modifier = Modifier.weight(1f),
                 ) {
-                    Text(if (isActive) "Activa" else "Activar")
+                    Text(if (isActive) "Activa" else "Activate")
                 }
                 // System/factory watchfaces cannot be removed from the device.
                 if (!isSystem) {
                     IconButton(onClick = onDelete) {
-                        Icon(Icons.Filled.Delete, contentDescription = "Borrar", tint = palette.error)
+                        Icon(Icons.Filled.Delete, contentDescription = "Delete", tint = palette.error)
                     }
                 } else {
                     Box(Modifier.size(48.dp))
