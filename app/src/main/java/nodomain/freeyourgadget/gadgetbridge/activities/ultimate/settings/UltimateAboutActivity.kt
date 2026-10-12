@@ -97,17 +97,17 @@ fun UltimateAboutScreen(onBack: () -> Unit) {
             "\nFlavor: ${BuildConfig.FLAVOR}"
         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         clipboard.setPrimaryClip(ClipData.newPlainText("Build data", details))
-        Toast.makeText(context, "Detalles de compilación copiados", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, "Build details copied", Toast.LENGTH_SHORT).show()
     }
 
     Scaffold(
         containerColor = palette.background,
         topBar = {
             TopAppBar(
-                title = { Text("Acerca de") },
+                title = { Text("About") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -135,7 +135,7 @@ fun UltimateAboutScreen(onBack: () -> Unit) {
                     color = palette.onSurface,
                 )
                 Text(
-                    "Versión $version",
+                    "Version $version",
                     style = MaterialTheme.typography.bodyMedium,
                     color = palette.onSurfaceVariant,
                 )
@@ -153,8 +153,8 @@ fun UltimateAboutScreen(onBack: () -> Unit) {
                 colors = CardDefaults.cardColors(containerColor = palette.surfaceContainer),
             ) {
                 Text(
-                    "UltimateGadget es un fork de Gadgetbridge centrado en los relojes Huawei " +
-                        "(golf, mapas y A-GNSS) sin Huawei Health ni HMS en el móvil. " +
+                    "UltimateGadget is a fork of Gadgetbridge focused on Huawei watches " +
+                        "(golf, maps and A-GNSS) without Huawei Health or HMS on the phone. " +
                         "Software libre bajo licencia GNU AGPL-3.0.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = palette.onSurfaceVariant,
@@ -168,10 +168,10 @@ fun UltimateAboutScreen(onBack: () -> Unit) {
                 colors = CardDefaults.cardColors(containerColor = palette.surfaceContainer),
             ) {
                 Column(Modifier.padding(vertical = 4.dp)) {
-                    AboutRow(Icons.Filled.Code, "Código fuente", REPO_URL) { openUrl(REPO_URL) }
-                    AboutRow(Icons.Filled.Description, "Licencia AGPL-3.0", LICENSE_URL) { openUrl(LICENSE_URL) }
-                    AboutRow(Icons.Filled.Info, "Basado en Gadgetbridge", GADGETBRIDGE_URL) { openUrl(GADGETBRIDGE_URL) }
-                    AboutRow(Icons.Filled.Description, "Licencias de terceros", null) {
+                    AboutRow(Icons.Filled.Code, "Source code", REPO_URL) { openUrl(REPO_URL) }
+                    AboutRow(Icons.Filled.Description, "License AGPL-3.0", LICENSE_URL) { openUrl(LICENSE_URL) }
+                    AboutRow(Icons.Filled.Info, "Based on Gadgetbridge", GADGETBRIDGE_URL) { openUrl(GADGETBRIDGE_URL) }
+                    AboutRow(Icons.Filled.Description, "Third-party licenses", null) {
                         context.startActivity(Intent(context, LicensesActivity::class.java))
                     }
                 }

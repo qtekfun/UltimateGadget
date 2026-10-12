@@ -160,7 +160,7 @@ fun UltimateHomeScreen(
 }
 
 /**
- * Shared ⋮ overflow menu used by the TopAppBar of BOTH home tabs ("Inicio" / dashboard and
+ * Shared ⋮ overflow menu used by the TopAppBar of BOTH home tabs ("Home" / dashboard and
  * "Devices"), so the two menus stay identical. "Ordenar tarjetas" activates the dashboard's
  * card-edit mode (the host switches to the Inicio tab first if needed); the rest open the matching
  * Ultimate activities.
@@ -186,7 +186,7 @@ fun UltimateOverflowMenu(
             DropdownMenuItem(text = { Text("Notifications") }, onClick = { menuOpen = false; onNotifications() })
             DropdownMenuItem(text = { Text("Informes y objetivos") }, onClick = { menuOpen = false; onReports() })
             DropdownMenuItem(text = { Text("Rendimiento") }, onClick = { menuOpen = false; onPerformance() })
-            DropdownMenuItem(text = { Text("Ajustes") }, onClick = { menuOpen = false; onSettings() })
+            DropdownMenuItem(text = { Text("Settings") }, onClick = { menuOpen = false; onSettings() })
             HorizontalDivider()
             DropdownMenuItem(text = { Text("Exit (stop the app)") }, onClick = { menuOpen = false; onQuit() })
         }
@@ -220,7 +220,7 @@ fun HeroCard(d: DeviceCardUi, stats: HeroStats?, onClick: () -> Unit) {
     val (c1, c2) = accentColors(d.accentSeed)
     // The hero is a self-contained dark accent card in BOTH light and dark app themes: the accent
     // gradient is dark and the overlay below is a fixed dark scrim (never the theme background), so
-    // white / translucent-white text keeps its contrast in light mode too. Tinting the "CONECTADO"
+    // white / translucent-white text keeps its contrast in light mode too. Tinting the "CONNECTED"
     // label with a fixed light teal keeps the accent flavour while staying readable on the dark card.
     val onHero = Color.White
     val onHeroMuted = Color.White.copy(alpha = 0.72f)
@@ -259,7 +259,7 @@ fun HeroCard(d: DeviceCardUi, stats: HeroStats?, onClick: () -> Unit) {
                 }
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
-                        (if (d.busy) "Syncing" else "Conectado").uppercase(),
+                        (if (d.busy) "Syncing" else "Connected").uppercase(),
                         style = MaterialTheme.typography.labelSmall,
                         color = heroAccent,
                     )
@@ -286,7 +286,7 @@ fun HeroCard(d: DeviceCardUi, stats: HeroStats?, onClick: () -> Unit) {
             ) {
                 HeroMetric(
                     value = stats?.steps?.let { formatThousands(it) } ?: "--",
-                    label = stats?.stepsGoal?.let { "pasos · " + formatThousands(it) } ?: "pasos",
+                    label = stats?.stepsGoal?.let { "pasos · " + formatThousands(it) } ?: "steps",
                     accent = onHero,
                     muted = onHeroMuted,
                 )
@@ -486,7 +486,7 @@ private fun EmptyState(modifier: Modifier = Modifier) {
 @Composable
 private fun HomePreview() {
     val sample = listOf(
-        DeviceCardUi("A", "HUAWEI WATCH GT Runner 2", "Huawei", "Conectado", true, false, 82, "GT Runner 2", R.drawable.ic_device_default, 0, category = DeviceIconCategory.WATCH_ROUND),
+        DeviceCardUi("A", "HUAWEI WATCH GT Runner 2", "Huawei", "Connected", true, false, 82, "GT Runner 2", R.drawable.ic_device_default, 0, category = DeviceIconCategory.WATCH_ROUND),
         DeviceCardUi("B", "HUAWEI Band 9", "Huawei", "Desconectado", false, false, -1, "Band 9", R.drawable.ic_device_default, 1, category = DeviceIconCategory.BAND),
         DeviceCardUi("C", "HUAWEI FreeBuds 6", "Huawei", "Desconectado", false, false, 40, "FreeBuds 6", R.drawable.ic_device_default, 2, category = DeviceIconCategory.EARBUDS),
     )

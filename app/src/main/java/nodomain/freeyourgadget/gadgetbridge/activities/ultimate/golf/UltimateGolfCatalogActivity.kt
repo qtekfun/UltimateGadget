@@ -121,7 +121,7 @@ private fun CatalogScreen(
         scope.launch {
             runCatching { withContext(Dispatchers.IO) { block() } }
                 .onSuccess(ok)
-                .onFailure { error = it.message ?: "Error de red" }
+                .onFailure { error = it.message ?: "Network error" }
             loading = false
         }
     }
@@ -141,7 +141,7 @@ private fun CatalogScreen(
         containerColor = palette.background,
         topBar = {
             TopAppBar(
-                title = { Text(city?.name ?: country?.name ?: "Campos de golf") },
+                title = { Text(city?.name ?: country?.name ?: "Golf courses") },
                 navigationIcon = {
                     IconButton(onClick = { goBack() }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null) }
                 },

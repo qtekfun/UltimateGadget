@@ -344,7 +344,7 @@ private fun ReminderEditor(
                         year = c.get(Calendar.YEAR); month = c.get(Calendar.MONTH); day = c.get(Calendar.DAY_OF_MONTH)
                     }
                     showDatePicker = false
-                }) { Text("Aceptar") }
+                }) { Text("OK") }
             },
             dismissButton = { TextButton(onClick = { showDatePicker = false }) { Text("Cancel") } },
         ) { DatePicker(state = dpState) }
@@ -356,7 +356,7 @@ private fun ReminderEditor(
             onDismissRequest = { showTimePicker = false },
             confirmButton = {
                 TextButton(onClick = { hour = tpState.hour; minute = tpState.minute; showTimePicker = false }) {
-                    Text("Aceptar")
+                    Text("OK")
                 }
             },
             dismissButton = { TextButton(onClick = { showTimePicker = false }) { Text("Cancel") } },

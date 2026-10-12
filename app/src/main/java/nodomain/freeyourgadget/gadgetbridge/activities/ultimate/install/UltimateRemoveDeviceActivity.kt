@@ -208,8 +208,8 @@ private fun RemoveDeviceScreen(
                 when (state) {
                     is RemoveState.Confirm -> {
                         Text(
-                            "Se quitará el dispositivo de UltimateGadget, se desemparejará del Bluetooth y se " +
-                                "borrarán sus datos sincronizados. Esta acción no se puede deshacer.",
+                            "The device will be removed from UltimateGadget, unpaired from Bluetooth and its " +
+                                "synced data will be deleted. This action cannot be undone.",
                             style = MaterialTheme.typography.bodyMedium,
                             color = palette.onSurfaceVariant,
                         )
@@ -218,7 +218,7 @@ private fun RemoveDeviceScreen(
                             horizontalArrangement = Arrangement.spacedBy(12.dp),
                         ) {
                             OutlinedButton(onClick = onCancel, modifier = Modifier.weight(1f)) {
-                                Text("Cancelar")
+                                Text("Cancel")
                             }
                             Button(
                                 onClick = onConfirm,

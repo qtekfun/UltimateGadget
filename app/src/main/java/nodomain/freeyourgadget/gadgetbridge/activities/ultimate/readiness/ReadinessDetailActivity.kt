@@ -93,7 +93,7 @@ private fun ReadinessDetailScreen(data: ReadinessData, onBack: () -> Unit, onEdi
             TopAppBar(
                 title = { Text("Readiness", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
-                    IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás") }
+                    IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back") }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = scheme.background, titleContentColor = scheme.onSurface,
@@ -142,18 +142,18 @@ private fun ReadinessDetailScreen(data: ReadinessData, onBack: () -> Unit, onEdi
                 modifier = Modifier.fillMaxWidth().clickable(onClick = onEditManual),
             ) {
                 Column(Modifier.padding(14.dp)) {
-                    Text("Registrar sueño/entreno a mano", style = MaterialTheme.typography.titleMedium, color = scheme.onSurface)
+                    Text("Log sleep/workout by hand", style = MaterialTheme.typography.titleMedium, color = scheme.onSurface)
                     Text(
-                        "Para días sin reloj: introduce horas de sueño y el entreno del día.",
+                        "For days without a watch: enter hours of sleep and the day's workout.",
                         style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant,
                     )
                 }
             }
 
             Text(
-                "Modelo transparente (no médico): HRV y FC en reposo frente a su línea base de 7 días, " +
-                    "sueño frente a un objetivo, y carga de entreno con la ratio agudo:crónico (ACWR, Gabbett). " +
-                    "Se combinan con pesos documentados. Ver docs/readiness.md.",
+                "Transparent model (not medical): HRV and resting HR against their 7-day baseline, " +
+                    "sleep against a target, and training load with the acute:chronic ratio (ACWR, Gabbett). " +
+                    "They are combined with documented weights. See docs/readiness.md.",
                 style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant,
             )
         }
@@ -163,8 +163,8 @@ private fun ReadinessDetailScreen(data: ReadinessData, onBack: () -> Unit, onEdi
 private fun factorName(id: ReadinessFactorId) = when (id) {
     ReadinessFactorId.HRV -> "Variabilidad cardiaca (HRV)"
     ReadinessFactorId.RHR -> "Frecuencia cardiaca en reposo"
-    ReadinessFactorId.SLEEP -> "Sueño"
-    ReadinessFactorId.LOAD -> "Carga de entreno"
+    ReadinessFactorId.SLEEP -> "Sleep"
+    ReadinessFactorId.LOAD -> "Workout load"
 }
 
 private fun scoreColor(score: Int?, scheme: androidx.compose.material3.ColorScheme) = when {

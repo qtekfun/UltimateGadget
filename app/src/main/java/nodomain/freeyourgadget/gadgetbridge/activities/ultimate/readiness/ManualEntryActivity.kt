@@ -90,7 +90,7 @@ private fun ManualEntryScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Registro manual", fontWeight = FontWeight.Bold) },
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás") } },
+                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back") } },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = scheme.background, titleContentColor = scheme.onSurface,
                     navigationIconContentColor = scheme.onSurface,
@@ -102,7 +102,7 @@ private fun ManualEntryScreen(
             Modifier.fillMaxSize().padding(inner).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            Text("Sueño de anoche", style = MaterialTheme.typography.titleMedium, color = scheme.onSurface)
+            Text("Last night's sleep", style = MaterialTheme.typography.titleMedium, color = scheme.onSurface)
             OutlinedTextField(
                 value = sleep, onValueChange = { sleep = it },
                 label = { Text("Horas (p.ej. 7.5)") }, singleLine = true,
@@ -113,7 +113,7 @@ private fun ManualEntryScreen(
                 label = { Text("Calidad 0-100 (opcional)") }, singleLine = true,
                 keyboardOptions = num, modifier = Modifier.fillMaxWidth(),
             )
-            Text("Entreno de hoy", style = MaterialTheme.typography.titleMedium, color = scheme.onSurface)
+            Text("Today's workout", style = MaterialTheme.typography.titleMedium, color = scheme.onSurface)
             OutlinedTextField(
                 value = minutes, onValueChange = { minutes = it },
                 label = { Text("Minutos") }, singleLine = true,
@@ -136,7 +136,7 @@ private fun ManualEntryScreen(
                     )
                 },
                 modifier = Modifier.fillMaxWidth(),
-            ) { Text("Guardar") }
+            ) { Text("Save") }
         }
     }
 }

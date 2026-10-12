@@ -72,7 +72,7 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 
 /**
- * "Exportar entreno" sheet: export one workout to GPX or FIT and either share it (ACTION_SEND) or
+ * "Export workout" sheet: export one workout to GPX or FIT and either share it (ACTION_SEND) or
  * save it to a user-chosen file (SAF). 100% local — see [WorkoutExport].
  *
  * Opened with [intent]; it carries the workout's summary id and, optionally, the owning device.
@@ -95,7 +95,7 @@ class UltimateWorkoutExportActivity : AppCompatActivity() {
             }
             lifecycleScope.launch {
                 val ok = withContext(Dispatchers.IO) { WorkoutExport.writeToUri(this@UltimateWorkoutExportActivity, file, uri) }
-                toast(if (ok) "Entreno guardado" else "No se pudo guardar el entreno")
+                toast(if (ok) "Workout saved" else "Could not save the workout")
                 if (ok) finish()
             }
         }
@@ -110,13 +110,13 @@ class UltimateWorkoutExportActivity : AppCompatActivity() {
 
         val s = summary
         if (s == null) {
-            toast("No se encontró el entreno")
+            toast("Workout not found")
             finish()
             return
         }
 
         val kind = s.activityKind?.let { k -> runCatching { ActivityKind.fromCode(k).getLabel(this) }.getOrNull() }
-        val title = s.name?.takeIf { it.isNotBlank() } ?: kind ?: "Entreno"
+        val title = s.name?.takeIf { it.isNotBlank() } ?: kind ?: "Workout"
         val subtitle = buildList {
             kind?.let { add(it) }
             s.startTime?.let { add(FMT.format(it)) }
@@ -136,7 +136,7 @@ class UltimateWorkoutExportActivity : AppCompatActivity() {
                             val file = withContext(Dispatchers.IO) { WorkoutExport.buildFile(applicationContext, s, format, device) }
                             busy = false
                             if (file == null) {
-                                toast("Este entreno no tiene datos para exportar")
+                                toast("This workout has no data to export")
                             } else {
                                 WorkoutExport.shareFile(this@UltimateWorkoutExportActivity, file, format, "Compartir entreno")
                                 finish()
@@ -149,7 +149,7 @@ class UltimateWorkoutExportActivity : AppCompatActivity() {
                             val file = withContext(Dispatchers.IO) { WorkoutExport.buildFile(applicationContext, s, format, device) }
                             busy = false
                             if (file == null) {
-                                toast("Este entreno no tiene datos para exportar")
+                                toast("This workout has no data to export")
                             } else {
                                 pendingSaveFile = file
                                 createDocument.launch(WorkoutExport.suggestedName(applicationContext, s, format))
@@ -218,7 +218,7 @@ private fun ExportSheet(
                 Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = palette.onSurfaceVariant)
             }
 
-            FormatRow(WorkoutExport.Format.GPX, "GPX", "Ruta y sensores", busy, onShare, onSave)
+            FormatRow(WorkoutExport.Format.GPX, "GPX", "Route and sensors", busy, onShare, onSave)
             FormatRow(WorkoutExport.Format.FIT, "FIT", "Garmin / Endurain", busy, onShare, onSave)
 
             if (busy) {
@@ -262,7 +262,7 @@ private fun FormatRow(
         }
         ActionButton(Icons.Filled.Share, "Compartir $label", palette.primaryContainer, palette.onPrimaryContainer, busy) { onShare(format) }
         Spacer(Modifier.width(10.dp))
-        ActionButton(Icons.Filled.SaveAlt, "Guardar $label", palette.secondaryContainer, palette.onSecondaryContainer, busy) { onSave(format) }
+        ActionButton(Icons.Filled.SaveAlt, "Save $label", palette.secondaryContainer, palette.onSecondaryContainer, busy) { onSave(format) }
     }
 }
 

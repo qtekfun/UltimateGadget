@@ -110,16 +110,16 @@ object XiaomiToken {
         }
         val auth = try {
             val code = conn.responseCode
-            if (code != 200) throw XiaomiException("serviceLogin (passToken) falló (HTTP $code).")
+            if (code != 200) throw XiaomiException("serviceLogin (passToken) failed (HTTP $code).")
             val json = parseXiaomiJson(readBody(conn))
             if (json.optInt("code", -1) != 0) {
-                val desc = json.optString("description").ifBlank { "código ${json.optInt("code", -1)}" }
-                throw XiaomiException("Sesión Xiaomi no válida: $desc. Vuelve a iniciar sesión.")
+                val desc = json.optString("description").ifBlank { "code ${json.optInt("code", -1)}" }
+                throw XiaomiException("Invalid Xiaomi session: $desc. Sign in again.")
             }
             val ssecurity = json.optString("ssecurity")
             val location = json.optString("location")
             if (ssecurity.isBlank() || location.isBlank()) {
-                throw XiaomiException("La sesión Xiaomi no devolvió ssecurity/location. Vuelve a iniciar sesión.")
+                throw XiaomiException("The Xiaomi session returned no ssecurity/location. Sign in again.")
             }
             Auth(
                 ssecurity = ssecurity,
@@ -161,13 +161,13 @@ object XiaomiToken {
         }
         try {
             val code = conn.responseCode
-            if (code != 200) throw XiaomiException("serviceLogin falló (HTTP $code).")
+            if (code != 200) throw XiaomiException("serviceLogin failed (HTTP $code).")
             val json = parseXiaomiJson(readBody(conn))
             val sign = json.optString("_sign")
             val qs = json.optString("qs")
             val callback = json.optString("callback")
             if (sign.isBlank() || qs.isBlank() || callback.isBlank()) {
-                throw XiaomiException("Respuesta de serviceLogin sin _sign/qs/callback.")
+                throw XiaomiException("serviceLogin response without _sign/qs/callback.")
             }
             return LoginPage(sign, qs, callback)
         } finally {
@@ -210,13 +210,13 @@ object XiaomiToken {
             conn.outputStream.use { it.write(body.toByteArray(Charsets.UTF_8)) }
             val json = parseXiaomiJson(readBody(conn))
             if (json.optInt("code", -1) != 0) {
-                val desc = json.optString("description").ifBlank { "código ${json.optInt("code", -1)}" }
-                throw XiaomiException("Login Xiaomi rechazado: $desc. Revisa email/contraseña (el 2FA/captcha no está soportado).")
+                val desc = json.optString("description").ifBlank { "code ${json.optInt("code", -1)}" }
+                throw XiaomiException("Xiaomi login rejected: $desc. Check the email/password (2FA/captcha is not supported).")
             }
             val ssecurity = json.optString("ssecurity")
             val location = json.optString("location")
             if (ssecurity.isBlank() || location.isBlank()) {
-                throw XiaomiException("Login Xiaomi sin ssecurity/location (¿la cuenta pide verificación extra?).")
+                throw XiaomiException("Xiaomi login without ssecurity/location (does the account require extra verification?).")
             }
             return Auth(
                 ssecurity = ssecurity,
@@ -238,7 +238,7 @@ object XiaomiToken {
         val startUrl = auth.location + "&clientSign=" + URLEncoder.encode(clientSign, "UTF-8")
         val jar = getFollowingRedirects(startUrl)
         return jar["serviceToken"]
-            ?: throw XiaomiException("No se obtuvo serviceToken de Xiaomi (login incompleto).")
+            ?: throw XiaomiException("No serviceToken obtained from Xiaomi (incomplete login).")
     }
 
     /** GET [startUrl] following redirects manually, carrying cookies forward, returning the jar. */
@@ -307,7 +307,7 @@ object XiaomiToken {
             conn.outputStream.use { it.write(form.toByteArray(Charsets.UTF_8)) }
             val code = conn.responseCode
             body = readBody(conn)
-            if (code !in 200..299) throw XiaomiException("Listado de dispositivos Xiaomi falló (HTTP $code).")
+            if (code !in 200..299) throw XiaomiException("Xiaomi device listing failed (HTTP $code).")
         } finally {
             conn.disconnect()
         }
@@ -335,7 +335,7 @@ object XiaomiToken {
             out += XiaomiDevice(name = name, mac = mac, authKey = authKey)
         }
         if (out.isEmpty()) {
-            throw XiaomiException("No se encontraron dispositivos con auth key en esta cuenta Xiaomi.")
+            throw XiaomiException("No devices with an auth key were found on this Xiaomi account.")
         }
         return out
     }

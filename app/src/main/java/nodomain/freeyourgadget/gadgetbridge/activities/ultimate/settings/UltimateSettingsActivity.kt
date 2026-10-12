@@ -411,7 +411,7 @@ private fun SelectRow(
             },
             confirmButton = {
                 TextButton(onClick = { dialogOpen = false }) {
-                    Text("Cancelar", color = palette.primary)
+                    Text("Cancel", color = palette.primary)
                 }
             },
         )

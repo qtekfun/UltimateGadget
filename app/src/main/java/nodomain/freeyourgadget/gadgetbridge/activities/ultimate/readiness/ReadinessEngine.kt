@@ -108,14 +108,14 @@ object ReadinessEngine {
         var s = (ratio * 100).toInt()
         i.sleepQuality?.let { q -> s = (s * (0.75 + 0.25 * (q / 100.0))).toInt() } // optional quality 0..100
         val src = if (i.sleepManual) " (manual)" else ""
-        return s.coerceIn(0, 100) to "%.1f h de %.0f h objetivo%s".format(hours, need, src)
+        return s.coerceIn(0, 100) to "%.1f h of %.0f h target%s".format(hours, need, src)
     }
 
     private fun loadScore(i: ReadinessInputs): Pair<Int, String>? {
         val acute = i.acuteLoad ?: return null
         val chronicWeek = i.chronicWeeklyLoad?.takeIf { it > 0.0 } ?: run {
             // No chronic history yet: neutral-ish based only on whether there was any load.
-            return 70 to "Carga reciente ${acute.toInt()} (sin histórico)"
+            return 70 to "Recent load ${acute.toInt()} (no history)"
         }
         val acwr = acute / chronicWeek
         // Sweet spot 0.8..1.3 -> 100; outside drops; big spikes penalised.
@@ -126,7 +126,7 @@ object ReadinessEngine {
             else -> max(20.0, 70 - (acwr - 1.5) * 80).toInt()      // strong spike
         }
         val manual = if (i.loadManual) " (incluye manual)" else ""
-        return s.coerceIn(0, 100) to "ACWR %.2f (agudo/%.0f crónico)%s".format(acwr, chronicWeek, manual)
+        return s.coerceIn(0, 100) to "ACWR %.2f (acute/%.0f chronic)%s".format(acwr, chronicWeek, manual)
     }
 
     /** Label for a 0..100 score. */

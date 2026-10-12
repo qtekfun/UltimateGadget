@@ -65,7 +65,7 @@ object Downloader {
             ?: throw IllegalStateException("Carpeta no accesible")
         tree.findFile(region.file)?.delete()
         val doc = tree.createFile("application/octet-stream", region.file)
-            ?: throw IllegalStateException("No se pudo crear el fichero")
+            ?: throw IllegalStateException("Could not create the file")
 
         val digest = MessageDigest.getInstance("SHA-256")
         var conn = open(region.url)
@@ -96,7 +96,7 @@ object Downloader {
             val got = digest.digest().joinToString("") { "%02x".format(it) }
             if (!got.equals(region.sha256, ignoreCase = true)) {
                 doc.delete()
-                throw IllegalStateException("La verificación SHA-256 falló")
+                throw IllegalStateException("SHA-256 verification failed")
             }
         }
     }
@@ -131,9 +131,9 @@ object Downloader {
             }
             if (region.sha256.isNotEmpty()) {
                 val got = digest.digest().joinToString("") { "%02x".format(it) }
-                check(got.equals(region.sha256, ignoreCase = true)) { "La verificación SHA-256 falló" }
+                check(got.equals(region.sha256, ignoreCase = true)) { "SHA-256 verification failed" }
             }
-            check(part.renameTo(dest)) { "No se pudo guardar el mapa" }
+            check(part.renameTo(dest)) { "Could not save the map" }
         } catch (e: Exception) {
             part.delete()
             throw e
@@ -165,9 +165,9 @@ object Downloader {
             if (code in 300..399) {
                 val loc = c.getHeaderField("Location")
                 c.disconnect()
-                requireNotNull(loc) { "Redirección sin destino" }
+                requireNotNull(loc) { "Redirect with no target" }
                 current = if (loc.startsWith("http")) loc else URL(URL(current), loc).toString()
-                require(current.startsWith("https://")) { "Redirección no segura" }
+                require(current.startsWith("https://")) { "Insecure redirect" }
                 return@repeat
             }
             if (code !in 200..299) {

@@ -64,7 +64,7 @@ class SampleHealthRepository : HealthRepository {
             factors = listOf(
                 ReadinessFactor(ReadinessFactorId.HRV, 82, 0.30, "rMSSD 58 ms vs media 7d 54 ms"),
                 ReadinessFactor(ReadinessFactorId.RHR, 74, 0.20, "FC reposo 56 vs media 7d 58"),
-                ReadinessFactor(ReadinessFactorId.SLEEP, 90, 0.30, "7,2 h de 8 h objetivo"),
+                ReadinessFactor(ReadinessFactorId.SLEEP, 90, 0.30, "7.2 h of 8 h target"),
                 ReadinessFactor(ReadinessFactorId.LOAD, 65, 0.20, "ACWR 1,35 (ligero pico)"),
             ),
             confidence = 100,

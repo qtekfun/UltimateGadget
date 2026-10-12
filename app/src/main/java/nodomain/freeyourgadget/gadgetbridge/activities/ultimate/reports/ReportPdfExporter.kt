@@ -139,7 +139,7 @@ object ReportPdfExporter {
 
         val sub = paint(MUTED, 10.5f)
         val generated = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US).format(Date())
-        c.drawText("Generado el $generated · ${summary.daysWithData} días con datos", left, y, sub)
+        c.drawText("Generated on $generated · ${summary.daysWithData} days with data", left, y, sub)
         y += 16f
 
         hairline(c, left, right, y)
@@ -153,7 +153,7 @@ object ReportPdfExporter {
         if (summary.points.isNotEmpty()) {
             val label = paint(ACCENT, 12f, bold = true, letterSpacing = 0.04f)
             val chartHeading = if (summary.period == ReportPeriod.WEEK)
-                "Pasos por día" else "Pasos (media diaria por semana)"
+                "Steps per day" else "Pasos (media diaria por semana)"
             c.drawText(chartHeading.uppercase(Locale.US), left, y, label)
             y += 16f
             drawStepsChart(c, left, right, y, summary)
@@ -178,13 +178,13 @@ object ReportPdfExporter {
         val rhr = if (s.avgRestingHr > 0) "${s.avgRestingHr} bpm" else "—"
         return listOf(
             "Periodo" to periodLabel,
-            "Pasos (media / día)" to String.format(Locale.US, "%,d", s.avgSteps),
+            "Steps (average / day)" to String.format(Locale.US, "%,d", s.avgSteps),
             "Pasos (total)" to String.format(Locale.US, "%,d", s.totalSteps),
             "Distancia total" to distance,
-            "Sueño medio" to sleep,
+            "Average sleep" to sleep,
             "FC en reposo (media)" to rhr,
-            "Entrenos" to s.workoutCount.toString(),
-            "Días con meta" to "${s.goalDays} / ${s.daysWithData}",
+            "Workouts" to s.workoutCount.toString(),
+            "Days on goal" to "${s.goalDays} / ${s.daysWithData}",
         )
     }
 

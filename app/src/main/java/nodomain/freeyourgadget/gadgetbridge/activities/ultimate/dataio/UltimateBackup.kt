@@ -181,7 +181,7 @@ object UltimateBackup {
             }
         }
 
-        val db = dbBytes ?: throw IOException("La copia no contiene base de datos (db/Gadgetbridge)")
+        val db = dbBytes ?: throw IOException("The backup contains no database (db/Gadgetbridge)")
 
         // The default preferences file is named after the package, so a backup taken in another
         // flavor (e.g. mainline -> play) would otherwise land in a file this install never reads.
@@ -262,7 +262,7 @@ object UltimateBackup {
             val n = zis.read(buf)
             if (n < 0) break
             total += n
-            if (total > MAX_ENTRY_BYTES) throw IOException("Entrada de copia demasiado grande")
+            if (total > MAX_ENTRY_BYTES) throw IOException("Backup entry too large")
             out.write(buf, 0, n)
         }
         return out.toByteArray()

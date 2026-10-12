@@ -47,7 +47,7 @@ class UltimateAddDeviceActivity : AppCompatActivity() {
             if (granted) {
                 launchDiscovery()
             } else {
-                Toast.makeText(this, "Permisos necesarios para buscar dispositivos", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Permissions needed to scan for devices", Toast.LENGTH_SHORT).show()
             }
         }
 

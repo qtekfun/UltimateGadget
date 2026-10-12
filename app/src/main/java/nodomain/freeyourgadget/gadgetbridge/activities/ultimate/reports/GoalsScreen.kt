@@ -250,10 +250,10 @@ private fun StepGoalDialog(current: Int, onDismiss: () -> Unit, onConfirm: (Int)
         },
         confirmButton = {
             TextButton(onClick = { onConfirm(text.toIntOrNull()?.coerceIn(1, 100000) ?: current) }) {
-                Text("Guardar")
+                Text("Save")
             }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
     )
 }
 

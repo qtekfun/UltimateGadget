@@ -372,7 +372,7 @@ private fun RulesScreen(onBack: () -> Unit) {
 
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         TimeField(
-                            label = "Inicio",
+                            label = "Home",
                             value = NotificationRulesStore.formatMinutes(rule.startMinutes),
                             enabled = rule.enabled,
                             modifier = Modifier.weight(1f),
@@ -483,11 +483,11 @@ private fun TimePickerDialog(
         containerColor = palette.surfaceContainer,
         confirmButton = {
             TextButton(onClick = { onConfirm(state.hour * 60 + state.minute) }) {
-                Text("Aceptar", color = palette.primary)
+                Text("OK", color = palette.primary)
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancelar", color = palette.onSurfaceVariant) }
+            TextButton(onClick = onDismiss) { Text("Cancel", color = palette.onSurfaceVariant) }
         },
         text = {
             Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
