@@ -315,7 +315,7 @@ private fun MusicScreen(device: GBDevice, onBack: () -> Unit) {
         containerColor = palette.background,
         topBar = {
             TopAppBar(
-                title = { Text("Música") },
+                title = { Text("Music") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
@@ -390,9 +390,9 @@ private fun MusicScreen(device: GBDevice, onBack: () -> Unit) {
         AlertDialog(
             containerColor = palette.surfaceContainer,
             onDismissRequest = { pendingDelete = null },
-            title = { Text("Borrar pista", color = palette.onSurface) },
+            title = { Text("Delete track", color = palette.onSurface) },
             text = {
-                Text("¿Borrar \"${toDelete.title}\" del reloj?", color = palette.onSurfaceVariant)
+                Text("Delete \"${toDelete.title}\" from the watch?", color = palette.onSurfaceVariant)
             },
             confirmButton = {
                 TextButton(onClick = {
@@ -400,11 +400,11 @@ private fun MusicScreen(device: GBDevice, onBack: () -> Unit) {
                     service().onMusicOperation(4, 0, null, arrayListOf(toDelete.id))
                     loading = true
                     pendingDelete = null
-                }) { Text("Borrar", color = palette.error) }
+                }) { Text("Delete", color = palette.error) }
             },
             dismissButton = {
                 TextButton(onClick = { pendingDelete = null }) {
-                    Text("Cancelar", color = palette.onSurfaceVariant)
+                    Text("Cancel", color = palette.onSurfaceVariant)
                 }
             },
         )
@@ -412,9 +412,9 @@ private fun MusicScreen(device: GBDevice, onBack: () -> Unit) {
 
     if (showCreatePlaylist) {
         PlaylistNameDialog(
-            title = "Nueva lista",
+            title = "New playlist",
             initialName = "",
-            confirmLabel = "Crear",
+            confirmLabel = "Create",
             onDismiss = { showCreatePlaylist = false },
             onConfirm = { name ->
                 // operation 0 = create playlist, playlistId -1 = new.
@@ -428,9 +428,9 @@ private fun MusicScreen(device: GBDevice, onBack: () -> Unit) {
     val toRename = renameTarget
     if (toRename != null) {
         PlaylistNameDialog(
-            title = "Renombrar lista",
+            title = "Rename playlist",
             initialName = toRename.name ?: "",
-            confirmLabel = "Guardar",
+            confirmLabel = "Save",
             onDismiss = { renameTarget = null },
             onConfirm = { name ->
                 // operation 2 = rename playlist.
@@ -446,10 +446,10 @@ private fun MusicScreen(device: GBDevice, onBack: () -> Unit) {
         AlertDialog(
             containerColor = palette.surfaceContainer,
             onDismissRequest = { deletePlaylistTarget = null },
-            title = { Text("Borrar lista", color = palette.onSurface) },
+            title = { Text("Delete playlist", color = palette.onSurface) },
             text = {
                 Text(
-                    "¿Borrar la lista \"${toDeletePlaylist.name}\"? Las pistas seguirán en el reloj.",
+                    "Delete the playlist \"${toDeletePlaylist.name}\"? The tracks will stay on the watch.",
                     color = palette.onSurfaceVariant,
                 )
             },
@@ -459,11 +459,11 @@ private fun MusicScreen(device: GBDevice, onBack: () -> Unit) {
                     service().onMusicOperation(1, toDeletePlaylist.id, null, null)
                     loading = true
                     deletePlaylistTarget = null
-                }) { Text("Borrar", color = palette.error) }
+                }) { Text("Delete", color = palette.error) }
             },
             dismissButton = {
                 TextButton(onClick = { deletePlaylistTarget = null }) {
-                    Text("Cancelar", color = palette.onSurfaceVariant)
+                    Text("Cancel", color = palette.onSurfaceVariant)
                 }
             },
         )
@@ -507,8 +507,8 @@ private fun TracksTab(
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         Text(
-            "Música guardada en el reloj. Sube pistas desde un fichero de audio del móvil o bórralas. " +
-                "Todo en local: sin tienda online ni Huawei Health.",
+            "Music stored on the watch. Upload tracks from a phone audio file or delete them. " +
+                "All local: no online store or Huawei Health.",
             style = MaterialTheme.typography.bodyMedium,
             color = palette.onSurfaceVariant,
         )
@@ -517,7 +517,7 @@ private fun TracksTab(
 
         Button(onClick = onAdd) {
             Icon(Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(18.dp))
-            Text("  Añadir música")
+            Text("  Add music")
         }
 
         Text("EN EL RELOJ", style = SectionLabelStyle, color = palette.onSurfaceVariant)
@@ -531,7 +531,7 @@ private fun TracksTab(
 
             tracks.isEmpty() -> {
                 Text(
-                    "No hay pistas. Conecta el reloj y pulsa actualizar, o añade música desde un fichero.",
+                    "No tracks. Connect the watch and tap refresh, or add music from a file.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = palette.onSurfaceVariant,
                 )
@@ -568,7 +568,7 @@ private fun PlaylistsTab(
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         Text(
-            "Listas de reproducción guardadas en el reloj. Crea listas y añade o quita pistas de las " +
+            "Playlists stored on the watch. Create playlists and add or remove tracks from the " +
                 "que ya has subido. Todo en local.",
             style = MaterialTheme.typography.bodyMedium,
             color = palette.onSurfaceVariant,
@@ -577,10 +577,10 @@ private fun PlaylistsTab(
         val canCreate = playlists.size < maxPlaylistCount
         Button(onClick = onCreate, enabled = canCreate) {
             Icon(Icons.AutoMirrored.Filled.PlaylistAdd, contentDescription = null, modifier = Modifier.size(18.dp))
-            Text("  Crear lista")
+            Text("  Create playlist")
         }
 
-        val countLabel = "${playlists.size} / $maxPlaylistCount listas"
+        val countLabel = "${playlists.size} / $maxPlaylistCount playlists"
         Text(countLabel, style = MaterialTheme.typography.bodySmall, color = palette.onSurfaceVariant)
 
         Text("EN EL RELOJ", style = SectionLabelStyle, color = palette.onSurfaceVariant)
@@ -594,7 +594,7 @@ private fun PlaylistsTab(
 
             playlists.isEmpty() -> {
                 Text(
-                    "No hay listas. Crea una con el botón de arriba.",
+                    "No playlists. Create one with the button above.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = palette.onSurfaceVariant,
                 )
@@ -641,7 +641,7 @@ private fun StorageCard(deviceInfo: String?, trackCount: Int, maxMusicCount: Int
                     style = MaterialTheme.typography.titleSmall,
                     color = palette.onSurface,
                 )
-                val capacity = if (maxMusicCount > 0) "$trackCount / $maxMusicCount pistas" else "$trackCount pistas"
+                val capacity = if (maxMusicCount > 0) "$trackCount / $maxMusicCount tracks" else "$trackCount tracks"
                 Text(
                     capacity,
                     style = MaterialTheme.typography.bodyMedium,
@@ -685,7 +685,7 @@ private fun TrackCard(
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 val primaryLabel = (track.title ?: "").ifBlank { track.fileName ?: "" }
                 Text(
-                    primaryLabel.ifBlank { "(sin título)" },
+                    primaryLabel.ifBlank { "(untitled)" },
                     style = MaterialTheme.typography.titleMedium,
                     color = palette.onSurface,
                     maxLines = 1,
@@ -710,7 +710,7 @@ private fun TrackCard(
             }
             if (deleteSupported) {
                 IconButton(onClick = onDelete) {
-                    Icon(Icons.Filled.Delete, contentDescription = "Borrar", tint = palette.error)
+                    Icon(Icons.Filled.Delete, contentDescription = "Delete", tint = palette.error)
                 }
             } else {
                 Spacer(Modifier.width(48.dp))
@@ -753,19 +753,19 @@ private fun PlaylistCard(
                 )
                 val count = playlist.trackIds().size
                 Text(
-                    if (count == 1) "1 pista" else "$count pistas",
+                    if (count == 1) "1 track" else "$count tracks",
                     style = MaterialTheme.typography.bodySmall,
                     color = palette.onSurfaceVariant,
                 )
             }
             IconButton(onClick = onEdit) {
-                Icon(Icons.AutoMirrored.Filled.PlaylistAdd, contentDescription = "Editar pistas", tint = palette.primary)
+                Icon(Icons.AutoMirrored.Filled.PlaylistAdd, contentDescription = "Edit tracks", tint = palette.primary)
             }
             IconButton(onClick = onRename) {
-                Icon(Icons.Filled.Edit, contentDescription = "Renombrar", tint = palette.onSurfaceVariant)
+                Icon(Icons.Filled.Edit, contentDescription = "Rename", tint = palette.onSurfaceVariant)
             }
             IconButton(onClick = onDelete) {
-                Icon(Icons.Filled.Delete, contentDescription = "Borrar", tint = palette.error)
+                Icon(Icons.Filled.Delete, contentDescription = "Delete", tint = palette.error)
             }
         }
     }
@@ -811,7 +811,7 @@ private fun PlaylistNameDialog(
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancelar", color = palette.onSurfaceVariant)
+                Text("Cancel", color = palette.onSurfaceVariant)
             }
         },
     )
@@ -831,11 +831,11 @@ private fun PlaylistContentDialog(
     AlertDialog(
         containerColor = palette.surfaceContainer,
         onDismissRequest = onDismiss,
-        title = { Text("Editar \"${playlist.name}\"", color = palette.onSurface) },
+        title = { Text("Edit \"${playlist.name}\"", color = palette.onSurface) },
         text = {
             if (allTracks.isEmpty()) {
                 Text(
-                    "No hay pistas subidas al reloj. Añade música desde la pestaña Pistas primero.",
+                    "No tracks uploaded to the watch. Add music from the Tracks tab first.",
                     color = palette.onSurfaceVariant,
                 )
             } else {
@@ -864,7 +864,7 @@ private fun PlaylistContentDialog(
                             Column(Modifier.weight(1f)) {
                                 val label = (track.title ?: "").ifBlank { track.fileName ?: "" }
                                 Text(
-                                    label.ifBlank { "(sin título)" },
+                                    label.ifBlank { "(untitled)" },
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = palette.onSurface,
                                     maxLines = 1,
@@ -890,11 +890,11 @@ private fun PlaylistContentDialog(
                 val added = (selected - original).toList()
                 val removed = (original - selected).toList()
                 onConfirm(added, removed)
-            }) { Text("Guardar", color = palette.primary) }
+            }) { Text("Save", color = palette.primary) }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancelar", color = palette.onSurfaceVariant)
+                Text("Cancel", color = palette.onSurfaceVariant)
             }
         },
     )

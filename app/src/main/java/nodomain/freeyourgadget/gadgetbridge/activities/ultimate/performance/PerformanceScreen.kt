@@ -68,10 +68,10 @@ fun PerformanceScreen(state: PerformanceUiState, onBack: () -> Unit) {
         containerColor = scheme.background,
         topBar = {
             TopAppBar(
-                title = { Text("Rendimiento", fontWeight = FontWeight.Bold) },
+                title = { Text("Performance", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -109,7 +109,7 @@ fun PerformanceScreen(state: PerformanceUiState, onBack: () -> Unit) {
 @Composable
 private fun PaiCard(pai: PaiData?) {
     val scheme = MaterialTheme.colorScheme
-    if (pai == null) { NoDataCard("PAI", "Sin frecuencia cardíaca suficiente en los últimos 7 días.") ; return }
+    if (pai == null) { NoDataCard("PAI", "Not enough heart-rate data in the last 7 days.") ; return }
     val color = when {
         pai.total >= 100 -> scheme.secondary
         pai.total >= 50 -> scheme.tertiary
@@ -117,7 +117,7 @@ private fun PaiCard(pai: PaiData?) {
     }
     DashboardCard {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            SectionLabel("PAI · 7 días")
+            SectionLabel("PAI · 7 days")
             Text("objetivo 100", style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
         }
         Spacer(Modifier.height(10.dp))
@@ -142,8 +142,8 @@ private fun PaiCard(pai: PaiData?) {
         )
         Spacer(Modifier.height(10.dp))
         Explain(
-            "Modelo tipo HUNT: acumula puntos por los minutos con la FC elevada (zona moderada 59–76 % " +
-                "de la FCmáx, vigorosa ≥76 %) durante los últimos 7 días. Mantener ~100 PAI/semana es el objetivo.",
+            "HUNT-style model: accrues points for minutes with elevated HR (moderate zone 59–76% " +
+                "of HRmax, vigorous ≥76%) over the last 7 days. Keeping ~100 PAI/week is the target.",
         )
     }
 }
@@ -164,7 +164,7 @@ private fun ZoneRow(label: String, value: String, dot: Color) {
 @Composable
 private fun TrainingLoadCard(load: TrainingLoadData?) {
     val scheme = MaterialTheme.colorScheme
-    if (load == null) { NoDataCard("Carga de entrenamiento", "Sin entrenos registrados en los últimos 28 días.") ; return }
+    if (load == null) { NoDataCard("Training load", "No workouts recorded in the last 28 days.") ; return }
     val acwr = load.acwr
     val acwrColor = when {
         acwr == null -> scheme.onSurface
@@ -175,16 +175,16 @@ private fun TrainingLoadCard(load: TrainingLoadData?) {
     }
     DashboardCard {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            SectionLabel("Carga de entrenamiento")
+            SectionLabel("Training load")
             Text(
-                if (load.usedHeartRate) "TRIMP" else "estimada (sin FC)",
+                if (load.usedHeartRate) "TRIMP" else "estimated (no HR)",
                 style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant,
             )
         }
         Spacer(Modifier.height(10.dp))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Metric("Aguda · 7d", "${load.acute}", scheme.onSurface)
-            Metric("Crónica · sem", "${load.chronic}", scheme.onSurface)
+            Metric("Chronic · wk", "${load.chronic}", scheme.onSurface)
             Metric("ACWR", acwr?.let { String.format(Locale.US, "%.2f", it) } ?: "—", acwrColor)
         }
         Spacer(Modifier.height(12.dp))
@@ -194,14 +194,14 @@ private fun TrainingLoadCard(load: TrainingLoadData?) {
         )
         Spacer(Modifier.height(6.dp))
         Text(
-            "${load.workoutsCounted} entrenos · últimos 28 días",
+            "${load.workoutsCounted} workouts · last 28 days",
             style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant,
         )
         Spacer(Modifier.height(10.dp))
         Explain(
-            "TRIMP de Banister por entreno (duración × reserva de FC, ponderada exponencialmente). La " +
-                "carga aguda (7 días) frente a la crónica (media semanal de 28 días) da el ACWR: " +
-                "0,8–1,3 es la zona recomendada; por encima de 1,5 el riesgo de lesión sube.",
+            "Banister TRIMP per workout (duration × HR reserve, exponentially weighted). The " +
+                "acute load (7 days) against the chronic load (28-day weekly average) gives the ACWR: " +
+                "0.8–1.3 is the recommended zone; above 1.5 the injury risk rises.",
         )
     }
 }
@@ -211,7 +211,7 @@ private fun TrainingLoadCard(load: TrainingLoadData?) {
 @Composable
 private fun Vo2MaxCard(vo2: Vo2MaxData?) {
     val scheme = MaterialTheme.colorScheme
-    if (vo2 == null) { NoDataCard("VO2max", "Hace falta FC en reposo o una carrera reciente con distancia.") ; return }
+    if (vo2 == null) { NoDataCard("VO2max", "Needs resting HR or a recent run with distance.") ; return }
     DashboardCard {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             SectionLabel("VO2max")
@@ -229,10 +229,10 @@ private fun Vo2MaxCard(vo2: Vo2MaxData?) {
         Explain(
             when (vo2.method) {
                 Vo2Method.RUNNING_VDOT ->
-                    "Estimado con el VDOT de Jack Daniels a partir de una carrera reciente (velocidad y duración)."
+                    "Estimated with Jack Daniels' VDOT from a recent run (speed and duration)."
                 Vo2Method.HR_RATIO ->
-                    "Estimado con el ratio de FC de Uth–Sørensen: 15,3 × FCmáx / FCreposo. Es una aproximación, " +
-                        "no una medida de laboratorio."
+                    "Estimated with the Uth–Sørensen HR ratio: 15.3 × HRmax / HRrest. It is an approximation, " +
+                        "not a lab measurement."
             },
         )
     }
@@ -244,7 +244,7 @@ private fun Vo2MaxCard(vo2: Vo2MaxData?) {
 private fun HrvCard(hrv: HrvData?) {
     val scheme = MaterialTheme.colorScheme
     if (hrv == null) {
-        NoDataCard("HRV (rMSSD)", "El dispositivo no ha sincronizado datos de variabilidad de la FC.")
+        NoDataCard("HRV (rMSSD)", "The device has not synced heart-rate variability data.")
         return
     }
     DashboardCard {
@@ -269,7 +269,7 @@ private fun HrvCard(hrv: HrvData?) {
             )
         }
         Spacer(Modifier.height(10.dp))
-        Explain("Valores leídos directamente del dispositivo; no se calcula ninguna estimación propia.")
+        Explain("Values read straight from the device; no estimation of our own is computed.")
     }
 }
 
@@ -279,15 +279,15 @@ private fun HrvCard(hrv: HrvData?) {
 private fun MethodNote(d: PerformanceData) {
     val scheme = MaterialTheme.colorScheme
     DashboardCard {
-        SectionLabel("Cómo se calcula")
+        SectionLabel("How it is calculated")
         Spacer(Modifier.height(8.dp))
         Text(
             buildString {
-                append("Todo se calcula en el teléfono desde la base de datos de Gadgetbridge, sin red. ")
-                if (d.age > 0) append("FCmáx estimada ${d.hrMax} lpm (220 − ${d.age}). ")
-                else append("FCmáx estimada ${d.hrMax} lpm (edad sin configurar; ajústala en el perfil). ")
-                d.restingHr?.let { append("FC en reposo de referencia $it lpm.") }
-                    ?: append("Sin FC en reposo registrada: algunas métricas usan una aproximación.")
+                append("Everything is computed on the phone from the Gadgetbridge database, offline. ")
+                if (d.age > 0) append("Estimated HRmax ${d.hrMax} bpm (220 − ${d.age}). ")
+                else append("Estimated HRmax ${d.hrMax} bpm (age not set; adjust it in the profile). ")
+                d.restingHr?.let { append("Reference resting HR $it bpm.") }
+                    ?: append("No resting HR recorded: some metrics use an approximation.")
             },
             style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant,
         )
@@ -330,9 +330,9 @@ private fun LoadingCard() {
 @Composable
 private fun EmptyCard() {
     DashboardCard {
-        Text("Sin dispositivo con datos", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text("No device with data", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(Modifier.height(6.dp))
-        Text("Conecta y sincroniza el reloj para ver tu rendimiento.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text("Connect and sync the watch to see your performance.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
