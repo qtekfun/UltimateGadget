@@ -2,6 +2,11 @@
 
 <!-- For contributors: do not modify this file - the project maintainers will update it as needed -->
 
+#### 0.115.5
+
+* Clave Bluetooth del reloj: el inicio de sesión de **Amazfit / Zepp y Xiaomi** se abre ahora en la **página oficial del fabricante** dentro de la app, así que funcionan la **verificación en dos pasos, el OTP y el captcha** (el login directo con correo y contraseña ya no servía con esas cuentas). La clave se lee de la sesión; no se escribe ni se guarda ningún correo ni contraseña. Sin validar en una cuenta real con OTP todavía
+* La entrada de ajustes pasa a llamarse **"Clave Bluetooth (Amazfit / Zepp / Xiaomi)"**
+
 #### 0.115.4
 
 * Apagar el dispositivo: la pantalla del dispositivo muestra ahora **"Apagar"** siempre que el reloj/anillo lo soporte (todos los anillos Colmi/Yawell y cualquier otro que lo permita). Antes la opción existía en el núcleo pero no se ofrecía en la interfaz nueva
