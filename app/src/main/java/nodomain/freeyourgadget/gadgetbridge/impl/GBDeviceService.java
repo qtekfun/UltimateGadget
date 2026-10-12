@@ -133,6 +133,13 @@ public class GBDeviceService implements DeviceService {
     }
 
     @Override
+    public void connectAutomatically() {
+        Intent intent = createIntent().setAction(ACTION_CONNECT)
+                .putExtra(EXTRA_CONNECT_AUTOMATIC, true);
+        invokeService(intent);
+    }
+
+    @Override
     public void disconnect() {
         Intent intent = createIntent().setAction(ACTION_DISCONNECT);
         invokeService(intent);

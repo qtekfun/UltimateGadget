@@ -97,6 +97,8 @@ public class BluetoothConnectReceiver extends BroadcastReceiver {
         final GBDevice.State state = gbDevice.getState();
         if (state == WAITING_FOR_RECONNECT || state == WAITING_FOR_SCAN) {
             LOG.debug("re-connecting to observed device due to state {}", state);
+            GBApplication.deviceService(gbDevice).connectAutomatically();
+            return;
         } else {
             final SharedPreferences pref = GBApplication.getDeviceSpecificSharedPrefs(address);
             if (pref == null) {
