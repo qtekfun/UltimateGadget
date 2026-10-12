@@ -2,6 +2,12 @@
 
 <!-- For contributors: do not modify this file - the project maintainers will update it as needed -->
 
+#### 0.115.3
+
+* Conexión: **un solo reloj a la vez**. La reconexión automática (arranque, reintentos, escaneo, app abierta) solo apunta al **último reloj usado** y no se busca ninguno mientras otro está conectando o conectado. Al conectarse un reloj se cancelan las búsquedas de los demás; conectar otro a mano toma el control y desconecta el actual
+* Pasos: la tarjeta de Inicio y el panel de pasos **suman los pasos y la distancia de todos los relojes** del día (uno por la mañana y otro por la tarde). Se fusionan por minuto para no contar doble si se llevan dos a la vez
+* A-GNSS: añadida la obtención del paquete de efemérides de Amazfit/Zepp OS desde la cuenta Huami en la app compañera de mapas (sin validar en un reloj real)
+
 #### 0.115.2
 
 * Copia de seguridad: restaurar en **UltimateGadget Play** una copia hecha con la app normal (o al revés) ya recupera los **ajustes de la app**; antes solo entraba la base de datos porque el fichero de ajustes llevaba el nombre del otro paquete
