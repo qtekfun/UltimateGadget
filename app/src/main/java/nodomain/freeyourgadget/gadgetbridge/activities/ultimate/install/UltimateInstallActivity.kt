@@ -81,23 +81,23 @@ import nodomain.freeyourgadget.gadgetbridge.util.kotlin.getParcelableCompat
 import org.slf4j.LoggerFactory
 
 /**
- * Pantalla de progreso de instalación/transferencia en estética Ultimate.
+ * Install/transfer progress screen in the Ultimate look.
  *
- * Sustituye, para los flujos lanzados desde la UI nueva, a
+ * For flows launched from the new UI, it replaces
  * [nodomain.freeyourgadget.gadgetbridge.activities.install.FwAppInstallerActivity] (firmware,
- * apps, watchfaces, música) y a
+ * apps, watchfaces, music) and
  * [nodomain.freeyourgadget.gadgetbridge.activities.install.GpxRouteInstallerActivity] (rutas GPX).
  *
- * No reinventa la instalación: reutiliza exactamente el mismo protocolo que las pantallas viejas.
- *  - Valida con el install handler del coordinator: `coordinator.findInstallHandler(uri, options, ctx)`.
- *  - Instala con `GBApplication.deviceService(device).onInstallApp(uri, options)`.
- *  - Escucha el progreso por los broadcasts de GB:
+ * It does not reinvent installation: it reuses exactly the same protocol as the old screens.
+ *  - Validates with the coordinator's install handler: `coordinator.findInstallHandler(uri, options, ctx)`.
+ *  - Installs with `GBApplication.deviceService(device).onInstallApp(uri, options)`.
+ *  - Listens to progress via GB's broadcasts:
  *    ACTION_SET_PROGRESS_BAR / ACTION_SET_PROGRESS_TEXT / ACTION_SET_INFO_TEXT /
  *    ACTION_DISPLAY_MESSAGE / ACTION_SET_FINISHED y GBDevice.ACTION_DEVICE_CHANGED.
  *
- * Para rutas GPX muestra, además, el campo de nombre de la pista y (si el handler lo soporta,
- * p.ej. Garmin) los interruptores de navegación giro a giro; el bundle con
- * [GpxRouteInstallHandler.EXTRA_TRACK_NAME] / navegación se construye aquí al pulsar instalar.
+ * For GPX routes it also shows the track-name field and (if the handler supports it,
+ * e.g. Garmin) the turn-by-turn navigation switches; the bundle with
+ * [GpxRouteInstallHandler.EXTRA_TRACK_NAME] / navigation is built here when install is tapped.
  */
 class UltimateInstallActivity : AppCompatActivity(), InstallActivity {
 
@@ -331,10 +331,10 @@ class UltimateInstallActivity : AppCompatActivity(), InstallActivity {
         private val LOG = LoggerFactory.getLogger(UltimateInstallActivity::class.java)
 
         /**
-         * Intent genérico para instalar/transferir un fichero (firmware, app, watchface, música,
-         * ruta GPX…). Replica los extras que esperan las pantallas viejas:
-         * [GBDevice.EXTRA_DEVICE], el [uri] como `data` y, opcionalmente,
-         * [DeviceService.EXTRA_OPTIONS]. Añade el permiso de lectura del uri.
+         * Generic intent to install/transfer a file (firmware, app, watchface, music,
+         * GPX route…). Replicates the extras the old screens expect:
+         * [GBDevice.EXTRA_DEVICE], the [uri] as `data` and, optionally,
+         * [DeviceService.EXTRA_OPTIONS]. Adds the uri read permission.
          */
         @JvmStatic
         @JvmOverloads
@@ -348,7 +348,7 @@ class UltimateInstallActivity : AppCompatActivity(), InstallActivity {
     }
 }
 
-/** State de Compose respaldado por snapshots; lo mutan el receiver y los callbacks de InstallActivity. */
+/** Compose state backed by snapshots; mutated by the receiver and InstallActivity callbacks. */
 private class InstallUiState {
     var infoText by mutableStateOf("")
     var itemName by mutableStateOf<String?>(null)
@@ -446,7 +446,7 @@ private fun InstallScreen(
                 Text(ui.infoText, style = MaterialTheme.typography.bodyMedium, color = palette.onSurfaceVariant)
             }
 
-            // Campos específicos de ruta GPX
+            // GPX-route-specific fields
             if (ui.isGpx && ui.installEnabled) {
                 OutlinedTextField(
                     value = ui.trackName,
@@ -470,7 +470,7 @@ private fun InstallScreen(
                 }
             }
 
-            // Confirmación opcional (algunos firmware la exigen)
+            // Optional confirmation (some firmware requires it)
             ui.confirmationText?.let { text ->
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(checked = ui.confirmationChecked, onCheckedChange = onConfirmationToggle)

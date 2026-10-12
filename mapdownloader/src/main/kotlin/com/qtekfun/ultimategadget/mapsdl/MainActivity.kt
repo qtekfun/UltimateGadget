@@ -270,7 +270,7 @@ private fun MapsScreen(folder: Uri?, onPick: () -> Unit, onBack: () -> Unit) {
                 SectionLabel("INSTALADOS")
                 installed.forEach { f ->
                     ItemCard(f.name ?: "", fmt(f.length())) {
-                        OutlinedButton(onClick = { f.delete(); refreshInstalled() }) { Text("Borrar") }
+                        OutlinedButton(onClick = { f.delete(); refreshInstalled() }) { Text("Delete") }
                     }
                 }
             }

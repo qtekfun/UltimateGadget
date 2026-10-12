@@ -140,7 +140,7 @@ data class HeroStats(
 )
 
 /** One action tile in the device detail screen. [section] groups rows under a header (commercial-app
- * style: Conexión / Reloj / Mapas y navegación / Dispositivo). Sections render in first-seen order. */
+ * style: Connection / Watch / Maps and navigation / Device). Sections render in first-seen order. */
 data class DeviceOptionUi(
     val id: String,
     val title: String,

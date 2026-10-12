@@ -1,51 +1,51 @@
-# Ajustes: coherencia estética — HECHO
+# Settings: visual consistency — DONE
 
-Implementado: estilo `UltimateSettingsThemeDark` (+ `UltimateSettingsThemeDarkNoActionBar`) con los
-acentos de marca, aplicado SOLO a las pantallas de ajustes (subclases de `AbstractSettingsActivityV2`)
-en modo oscuro, mediante un special-case en `AbstractGBActivity.init(...)`. El resto de pantallas
-conserva su tema. Pendiente opcional: variante AMOLED (ahora usan el fondo #0F1115) y modo claro.
+Implemented: the `UltimateSettingsThemeDark` style (+ `UltimateSettingsThemeDarkNoActionBar`) with the
+brand accents, applied ONLY to the settings screens (subclasses of `AbstractSettingsActivityV2`)
+in dark mode, via a special case in `AbstractGBActivity.init(...)`. The rest of the screens
+keep their theme. Optional pending: an AMOLED variant (they currently use the #0F1115 background) and light mode.
 
 ---
 
-# Ajustes: coherencia estética (TODO)
+# Settings: visual consistency (TODO)
 
-Estado: **pendiente, por riesgo**. Explicación y camino seguro para hacerlo bien.
+Status: **pending, because of risk.** Explanation and a safe path to do it right.
 
-## Por qué no se forzó ya
-Las pantallas de preferencias (`SettingsActivity`, `DeviceSettingsActivity`) extienden
-`AbstractSettingsActivityV2` → `AbstractGBActivity`, que **fija el tema por código** en
-`setLanguage()` con `activity.setTheme(R.style.GadgetbridgeTheme...)` según la preferencia de
-tema del usuario (claro/oscuro/dinámico/amoled). Por eso un `android:theme` en el manifest para
-esas activities **se sobreescribe** y no tiene efecto. Cambiar el tema global
-(`GadgetbridgeThemeDark`) sí afecta a TODAS las pantallas clásicas, no solo a los ajustes, así que
-no cumple "solo esas pantallas sin romper el resto".
+## Why it was not forced already
+The preference screens (`SettingsActivity`, `DeviceSettingsActivity`) extend
+`AbstractSettingsActivityV2` → `AbstractGBActivity`, which **sets the theme in code** in
+`setLanguage()` with `activity.setTheme(R.style.GadgetbridgeTheme...)` according to the user's theme
+preference (light/dark/dynamic/amoled). That is why an `android:theme` in the manifest for
+those activities is **overridden** and has no effect. Changing the global theme
+(`GadgetbridgeThemeDark`) does affect ALL the classic screens, not just settings, so it
+does not meet "only those screens without breaking the rest".
 
-## Camino seguro propuesto (cambio pequeño y acotado)
-1. Añadir en `res/values/styles.xml` un tema derivado del oscuro de Gadgetbridge con los acentos de
-   marca, p.ej.:
+## Proposed safe path (small, scoped change)
+1. Add to `res/values/styles.xml` a theme derived from Gadgetbridge's dark one with the brand
+   accents, e.g.:
    ```xml
    <style name="UltimateSettingsThemeDark" parent="GadgetbridgeThemeDark">
        <item name="colorPrimary">#8AB4FF</item>
        <item name="colorSecondary">#7DD3C0</item>
        <item name="android:colorBackground">#0F1115</item>
        <item name="colorSurface">#14171D</item>
-       <!-- ...tokens de la paleta Ultimate... -->
+       <!-- ...Ultimate palette tokens... -->
    </style>
    ```
-   (y una variante `*_NoActionBar` si hiciera falta).
-2. En `AbstractGBActivity.setLanguage()`, **solo para esas dos activities**, aplicar el tema de
-   marca en lugar del genérico. Ejemplo mínimo y localizado:
+   (and a `*_NoActionBar` variant if needed).
+2. In `AbstractGBActivity.setLanguage()`, **only for those two activities**, apply the brand
+   theme instead of the generic one. Minimal, localized example:
    ```java
    boolean brandSettings = (this instanceof SettingsActivity)
            || (this instanceof DeviceSettingsActivity);
    if (brandSettings && isDarkPreference) {
        activity.setTheme(R.style.UltimateSettingsThemeDark);
-       return; // no caer en la cascada genérica
+       return; // do not fall into the generic cascade
    }
    ```
-   Así el resto de la app conserva su tema actual.
+   This way the rest of the app keeps its current theme.
 
-## Riesgo
-`AbstractGBActivity` es núcleo compartido; el cambio es de 4-6 líneas pero toca el arranque de
-todas las activities, por eso se deja documentado para hacerlo con una prueba en el dispositivo y
-no a ciegas en un one-shot.
+## Risk
+`AbstractGBActivity` is shared core; the change is 4-6 lines but touches the startup of
+every activity, so it is left documented to be done with an on-device test and
+not blindly in a one-shot.

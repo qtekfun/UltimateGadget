@@ -108,7 +108,7 @@ class UltimateDeviceActivity : AppCompatActivity() {
 
         val options = mutableListOf<DeviceOptionUi>()
 
-        // --- Conexión: estado y sincronización ---
+        // --- Connection: status and sync ---
         val sConn = "Connection"
         val connecting = !device.isConnected && !device.isInitialized && device.state != GBDevice.State.NOT_CONNECTED
         if (device.isConnected || device.isInitialized) {
@@ -120,7 +120,7 @@ class UltimateDeviceActivity : AppCompatActivity() {
             options += DeviceOptionUi("connect", "Connect", "Connect to the device", section = sConn)
         }
 
-        // --- Reloj: ajustes y funciones del propio reloj ---
+        // --- Watch: settings and the watch's own features ---
         val sWatch = "Watch"
         options += DeviceOptionUi("settings", "Device settings", "Notificaciones, pantallas, gestos…", section = sWatch)
         if (coordinator != null) {
@@ -146,7 +146,7 @@ class UltimateDeviceActivity : AppCompatActivity() {
             }
         }
 
-        // --- Mapas y navegación ---
+        // --- Maps and navigation ---
         val sNav = "Maps and navigation"
         if (coordinator is HuaweiCoordinator) {
             options += DeviceOptionUi("maps", "Mapas offline", "Install and delete watch maps", section = sNav)
@@ -158,12 +158,12 @@ class UltimateDeviceActivity : AppCompatActivity() {
             options += DeviceOptionUi("agps", "Actualizar GPS (A-GNSS)", "Install satellite data for a faster fix", section = sNav)
         }
 
-        // --- Dispositivo: acciones sobre el emparejamiento ---
+        // --- Device: actions on the pairing ---
         val sDev = "Device"
         options += DeviceOptionUi("find", "Find device", "Ring the device", section = sDev)
-        // Apagado: solo si el dispositivo lo soporta y está inicializado (hace falta estar conectado
-        // para enviar el comando). El gating es genérico: cubre los anillos Colmi/Yawell y cualquier
-        // otro dispositivo cuyo coordinator declare supportsPowerOff.
+        // Power off: only if the device supports it and is initialized (you must be connected
+        // to send the command). The gating is generic: it covers the Colmi/Yawell rings and any
+        // other device whose coordinator declares supportsPowerOff.
         if (coordinator != null && device.isInitialized && cap { coordinator.supportsPowerOff(device) }) {
             options += DeviceOptionUi("poweroff", "Power off", "Power off the device", section = sDev)
         }
@@ -236,8 +236,8 @@ class UltimateDeviceActivity : AppCompatActivity() {
                     .show()
             }
             "poweroff" -> {
-                // Gadgetbridge ya implementa el apagado (onPowerOff → comando del dispositivo).
-                // Confirmamos antes porque luego hay que encenderlo a mano para reconectar.
+                // Gadgetbridge already implements power off (onPowerOff → device command).
+                // We confirm first because afterwards it must be turned on by hand to reconnect.
                 androidx.appcompat.app.AlertDialog.Builder(this)
                     .setTitle("Power off device")
                     .setMessage("Power off the device? You'll have to turn it on manually to connect again.")
