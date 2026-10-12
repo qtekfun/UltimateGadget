@@ -129,6 +129,8 @@ public interface DeviceService extends EventHandler {
     String EXTRA_WORKOUT_TEMPLATE_ID = "workout_template_id";
     String EXTRA_CONTACTS = "contacts";
     String EXTRA_CONNECT_FIRST_TIME = "connect_first_time";
+    /** The connection was not asked for by the user: the one-watch-at-a-time policy applies. */
+    String EXTRA_CONNECT_AUTOMATIC = "connect_automatic";
     String EXTRA_BOOLEAN_ENABLE = "enable_realtime_steps";
     String EXTRA_INTERVAL_SECONDS = "interval_seconds";
     String EXTRA_RECORDED_DATA_TYPES = "data_types";
@@ -148,6 +150,12 @@ public interface DeviceService extends EventHandler {
     void connect();
 
     void connect(boolean firstTime);
+
+    /**
+     * Reconnect without the user asking for it (timers, ACL events, startup). Only the most
+     * recently used watch is attempted, and never while another watch is connecting or connected.
+     */
+    void connectAutomatically();
 
     void disconnect();
 

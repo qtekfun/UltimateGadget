@@ -32,6 +32,7 @@ import static nodomain.freeyourgadget.gadgetbridge.model.DeviceService.ACTION_DI
 import static nodomain.freeyourgadget.gadgetbridge.model.DeviceService.ACTION_NOTIFICATION;
 import static nodomain.freeyourgadget.gadgetbridge.model.DeviceService.ACTION_SLEEP_AS_ANDROID;
 import static nodomain.freeyourgadget.gadgetbridge.model.DeviceService.EXTRA_SLEEP_AS_ANDROID_ACTION;
+import static nodomain.freeyourgadget.gadgetbridge.model.DeviceService.EXTRA_CONNECT_AUTOMATIC;
 import static nodomain.freeyourgadget.gadgetbridge.model.DeviceService.EXTRA_CONNECT_FIRST_TIME;
 import static nodomain.freeyourgadget.gadgetbridge.model.DeviceService.EXTRA_NOTIFICATION_ID;
 
@@ -271,6 +272,8 @@ public class DeviceCommunicationService extends Service implements SharedPrefere
                             .edit()
                             .putLong(GBPrefs.LAST_CONNECTED_TS, System.currentTimeMillis())
                             .apply();
+                    // One watch at a time: nobody else keeps searching for the phone.
+                    abortOtherConnections(device, false);
                     sendDeviceConnectedBroadcast(device.getAddress());
                     sendCachedNotifications(device);
                     sendPendingSleepAsAndroidAction(device);
@@ -326,7 +329,7 @@ public class DeviceCommunicationService extends Service implements SharedPrefere
                     return;
                 }
 
-                connectToDevice(target, false);
+                connectToDevice(target, false, true);
             }
         }
     };
@@ -436,11 +439,17 @@ public class DeviceCommunicationService extends Service implements SharedPrefere
 
     private void scanAllDevices() {
         List<GBDevice> devices = GBApplication.app().getDeviceManager().getDevices();
+        final String lastUsed = lastUsedAddress();
         for (GBDevice device : devices) {
             if (!device.getDeviceCoordinator().getConnectionType().usesBluetoothLE()) {
                 continue;
             }
             if (device.getState() != GBDevice.State.NOT_CONNECTED) {
+                continue;
+            }
+            if (device.getDeviceCoordinator().isConnectable()
+                    && !ConnectionPolicy.allowAutomatic(device.getAddress(), lastUsed, otherStates(device))) {
+                // Only the last used watch is searched for, and not while another one is active.
                 continue;
             }
             boolean shouldAutoConnect = getPrefs().getAutoReconnect(device);
@@ -452,6 +461,66 @@ public class DeviceCommunicationService extends Service implements SharedPrefere
         }
     }
 
+    /** Address of the watch that may be reconnected automatically (the most recently connected). */
+    @Nullable
+    private String lastUsedAddress() {
+        final List<ConnectionPolicy.Candidate> candidates = new ArrayList<>();
+        final GBPrefs prefs = getPrefs();
+        for (final GBDevice d : GBApplication.app().getDeviceManager().getDevices()) {
+            if (!d.getDeviceCoordinator().isConnectable() || !prefs.getAutoReconnect(d)) {
+                continue;
+            }
+            final long ts = GBApplication.getDeviceSpecificSharedPrefs(d.getAddress())
+                    .getLong(GBPrefs.LAST_CONNECTED_TS, 0L);
+            candidates.add(new ConnectionPolicy.Candidate(d.getAddress(), ts));
+        }
+        return ConnectionPolicy.pickLastUsed(candidates);
+    }
+
+    private List<GBDevice.State> otherStates(final GBDevice device) {
+        final List<GBDevice.State> states = new ArrayList<>();
+        for (final GBDevice d : GBApplication.app().getDeviceManager().getDevices()) {
+            if (!d.getAddress().equals(device.getAddress()) && d.getDeviceCoordinator().isConnectable()) {
+                states.add(d.getState());
+            }
+        }
+        return states;
+    }
+
+    /**
+     * Stops every other watch from searching for (or holding) the phone. With
+     * {@code includeConnected} also drops watches that are already connected, which is what an
+     * explicit connect to another watch means. Non-connectable (scan-only) devices are left alone.
+     */
+    private void abortOtherConnections(final GBDevice keep, final boolean includeConnected) {
+        boolean changed = false;
+        for (final GBDevice other : new ArrayList<>(GBApplication.app().getDeviceManager().getDevices())) {
+            if (other.getAddress().equals(keep.getAddress()) || !other.getDeviceCoordinator().isConnectable()) {
+                continue;
+            }
+            final GBDevice.State state = other.getState();
+            final boolean abort = includeConnected
+                    ? state != GBDevice.State.NOT_CONNECTED
+                    : ConnectionPolicy.isSearching(state);
+            if (!abort) {
+                continue;
+            }
+            LOG.info("aborting connection to {} ({}), {} is now the active watch",
+                    other.getAddress(), state, keep.getAddress());
+            try {
+                removeDeviceSupport(other);
+            } catch (final DeviceNotFoundException e) {
+                LOG.debug("no device support to abort for {}", other.getAddress());
+            }
+            other.setState(GBDevice.State.NOT_CONNECTED);
+            other.sendDeviceUpdateIntent(this);
+            changed = true;
+        }
+        if (changed) {
+            updateReceiversState();
+        }
+    }
+
     private DeviceStruct createDeviceStruct(GBDevice target) {
         DeviceStruct registeredStruct = new DeviceStruct();
         registeredStruct.setDevice(target);
@@ -460,15 +529,17 @@ public class DeviceCommunicationService extends Service implements SharedPrefere
         return registeredStruct;
     }
 
-    private void connectToDevice(@Nullable final GBDevice device, final boolean firstTime) {
+    private void connectToDevice(@Nullable final GBDevice device, final boolean firstTime, final boolean automatic) {
         final List<GBDevice> gbDevs = new ArrayList<>(2);
         final boolean fromExtra;
+        // Asked for by the user (UI): bypasses the one-watch policy and takes over the connection.
+        final boolean userInitiated = device != null && !automatic;
 
         final GBPrefs prefs = getPrefs();
 
         if (device != null) {
             gbDevs.add(device);
-            fromExtra = true;
+            fromExtra = userInitiated;
         } else {
             fromExtra = false;
             List<GBDevice> gbAllDevs = GBApplication.app().getDeviceManager().getDevices();
@@ -500,6 +571,13 @@ public class DeviceCommunicationService extends Service implements SharedPrefere
             final String deviceAddress = gbDevice.getAddress();
 
             LOG.debug("Will attempt to connect to {}", gbDevice);
+
+            if (!userInitiated && gbDevice.getDeviceCoordinator().isConnectable()
+                    && !ConnectionPolicy.allowAutomatic(deviceAddress, lastUsedAddress(), otherStates(gbDevice))) {
+                LOG.debug("connectToDevice - {} skipped: not the last used watch or another one is active",
+                        deviceAddress);
+                continue;
+            }
 
             if (!gbDevice.getDeviceCoordinator().isConnectable()) {
                 // we cannot connect to beacons, skip this device
@@ -533,6 +611,10 @@ public class DeviceCommunicationService extends Service implements SharedPrefere
                 LOG.debug("connectToDevice - {} neither from extra nor auto reconnect (2)",
                         deviceAddress);
                 continue;
+            }
+
+            if (userInitiated && gbDevice.getDeviceCoordinator().isConnectable()) {
+                abortOtherConnections(gbDevice, true);
             }
 
             DeviceStruct registeredStruct = getDeviceStructOrNull(gbDevice);
@@ -631,7 +713,7 @@ public class DeviceCommunicationService extends Service implements SharedPrefere
             // The system restarting the service after the process died: reconnect what was
             // connected then, as the notification's reconnect action does.
             LOG.info("no intent, reconnecting");
-            connectToDevice(null, false);
+            connectToDevice(null, false, true);
             return START_STICKY;
         }
 
@@ -651,7 +733,8 @@ public class DeviceCommunicationService extends Service implements SharedPrefere
         switch (action) {
             case ACTION_CONNECT:
                 boolean firstTime = intent.getBooleanExtra(EXTRA_CONNECT_FIRST_TIME, false);
-                connectToDevice(targetDevice, firstTime);
+                final boolean automatic = intent.getBooleanExtra(EXTRA_CONNECT_AUTOMATIC, false);
+                connectToDevice(targetDevice, firstTime, automatic);
                 break;
             default:
                 ArrayList<GBDevice> targetedDevices = new ArrayList<>();
@@ -924,7 +1007,7 @@ public class DeviceCommunicationService extends Service implements SharedPrefere
         if (!pendingSleepAsAndroidAction.store(intent, device.getAddress())) {
             if (!connectInFlight && pendingSleepAsAndroidAction.wakes(saaAction)) {
                 LOG.info("Connecting to {}, Sleep as Android is looking for it", device.getAliasOrName());
-                connectToDevice(device, false);
+                connectToDevice(device, false, false);
                 return;
             }
             LOG.debug("Dropping Sleep as Android action {}, {} is not connected", saaAction, device.getAliasOrName());
@@ -937,7 +1020,7 @@ public class DeviceCommunicationService extends Service implements SharedPrefere
         }
 
         LOG.info("Connecting to {} to replay Sleep as Android action {}", device.getAliasOrName(), saaAction);
-        connectToDevice(device, false);
+        connectToDevice(device, false, false);
     }
 
     private void sendPendingSleepAsAndroidAction(final GBDevice device) {
