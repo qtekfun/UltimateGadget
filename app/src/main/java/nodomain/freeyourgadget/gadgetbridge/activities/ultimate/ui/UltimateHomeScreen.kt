@@ -128,7 +128,7 @@ fun UltimateHomeScreen(
                 containerColor = palette.primary,
                 contentColor = palette.onPrimary,
                 icon = { Icon(Icons.Filled.Add, contentDescription = null) },
-                text = { Text("Añadir dispositivo", fontWeight = FontWeight.Bold) },
+                text = { Text("Add device", fontWeight = FontWeight.Bold) },
             )
         },
     ) { inner ->
@@ -151,7 +151,7 @@ fun UltimateHomeScreen(
                     HeroCard(connected, stats, onClick = { onOpenDevice(connected) })
                 }
             }
-            item { SectionHeader("Tus dispositivos") }
+            item { SectionHeader("Your devices") }
             items(devices, key = { it.address }) { d ->
                 DeviceCard(d, onClick = { onOpenDevice(d) })
             }
@@ -161,7 +161,7 @@ fun UltimateHomeScreen(
 
 /**
  * Shared ⋮ overflow menu used by the TopAppBar of BOTH home tabs ("Inicio" / dashboard and
- * "Dispositivos"), so the two menus stay identical. "Ordenar tarjetas" activates the dashboard's
+ * "Devices"), so the two menus stay identical. "Ordenar tarjetas" activates the dashboard's
  * card-edit mode (the host switches to the Inicio tab first if needed); the rest open the matching
  * Ultimate activities.
  */
@@ -182,13 +182,13 @@ fun UltimateOverflowMenu(
         DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
             DropdownMenuItem(text = { Text("Ordenar tarjetas") }, onClick = { menuOpen = false; onSortCards() })
             DropdownMenuItem(text = { Text("Exportar / Importar") }, onClick = { menuOpen = false; onExportImport() })
-            DropdownMenuItem(text = { Text("Mapas del móvil") }, onClick = { menuOpen = false; onPhoneMaps() })
-            DropdownMenuItem(text = { Text("Notificaciones") }, onClick = { menuOpen = false; onNotifications() })
+            DropdownMenuItem(text = { Text("Phone maps") }, onClick = { menuOpen = false; onPhoneMaps() })
+            DropdownMenuItem(text = { Text("Notifications") }, onClick = { menuOpen = false; onNotifications() })
             DropdownMenuItem(text = { Text("Informes y objetivos") }, onClick = { menuOpen = false; onReports() })
             DropdownMenuItem(text = { Text("Rendimiento") }, onClick = { menuOpen = false; onPerformance() })
             DropdownMenuItem(text = { Text("Ajustes") }, onClick = { menuOpen = false; onSettings() })
             HorizontalDivider()
-            DropdownMenuItem(text = { Text("Salir (detener la app)") }, onClick = { menuOpen = false; onQuit() })
+            DropdownMenuItem(text = { Text("Exit (stop the app)") }, onClick = { menuOpen = false; onQuit() })
         }
     }
 }
@@ -259,7 +259,7 @@ fun HeroCard(d: DeviceCardUi, stats: HeroStats?, onClick: () -> Unit) {
                 }
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
-                        (if (d.busy) "Sincronizando" else "Conectado").uppercase(),
+                        (if (d.busy) "Syncing" else "Conectado").uppercase(),
                         style = MaterialTheme.typography.labelSmall,
                         color = heroAccent,
                     )
@@ -298,7 +298,7 @@ fun HeroCard(d: DeviceCardUi, stats: HeroStats?, onClick: () -> Unit) {
                 )
                 HeroMetric(
                     value = if (d.batteryLevel in 0..100) "${d.batteryLevel}%" else "--",
-                    label = "batería",
+                    label = "battery",
                     accent = onHero,
                     muted = onHeroMuted,
                 )
@@ -472,10 +472,10 @@ private fun EmptyState(modifier: Modifier = Modifier) {
     ) {
         Icon(Icons.Filled.Watch, contentDescription = null, tint = palette.onSurfaceVariant, modifier = Modifier.size(56.dp))
         Spacer(Modifier.height(16.dp))
-        Text("Aún no hay dispositivos", style = MaterialTheme.typography.titleLarge, color = palette.onSurface)
+        Text("No devices yet", style = MaterialTheme.typography.titleLarge, color = palette.onSurface)
         Spacer(Modifier.height(6.dp))
         Text(
-            "Añade tu primer reloj o pulsera para empezar.",
+            "Add your first watch or band to get started.",
             style = MaterialTheme.typography.bodyMedium,
             color = palette.onSurfaceVariant,
         )

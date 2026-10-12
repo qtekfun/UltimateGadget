@@ -99,7 +99,7 @@ private fun PhoneMapsScreen(onBack: () -> Unit) {
         containerColor = palette.background,
         topBar = {
             TopAppBar(
-                title = { Text("Mapas del móvil") },
+                title = { Text("Phone maps") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Filled.ArrowBack, contentDescription = null)
@@ -118,15 +118,15 @@ private fun PhoneMapsScreen(onBack: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text(
-                "Mapas base para el visor (planificador y entrenos). Descarga un .pmtiles de las releases de " +
-                    "UltimateGadget-maps / ultimate-maps-data (o con UltimateMaps) e impórtalo aquí." +
-                    if (InAppNetworkImpl.available) " También puedes descargarlos del catálogo." else "",
+                "Base maps for the viewer (planner and workouts). Download a .pmtiles from the releases of " +
+                    "UltimateGadget-maps / ultimate-maps-data (or with UltimateMaps) and import it here." +
+                    if (InAppNetworkImpl.available) " You can also download them from the catalog." else "",
                 style = MaterialTheme.typography.bodyMedium,
                 color = palette.onSurfaceVariant,
             )
             Button(onClick = { picker.launch(arrayOf("*/*")) }) {
                 Icon(Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(18.dp))
-                Text("  Importar mapa (.pmtiles)")
+                Text("  Import map (.pmtiles)")
             }
             if (InAppNetworkImpl.available) {
                 OutlinedButton(
@@ -136,18 +136,18 @@ private fun PhoneMapsScreen(onBack: () -> Unit) {
                         scope.launch(Dispatchers.IO) {
                             runCatching { InAppNetworkImpl.fetchMapCatalog() }
                                 .onSuccess { catalog = it }
-                                .onFailure { catalogError = it.message ?: "Error de red" }
+                                .onFailure { catalogError = it.message ?: "Network error" }
                             loadingCatalog = false
                         }
                     },
-                ) { Text(if (loadingCatalog) "Cargando catálogo…" else "Descargar del catálogo") }
+                ) { Text(if (loadingCatalog) "Loading catalog…" else "Download from the catalog") }
                 catalogError?.let { Text(it, color = palette.error, style = MaterialTheme.typography.bodySmall) }
             }
             LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 val remote = catalog
                 if (remote != null) {
                     item(key = "catalog-header") {
-                        Text("Catálogo", style = MaterialTheme.typography.titleSmall, color = palette.onSurfaceVariant)
+                        Text("Catalog", style = MaterialTheme.typography.titleSmall, color = palette.onSurfaceVariant)
                     }
                     items(remote, key = { "remote-" + it.id }) { r ->
                         val busy = downloadingId == r.id
@@ -175,12 +175,12 @@ private fun PhoneMapsScreen(onBack: () -> Unit) {
                                                     InAppNetworkImpl.downloadMap(context, r.id) { done, total ->
                                                         progress = if (total > 0) (done.toFloat() / total).coerceIn(0f, 1f) else 0f
                                                     }
-                                                }.onFailure { catalogError = it.message ?: "Error de descarga" }
+                                                }.onFailure { catalogError = it.message ?: "Download error" }
                                                 maps = PhoneMapStore.installed(context)
                                                 downloadingId = null
                                             }
                                         },
-                                    ) { Icon(Icons.Filled.Download, contentDescription = "Descargar", tint = palette.secondary) }
+                                    ) { Icon(Icons.Filled.Download, contentDescription = "Download", tint = palette.secondary) }
                                 }
                                 if (busy) LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth())
                             }
@@ -192,7 +192,7 @@ private fun PhoneMapsScreen(onBack: () -> Unit) {
                 }
                 if (maps.isEmpty()) {
                     item(key = "none") {
-                        Text("No hay mapas instalados.", style = MaterialTheme.typography.bodyMedium, color = palette.onSurfaceVariant)
+                        Text("No maps installed.", style = MaterialTheme.typography.bodyMedium, color = palette.onSurfaceVariant)
                     }
                 }
                 items(maps, key = { it.name }) { m ->

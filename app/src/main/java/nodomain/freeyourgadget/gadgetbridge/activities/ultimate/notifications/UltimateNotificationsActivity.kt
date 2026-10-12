@@ -87,9 +87,9 @@ import java.text.DateFormatSymbols
 
 /**
  * Ultimate notifications management: a phone-global (not per-device) screen to choose which apps
- * forward their notifications to the watch, plus a quiet-hours ("No molestar") rule.
+ * forward their notifications to the watch, plus a quiet-hours ("Do not disturb") rule.
  *
- * "Enviar al reloj" is backed by Gadgetbridge's existing notification blacklist
+ * "Send to the watch" is backed by Gadgetbridge's existing notification blacklist
  * (an app in the blacklist does NOT notify). The quiet-hours rule is persisted by
  * [NotificationRulesStore] under its documented keys.
  */
@@ -146,15 +146,15 @@ private fun AppsScreen(onBack: () -> Unit, onOpenRules: () -> Unit) {
         containerColor = palette.background,
         topBar = {
             TopAppBar(
-                title = { Text("Notificaciones") },
+                title = { Text("Notifications") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = "Atrás")
+                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 actions = {
                     IconButton(onClick = onOpenRules) {
-                        Icon(Icons.Filled.Bedtime, contentDescription = "Reglas de horario")
+                        Icon(Icons.Filled.Bedtime, contentDescription = "Schedule rules")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -168,7 +168,7 @@ private fun AppsScreen(onBack: () -> Unit, onOpenRules: () -> Unit) {
     ) { inner ->
         Column(Modifier.fillMaxSize().padding(inner)) {
             Text(
-                "Elige qué apps envían sus notificaciones al reloj.",
+                "Choose which apps send their notifications to the watch.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = palette.onSurfaceVariant,
                 modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 12.dp),
@@ -178,7 +178,7 @@ private fun AppsScreen(onBack: () -> Unit, onOpenRules: () -> Unit) {
                 onValueChange = { query = it },
                 singleLine = true,
                 leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
-                placeholder = { Text("Buscar app…") },
+                placeholder = { Text("Search app…") },
                 modifier = Modifier.fillMaxWidth().padding(16.dp),
             )
 
@@ -315,10 +315,10 @@ private fun RulesScreen(onBack: () -> Unit) {
         containerColor = palette.background,
         topBar = {
             TopAppBar(
-                title = { Text("No molestar") },
+                title = { Text("Do not disturb") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = "Atrás")
+                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -334,7 +334,7 @@ private fun RulesScreen(onBack: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Text(
-                "Durante este horario no se enviarán notificaciones al reloj.",
+                "During this schedule, no notifications are sent to the watch.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = palette.onSurfaceVariant,
             )
@@ -353,7 +353,7 @@ private fun RulesScreen(onBack: () -> Unit) {
                                 color = palette.onSurface,
                             )
                             Text(
-                                "No molestar en el rango elegido",
+                                "Do not disturb in the chosen range",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = palette.onSurfaceVariant,
                             )
@@ -390,7 +390,7 @@ private fun RulesScreen(onBack: () -> Unit) {
             }
 
             Text(
-                "DÍAS",
+                "DAYS",
                 style = SectionLabelStyle,
                 color = palette.onSurfaceVariant,
             )
