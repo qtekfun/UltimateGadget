@@ -16,13 +16,16 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 package nodomain.freeyourgadget.gadgetbridge.activities.ultimate.net
 
+import android.app.Activity
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.os.Bundle
 import android.view.WindowManager
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -30,11 +33,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -46,7 +46,6 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -58,11 +57,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -71,11 +67,12 @@ import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.theme.LocalUltim
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.theme.UltimateTheme
 
 /**
- * Fetches the Bluetooth auth key of Amazfit/Zepp watches from the user's own account (huami-token
- * method), so they can be paired without the Zepp app. Opt-in, user-initiated.
+ * Fetches the Bluetooth auth key of Amazfit/Zepp or Xiaomi (Mi Fitness) watches from the user's own
+ * account, so they can be paired without the vendor app. Login happens on the vendor's own page in
+ * a WebView ([UltimateAccountLoginActivity]), which handles passwords, OTP, captcha and two-factor;
+ * this screen only receives the resulting session token and lists the devices with their keys.
  *
- * The email and password live only in this screen's in-memory state: no saved instance state,
- * no preferences, no logs. FLAG_SECURE keeps the screen out of screenshots and recents.
+ * No email or password is ever entered or stored here. FLAG_SECURE keeps it out of screenshots.
  */
 class UltimateHuamiKeyActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -91,19 +88,43 @@ private fun KeyScreen(onBack: () -> Unit) {
     val context = LocalContext.current
     val palette = LocalUltimatePalette.current
     val scope = rememberCoroutineScope()
-    // Plain remember (not rememberSaveable): credentials must never reach a saved-state Bundle.
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var region by remember { mutableStateOf(0) }
+    var region by remember { mutableStateOf(defaultRegionIndex()) }
     var busy by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     var keys by remember { mutableStateOf<List<HuamiKey>?>(null) }
-    // Xiaomi (Mi Fitness) section — independent credentials, also kept in-memory only.
-    var xEmail by remember { mutableStateOf("") }
-    var xPassword by remember { mutableStateOf("") }
     var xBusy by remember { mutableStateOf(false) }
     var xError by remember { mutableStateOf<String?>(null) }
     var xKeys by remember { mutableStateOf<List<XiaomiKey>?>(null) }
+
+    val zeppLogin = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { res ->
+        val data = res.data
+        if (res.resultCode != Activity.RESULT_OK || data == null) return@rememberLauncherForActivityResult
+        val userId = data.getStringExtra(UltimateAccountLoginActivity.EXTRA_USER_ID).orEmpty()
+        val token = data.getStringExtra(UltimateAccountLoginActivity.EXTRA_TOKEN).orEmpty()
+        if (userId.isBlank() || token.isBlank()) { error = "No se obtuvo el token de la sesión."; return@rememberLauncherForActivityResult }
+        busy = true; error = null; keys = null
+        val r = region
+        scope.launch {
+            runCatching { withContext(Dispatchers.IO) { InAppNetworkImpl.fetchHuamiKeysWithToken(userId, token, r) } }
+                .onSuccess { keys = it }
+                .onFailure { error = it.message ?: "Error de red" }
+            busy = false
+        }
+    }
+    val xiaomiLogin = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { res ->
+        val data = res.data
+        if (res.resultCode != Activity.RESULT_OK || data == null) return@rememberLauncherForActivityResult
+        val userId = data.getStringExtra(UltimateAccountLoginActivity.EXTRA_USER_ID).orEmpty()
+        val token = data.getStringExtra(UltimateAccountLoginActivity.EXTRA_TOKEN).orEmpty()
+        if (userId.isBlank() || token.isBlank()) { xError = "No se obtuvo el token de la sesión."; return@rememberLauncherForActivityResult }
+        xBusy = true; xError = null; xKeys = null
+        scope.launch {
+            runCatching { withContext(Dispatchers.IO) { InAppNetworkImpl.fetchXiaomiKeysWithPassToken(userId, token) } }
+                .onSuccess { xKeys = it }
+                .onFailure { xError = it.message ?: "Error de red" }
+            xBusy = false
+        }
+    }
 
     Scaffold(
         containerColor = palette.background,
@@ -127,21 +148,11 @@ private fun KeyScreen(onBack: () -> Unit) {
         ) {
             Text("Amazfit / Zepp", style = MaterialTheme.typography.titleMedium, color = palette.onSurface)
             Text(
-                "Usa tu propia cuenta Zepp/Amazfit (sirve también para Mi Band emparejadas con Zepp). El correo y la " +
-                    "contraseña solo se envían por HTTPS a Huami/Zepp para iniciar sesión y no se guardan en ningún sitio.",
+                "Inicia sesión en tu propia cuenta Zepp/Amazfit (sirve también para Mi Band emparejadas con Zepp). " +
+                    "La sesión se abre en la página oficial de Zepp, así que funcionan la verificación en dos pasos, " +
+                    "el OTP y el captcha. No se guarda ningún dato.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = palette.onSurfaceVariant,
-            )
-            OutlinedTextField(
-                value = email, onValueChange = { email = it }, label = { Text("Correo") },
-                singleLine = true, modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-            )
-            OutlinedTextField(
-                value = password, onValueChange = { password = it }, label = { Text("Contraseña") },
-                singleLine = true, modifier = Modifier.fillMaxWidth(),
-                visualTransformation = PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             )
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 InAppNetworkImpl.huamiRegions.forEachIndexed { i, label ->
@@ -149,102 +160,72 @@ private fun KeyScreen(onBack: () -> Unit) {
                 }
             }
             Button(
-                enabled = !busy && email.isNotBlank() && password.isNotEmpty(),
+                enabled = !busy,
                 onClick = {
-                    busy = true; error = null; keys = null
-                    val e = email.trim(); val p = password; val r = region
-                    scope.launch {
-                        runCatching { withContext(Dispatchers.IO) { InAppNetworkImpl.fetchHuamiKeys(e, p, r) } }
-                            .onSuccess { keys = it }
-                            .onFailure { error = it.message ?: "Error de red" }
-                        // Drop the password as soon as the call is over.
-                        password = ""
-                        busy = false
-                    }
+                    error = null
+                    zeppLogin.launch(UltimateAccountLoginActivity.intent(context, UltimateAccountLoginActivity.PROVIDER_ZEPP))
                 },
-            ) { Text(if (busy) "Consultando…" else "Obtener claves") }
+            ) { Text(if (busy) "Consultando…" else "Iniciar sesión (Amazfit/Zepp)") }
             error?.let { Text(it, color = palette.error, style = MaterialTheme.typography.bodySmall) }
-            keys?.let { list ->
-                if (list.isEmpty()) {
-                    Text("La cuenta no tiene dispositivos con clave.", color = palette.onSurfaceVariant)
-                }
-                list.forEach { k ->
-                    Card(
-                        Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = palette.surfaceContainer),
-                    ) {
-                        Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Text(k.mac, style = MaterialTheme.typography.titleMedium, color = palette.onSurface)
-                            Text(k.authKey, style = MaterialTheme.typography.bodyMedium, color = palette.onSurfaceVariant)
-                            TextButton(onClick = {
-                                val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                                cm.setPrimaryClip(ClipData.newPlainText("auth key", k.authKey))
-                                Toast.makeText(context, "Clave copiada", Toast.LENGTH_SHORT).show()
-                            }) { Text("Copiar clave") }
-                        }
-                    }
-                }
-            }
+            keys?.let { list -> KeyList(list.map { Triple(it.mac, it.authKey, "") }, palette, context) }
 
             // --- Xiaomi (Mi Fitness) ---
             Text("Xiaomi (Mi Fitness)", style = MaterialTheme.typography.titleMedium, color = palette.onSurface)
             Text(
-                "Para Mi Band 8/9 y relojes Xiaomi emparejados con la app Mi Fitness / Xiaomi Wear. Usa tu cuenta " +
-                    "Xiaomi; el 2FA y el captcha no están soportados. El correo y la contraseña solo se usan para el " +
-                    "login (HTTPS) y no se guardan.",
+                "Para Mi Band 8/9 y relojes Xiaomi emparejados con la app Mi Fitness / Xiaomi Wear. La sesión se abre " +
+                    "en la página oficial de Xiaomi, así que funcionan el OTP, el captcha y la verificación en dos pasos. " +
+                    "No se guarda ningún dato.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = palette.onSurfaceVariant,
             )
-            OutlinedTextField(
-                value = xEmail, onValueChange = { xEmail = it }, label = { Text("Correo Xiaomi") },
-                singleLine = true, modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-            )
-            OutlinedTextField(
-                value = xPassword, onValueChange = { xPassword = it }, label = { Text("Contraseña") },
-                singleLine = true, modifier = Modifier.fillMaxWidth(),
-                visualTransformation = PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            )
             Button(
-                enabled = !xBusy && xEmail.isNotBlank() && xPassword.isNotEmpty(),
+                enabled = !xBusy,
                 onClick = {
-                    xBusy = true; xError = null; xKeys = null
-                    val e = xEmail.trim(); val p = xPassword
-                    scope.launch {
-                        runCatching { withContext(Dispatchers.IO) { InAppNetworkImpl.fetchXiaomiKeys(e, p) } }
-                            .onSuccess { xKeys = it }
-                            .onFailure { xError = it.message ?: "Error de red" }
-                        // Drop the password as soon as the call is over.
-                        xPassword = ""
-                        xBusy = false
-                    }
+                    xError = null
+                    xiaomiLogin.launch(UltimateAccountLoginActivity.intent(context, UltimateAccountLoginActivity.PROVIDER_XIAOMI))
                 },
-            ) { Text(if (xBusy) "Consultando…" else "Obtener claves (Xiaomi)") }
+            ) { Text(if (xBusy) "Consultando…" else "Iniciar sesión (Xiaomi)") }
             xError?.let { Text(it, color = palette.error, style = MaterialTheme.typography.bodySmall) }
-            xKeys?.let { list ->
-                if (list.isEmpty()) {
-                    Text("La cuenta no tiene dispositivos con clave.", color = palette.onSurfaceVariant)
-                }
-                list.forEach { k ->
-                    Card(
-                        Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = palette.surfaceContainer),
-                    ) {
-                        Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Text(if (k.name.isBlank()) k.mac else "${k.name} · ${k.mac}", style = MaterialTheme.typography.titleMedium, color = palette.onSurface)
-                            Text(k.authKey, style = MaterialTheme.typography.bodyMedium, color = palette.onSurfaceVariant)
-                            TextButton(onClick = {
-                                val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                                cm.setPrimaryClip(ClipData.newPlainText("auth key", k.authKey))
-                                Toast.makeText(context, "Clave copiada", Toast.LENGTH_SHORT).show()
-                            }) { Text("Copiar clave") }
-                        }
-                    }
-                }
+            xKeys?.let { list -> KeyList(list.map { Triple(it.mac, it.authKey, it.name) }, palette, context) }
+        }
+    }
+}
+
+/** One card per device: a title (name/mac), the key and a copy button. */
+@Composable
+private fun KeyList(
+    items: List<Triple<String, String, String>>,
+    palette: nodomain.freeyourgadget.gadgetbridge.activities.ultimate.theme.UltimatePalette,
+    context: Context,
+) {
+    if (items.isEmpty()) {
+        Text("La cuenta no tiene dispositivos con clave.", color = palette.onSurfaceVariant)
+    }
+    items.forEach { (mac, authKey, name) ->
+        Card(
+            Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = palette.surfaceContainer),
+        ) {
+            Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                    if (name.isBlank()) mac else "$name · $mac",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = palette.onSurface,
+                )
+                Text(authKey, style = MaterialTheme.typography.bodyMedium, color = palette.onSurfaceVariant)
+                TextButton(onClick = {
+                    val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                    cm.setPrimaryClip(ClipData.newPlainText("auth key", authKey))
+                    Toast.makeText(context, "Clave copiada", Toast.LENGTH_SHORT).show()
+                }) { Text("Copiar clave") }
             }
         }
     }
+}
+
+/** Default to the US shard Gadgetbridge's own pairing script uses, when the region list has it. */
+private fun defaultRegionIndex(): Int {
+    val idx = InAppNetworkImpl.huamiRegions.indexOfFirst { it.contains("alt", ignoreCase = true) }
+    return if (idx >= 0) idx else 0
 }

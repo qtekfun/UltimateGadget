@@ -87,6 +87,18 @@ object HuamiToken {
         return getDevices(login.userId, login.appToken, region)
     }
 
+    /**
+     * Lists the account's devices from an already-established web-login session, skipping the
+     * email/password handshake. [userId] and [appToken] come from the Zepp web login (the cookie
+     * `hm-user-login-info` → `token_info`, or the `userid`/`apptoken` cookies), captured after the
+     * user signs in — including any OTP or captcha — on Huami's own login page. Blocking I/O.
+     */
+    fun fetchAuthKeysWithToken(
+        userId: String,
+        appToken: String,
+        region: HuamiRegion = HuamiRegion.US3,
+    ): List<HuamiDevice> = getDevices(userId.trim(), appToken.trim(), region)
+
     // Step 1: encrypted credential exchange -> 303 redirect carrying the access token.
     private fun getAccessToken(email: String, password: String): String {
         val form = buildString {

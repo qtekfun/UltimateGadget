@@ -99,6 +99,14 @@ object InAppNetworkImpl : InAppNetwork {
         return HuamiToken.fetchAuthKeys(email, password, region).map { HuamiKey(it.mac, it.active, it.pasteKey) }
     }
 
+    override fun fetchHuamiKeysWithToken(userId: String, appToken: String, regionIndex: Int): List<HuamiKey> {
+        val region = HuamiRegion.values().getOrElse(regionIndex) { HuamiRegion.US3 }
+        return HuamiToken.fetchAuthKeysWithToken(userId, appToken, region).map { HuamiKey(it.mac, it.active, it.pasteKey) }
+    }
+
     override fun fetchXiaomiKeys(email: String, password: String): List<XiaomiKey> =
         XiaomiToken.fetchAuthKeys(email, password).map { XiaomiKey(it.name, it.mac, it.pasteKey) }
+
+    override fun fetchXiaomiKeysWithPassToken(userId: String, passToken: String): List<XiaomiKey> =
+        XiaomiToken.fetchAuthKeysWithPassToken(userId, passToken).map { XiaomiKey(it.name, it.mac, it.pasteKey) }
 }

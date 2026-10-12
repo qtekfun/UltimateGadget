@@ -259,7 +259,7 @@ fun UltimateSettingsScreen(onBack: () -> Unit) {
                     context.startActivity(Intent(context, PhoneMapsActivity::class.java))
                 }
                 if (InAppNetworkImpl.available) {
-                    NavRow("Clave Bluetooth Amazfit / Zepp") {
+                    NavRow("Clave Bluetooth (Amazfit / Zepp / Xiaomi)") {
                         context.startActivity(Intent(context, UltimateHuamiKeyActivity::class.java))
                     }
                 }
