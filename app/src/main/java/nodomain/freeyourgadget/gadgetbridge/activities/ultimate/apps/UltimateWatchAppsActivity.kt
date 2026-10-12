@@ -167,7 +167,7 @@ private fun WatchAppsScreen(device: GBDevice, onBack: () -> Unit) {
         containerColor = palette.background,
         topBar = {
             TopAppBar(
-                title = { Text("Apps del reloj") },
+                title = { Text("Watch apps") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
@@ -192,15 +192,15 @@ private fun WatchAppsScreen(device: GBDevice, onBack: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             Text(
-                "Apps instaladas en el reloj (no esferas). Bórralas o instala una desde un fichero. " +
-                    "No hay tienda online: solo el reloj y tus ficheros. El reloj no permite abrir " +
-                    "apps en remoto, así que ábrelas desde el propio reloj.",
+                "Apps installed on the watch (not watchfaces). Delete them or install one from a file. " +
+                    "There is no online store: only the watch and your files. The watch does not allow opening " +
+                    "apps remotely, so open them from the watch itself.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = palette.onSurfaceVariant,
             )
             Button(onClick = { importPicker.launch(arrayOf("*/*")) }) {
                 Icon(Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(18.dp))
-                Text("  Instalar app")
+                Text("  Install app")
             }
 
             Text(
@@ -211,7 +211,7 @@ private fun WatchAppsScreen(device: GBDevice, onBack: () -> Unit) {
 
             if (apps.isEmpty()) {
                 Text(
-                    "No hay apps. Conecta el reloj y pulsa actualizar, o instala una.",
+                    "No apps. Connect the watch and tap refresh, or install one.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = palette.onSurfaceVariant,
                 )
@@ -233,10 +233,10 @@ private fun WatchAppsScreen(device: GBDevice, onBack: () -> Unit) {
         AlertDialog(
             containerColor = palette.surfaceContainer,
             onDismissRequest = { pendingDelete = null },
-            title = { Text("Borrar app", color = palette.onSurface) },
+            title = { Text("Delete app", color = palette.onSurface) },
             text = {
                 Text(
-                    "¿Borrar \"${toDelete.name}\" del reloj?",
+                    "Delete \"${toDelete.name}\" from the watch?",
                     color = palette.onSurfaceVariant,
                 )
             },
@@ -245,11 +245,11 @@ private fun WatchAppsScreen(device: GBDevice, onBack: () -> Unit) {
                     GBApplication.deviceService(device).onAppDelete(toDelete.uuid)
                     pendingDelete = null
                     requestList()
-                }) { Text("Borrar", color = palette.error) }
+                }) { Text("Delete", color = palette.error) }
             },
             dismissButton = {
                 TextButton(onClick = { pendingDelete = null }) {
-                    Text("Cancelar", color = palette.onSurfaceVariant)
+                    Text("Cancel", color = palette.onSurfaceVariant)
                 }
             },
         )
@@ -300,7 +300,7 @@ private fun AppCard(
                     }
                     if (isSystem) {
                         if (isNotEmpty()) append(" · ")
-                        append("De fábrica")
+                        append("Built-in")
                     }
                 }
                 if (subtitle.isNotBlank()) {
@@ -316,7 +316,7 @@ private fun AppCard(
             // Factory/system apps cannot be removed from the device.
             if (!isSystem) {
                 IconButton(onClick = onDelete) {
-                    Icon(Icons.Filled.Delete, contentDescription = "Borrar", tint = palette.error)
+                    Icon(Icons.Filled.Delete, contentDescription = "Delete", tint = palette.error)
                 }
             } else {
                 Box(Modifier.size(48.dp))

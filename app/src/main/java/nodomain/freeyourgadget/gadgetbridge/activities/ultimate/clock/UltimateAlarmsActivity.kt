@@ -139,7 +139,7 @@ private fun AlarmsScreen(device: GBDevice, onBack: () -> Unit) {
         .sortedWith(compareBy({ it.hour }, { it.minute }))
 
     ClockScaffold(
-        title = "Alarmas",
+        title = "Alarms",
         onBack = onBack,
         floatingActionButton = {
             val palette = LocalUltimatePalette.current
@@ -147,15 +147,15 @@ private fun AlarmsScreen(device: GBDevice, onBack: () -> Unit) {
                 onClick = {
                     val free = alarms.firstOrNull { it.unused }
                     if (free != null) editing = free
-                    else Toast.makeText(context, "No quedan huecos de alarma libres", Toast.LENGTH_SHORT).show()
+                    else Toast.makeText(context, "No free alarm slots left", Toast.LENGTH_SHORT).show()
                 },
                 containerColor = palette.primary,
                 contentColor = palette.onPrimary,
-            ) { Icon(Icons.Filled.Add, contentDescription = "Añadir alarma") }
+            ) { Icon(Icons.Filled.Add, contentDescription = "Add alarm") }
         },
     ) {
         if (used.isEmpty()) {
-            EmptyState("Sin alarmas", "Pulsa + para crear tu primera alarma.")
+            EmptyState("Sin alarmas", "Tap + to create your first alarm.")
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
@@ -293,7 +293,7 @@ private fun AlarmEditor(
     val titleLimit = coordinator.getAlarmTitleLimit(device)
 
     ClockScaffold(
-        title = if (alarm.unused) "Nueva alarma" else "Editar alarma",
+        title = if (alarm.unused) "New alarm" else "Edit alarm",
         onBack = onCancel,
         actions = {
             TextButton(onClick = {
@@ -310,7 +310,7 @@ private fun AlarmEditor(
                 alarm.smartWakeup = supportsSmart && (smartWakeup || forcedSmart)
                 if (supportsTitle) alarm.title = title
                 onSave()
-            }) { Text("Guardar", color = palette.primary, fontWeight = FontWeight.Bold) }
+            }) { Text("Save", color = palette.primary, fontWeight = FontWeight.Bold) }
         },
     ) {
         Column(
@@ -321,7 +321,7 @@ private fun AlarmEditor(
                 TimePicker(state = timeState)
             }
 
-            EditorSection("Repetir") {
+            EditorSection("Repeat") {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     WEEKDAY_LABELS.forEachIndexed { i, label ->
                         val on = days[i]
@@ -349,7 +349,7 @@ private fun AlarmEditor(
             if (supportsSmart) {
                 ToggleRow(
                     title = "Despertador inteligente",
-                    subtitle = if (forcedSmart) "Obligatorio en este hueco" else "Despierta en fase de sueño ligero",
+                    subtitle = if (forcedSmart) "Obligatorio en este hueco" else "Wake during light sleep",
                     checked = smartWakeup || forcedSmart,
                     enabled = !forcedSmart,
                     onChange = { smartWakeup = it },
@@ -358,7 +358,7 @@ private fun AlarmEditor(
             if (supportsSnooze) {
                 ToggleRow(
                     title = "Posponer",
-                    subtitle = "Permitir aplazar la alarma",
+                    subtitle = "Allow snoozing the alarm",
                     checked = snooze,
                     onChange = { snooze = it },
                 )
@@ -370,7 +370,7 @@ private fun AlarmEditor(
                         onValueChange = { if (titleLimit <= 0 || it.length <= titleLimit) title = it },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
-                        placeholder = { Text("Nombre de la alarma") },
+                        placeholder = { Text("Alarm name") },
                     )
                 }
             }

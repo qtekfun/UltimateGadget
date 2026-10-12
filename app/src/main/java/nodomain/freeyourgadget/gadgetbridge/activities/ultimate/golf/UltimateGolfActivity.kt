@@ -250,7 +250,7 @@ private fun GolfScreen(
                 title = { Text(golfLabel, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -269,7 +269,7 @@ private fun GolfScreen(
         }
         if (round == null) {
             Box(Modifier.fillMaxSize().padding(inner), contentAlignment = Alignment.Center) {
-                Text("No se pudo cargar la ronda", color = scheme.onSurfaceVariant)
+                Text("Could not load the round", color = scheme.onSurfaceVariant)
             }
             return@Scaffold
         }
@@ -307,21 +307,21 @@ private fun GolfScreen(
 
             // Hero duration.
             GolfCard {
-                Text("Tiempo de la ronda", style = MaterialTheme.typography.labelLarge,
+                Text("Round time", style = MaterialTheme.typography.labelLarge,
                     color = scheme.onSurfaceVariant)
                 Spacer(Modifier.height(6.dp))
                 Text(
-                    round.stats.firstOrNull { it.label == "Duración" }?.value
+                    round.stats.firstOrNull { it.label == "Duration" }?.value
                         ?: formatDurationFallback(round.durationSeconds),
                     style = MetricValueStyle, color = scheme.onSurface,
                 )
             }
 
             // Real stats grid (everything but the duration, already shown as hero).
-            val gridStats = round.stats.filterNot { it.label == "Duración" }
+            val gridStats = round.stats.filterNot { it.label == "Duration" }
             if (gridStats.isNotEmpty()) {
                 GolfCard {
-                    Text("Datos de la ronda", style = MaterialTheme.typography.labelLarge,
+                    Text("Round data", style = MaterialTheme.typography.labelLarge,
                         color = scheme.onSurfaceVariant)
                     Spacer(Modifier.height(10.dp))
                     FlowRow(
@@ -358,16 +358,16 @@ private fun GolfScreen(
                         fontWeight = FontWeight.SemiBold, color = scheme.onSurface)
                     Spacer(Modifier.height(6.dp))
                     Text(
-                        "No hay datos por hoyo guardados para esta ronda. El reloj los envía en los " +
-                            "bloques de sección del entreno, pero esta ronda se sincronizó antes de que " +
-                            "se guardaran. Vuelve a descargarla (baja el puntero de última " +
-                            "sincronización y re-sincroniza) para rellenar el scorecard; las rondas " +
-                            "nuevas se guardan automáticamente.",
+                        "No per-hole data saved for this round. The watch sends them in the " +
+                            "workout section blocks, but this round was synced before they " +
+                            "were saved. Download it again (lower the last-sync " +
+                            "pointer and re-sync) to fill the scorecard; new " +
+                            "rounds are saved automatically.",
                         style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant,
                     )
                     round.rawHuaweiType?.let { t ->
                         Spacer(Modifier.height(8.dp))
-                        Text("Tipo Huawei del entreno: $t", style = MaterialTheme.typography.bodySmall,
+                        Text("Huawei workout type: $t", style = MaterialTheme.typography.bodySmall,
                             color = scheme.onSurfaceVariant)
                     }
                 }
@@ -390,13 +390,13 @@ private fun GolfScreen(
 private fun GolfRouteCard(track: List<LatLon>?, hasBaseMap: Boolean) {
     val scheme = MaterialTheme.colorScheme
     GolfCard {
-        Text("Ruta en el campo", style = MaterialTheme.typography.titleMedium,
+        Text("Route on the course", style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold, color = scheme.onSurface)
         Spacer(Modifier.height(10.dp))
 
         when {
             !hasBaseMap -> Text(
-                "Importa un mapa base (en la app de mapas) para ver la ruta sobre el campo.",
+                "Import a base map (in the map app) to see the route over the course.",
                 style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant,
             )
             track == null -> Box(
@@ -454,7 +454,7 @@ private fun GolfScorecardCard(card: GolfScorecard) {
 
         // Header.
         ScoreRow(
-            cells = listOf("Hoyo", "Par", "Golpes", "+/-", "Putts"),
+            cells = listOf("Hole", "Par", "Golpes", "+/-", "Putts"),
             color = scheme.onSurfaceVariant,
             weight = FontWeight.SemiBold,
         )

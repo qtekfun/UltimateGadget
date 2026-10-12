@@ -239,12 +239,12 @@ private fun notifyFinished(context: Context, timer: PhoneTimer) {
         ) {
             return
         }
-        val label = timer.label.ifBlank { "Temporizador" }
+        val label = timer.label.ifBlank { "Timer" }
         val builder = androidx.core.app.NotificationCompat.Builder(
             context, GB.NOTIFICATION_CHANNEL_HIGH_PRIORITY_ID,
         )
             .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle("Temporizador finalizado")
+            .setContentTitle("Timer finished")
             .setContentText(label)
             .setPriority(androidx.core.app.NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
@@ -323,7 +323,7 @@ private fun TimersScreen(onBack: () -> Unit) {
     }
 
     ClockScaffold(
-        title = "Temporizadores",
+        title = "Timers",
         onBack = onBack,
         floatingActionButton = {
             val palette = LocalUltimatePalette.current
@@ -337,7 +337,7 @@ private fun TimersScreen(onBack: () -> Unit) {
                 },
                 containerColor = palette.primary,
                 contentColor = palette.onPrimary,
-            ) { Icon(Icons.Filled.Add, contentDescription = "Añadir temporizador") }
+            ) { Icon(Icons.Filled.Add, contentDescription = "Add timer") }
         },
     ) {
         Column(Modifier.fillMaxSize()) {
@@ -393,7 +393,7 @@ private fun TimersScreen(onBack: () -> Unit) {
 private fun LocalTimerNotice() {
     val palette = LocalUltimatePalette.current
     Text(
-        "Temporizador local del teléfono. El reloj no admite temporizadores, así que la cuenta atrás corre en el móvil y avisa aquí.",
+        "Local phone timer. The watch does not support timers, so the countdown runs on the phone and alerts here.",
         style = MaterialTheme.typography.bodySmall,
         color = palette.onSurfaceVariant,
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
@@ -426,7 +426,7 @@ private fun TimerCard(
                         color = if (active) palette.primary else palette.onSurface,
                         fontWeight = FontWeight.Bold,
                     )
-                    val label = timer.label.ifBlank { "Temporizador" }
+                    val label = timer.label.ifBlank { "Timer" }
                     val state = when {
                         timer.isRunning -> "En marcha"
                         timer.isPaused -> "En pausa"
@@ -476,25 +476,25 @@ private fun TimerEditor(
     var label by remember { mutableStateOf(timer.label) }
 
     ClockScaffold(
-        title = if (isNew) "Nuevo temporizador" else "Editar temporizador",
+        title = if (isNew) "New timer" else "Edit timer",
         onBack = onCancel,
         actions = {
             TextButton(onClick = {
                 val durationMs = ((hours * 3600 + minutes * 60 + seconds).coerceAtLeast(1)).toLong() * 1000L
                 onSave(label.trim(), durationMs)
-            }) { Text("Guardar", color = palette.primary, fontWeight = FontWeight.Bold) }
+            }) { Text("Save", color = palette.primary, fontWeight = FontWeight.Bold) }
         },
     ) {
         Column(
             Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp),
         ) {
-            Text("DURACIÓN", style = MaterialTheme.typography.labelMedium, color = palette.onSurfaceVariant)
+            Text("DURATION", style = MaterialTheme.typography.labelMedium, color = palette.onSurfaceVariant)
             Row(
                 Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                DurationStepper("Horas", hours, 0, 23, Modifier.weight(1f)) { hours = it }
+                DurationStepper("Hours", hours, 0, 23, Modifier.weight(1f)) { hours = it }
                 DurationStepper("Min", minutes, 0, 59, Modifier.weight(1f)) { minutes = it }
                 DurationStepper("Seg", seconds, 0, 59, Modifier.weight(1f)) { seconds = it }
             }
@@ -503,7 +503,7 @@ private fun TimerEditor(
                 onValueChange = { if (it.length <= 40) label = it },
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text("Etiqueta") },
-                placeholder = { Text("Nombre del temporizador") },
+                placeholder = { Text("Timer name") },
                 singleLine = true,
             )
             Spacer(Modifier.height(24.dp))
@@ -533,7 +533,7 @@ private fun DurationStepper(
         ) {
             Text(label.uppercase(), style = MaterialTheme.typography.labelSmall, color = palette.onSurfaceVariant)
             IconButton(onClick = { onChange(if (value >= max) min else value + 1) }) {
-                Icon(Icons.Filled.Add, contentDescription = "Más", tint = palette.primary)
+                Icon(Icons.Filled.Add, contentDescription = "More", tint = palette.primary)
             }
             Text(
                 String.format(Locale.getDefault(), "%02d", value),
@@ -560,6 +560,6 @@ private fun TimersEmpty() {
         Spacer(Modifier.height(16.dp))
         Text("Sin temporizadores", style = MaterialTheme.typography.titleLarge, color = palette.onSurface)
         Spacer(Modifier.height(6.dp))
-        Text("Pulsa + para crear una cuenta atrás.", style = MaterialTheme.typography.bodyMedium, color = palette.onSurfaceVariant)
+        Text("Tap + to create a countdown.", style = MaterialTheme.typography.bodyMedium, color = palette.onSurfaceVariant)
     }
 }

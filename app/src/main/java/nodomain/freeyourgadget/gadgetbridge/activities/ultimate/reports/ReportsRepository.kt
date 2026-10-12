@@ -246,14 +246,14 @@ class ReportsRepository(private val app: Application) {
         val streakBest = maxOf(currentStreak, bestStreak)
 
         return listOf(
-            Medal("first_goal", "Primer objetivo", "Alcanza tu meta de pasos en un día", anyGoalDay),
-            Medal("step_15k", "15 000 pasos", "15 000 pasos en un solo día", bestDay >= 15_000),
-            Medal("streak_3", "Racha de 3", "3 días seguidos cumpliendo el objetivo", streakBest >= 3),
-            Medal("streak_7", "Semana perfecta", "7 días seguidos cumpliendo el objetivo", streakBest >= 7),
-            Medal("streak_30", "Mes de fuego", "30 días seguidos cumpliendo el objetivo", streakBest >= 30),
-            Medal("week_70k", "70k en 7 días", "70 000 pasos en una semana", bestWeekSteps >= 70_000),
-            Medal("dist_100k", "100 km", "100 km acumulados en el historial", totalDistance >= 100.0),
-            Medal("steps_1m", "Millón de pasos", "1 000 000 de pasos acumulados", totalSteps >= 1_000_000L),
+            Medal("first_goal", "Primer objetivo", "Reach your step goal in a day", anyGoalDay),
+            Medal("step_15k", "15 000 pasos", "15,000 steps in a single day", bestDay >= 15_000),
+            Medal("streak_3", "3-day streak", "3 days in a row meeting the goal", streakBest >= 3),
+            Medal("streak_7", "Perfect week", "7 days in a row meeting the goal", streakBest >= 7),
+            Medal("streak_30", "Month on fire", "30 days in a row meeting the goal", streakBest >= 30),
+            Medal("week_70k", "70k in 7 days", "70,000 steps in a week", bestWeekSteps >= 70_000),
+            Medal("dist_100k", "100 km", "100 km accumulated in history", totalDistance >= 100.0),
+            Medal("steps_1m", "A million steps", "1,000,000 steps accumulated", totalSteps >= 1_000_000L),
         )
     }
 

@@ -63,7 +63,7 @@ internal fun ClockScaffold(
                 title = { Text(title) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 actions = { actions() },
@@ -113,7 +113,7 @@ internal val WEEKDAY_LABELS = arrayOf("L", "M", "X", "J", "V", "S", "D")
 /** Human-readable repetition summary from an alarm repetition bit mask. */
 internal fun repetitionSummary(mask: Int): String {
     if (mask == 0) return "Una vez"
-    if (mask and AlarmModel.ALARM_DAILY.toInt() == AlarmModel.ALARM_DAILY.toInt()) return "Todos los días"
+    if (mask and AlarmModel.ALARM_DAILY.toInt() == AlarmModel.ALARM_DAILY.toInt()) return "Every day"
     val days = WEEKDAY_BITS.indices.filter { (mask and WEEKDAY_BITS[it]) != 0 }.map { WEEKDAY_LABELS[it] }
     return days.joinToString(" ")
 }

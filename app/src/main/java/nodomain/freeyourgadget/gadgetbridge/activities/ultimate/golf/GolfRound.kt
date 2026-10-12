@@ -210,17 +210,17 @@ data class GolfRound(
 
             val stats = mutableListOf<GolfStat>()
             // Duration is always meaningful for a round.
-            stats += GolfStat("Duración", formatDuration(dur))
+            stats += GolfStat("Duration", formatDuration(dur))
 
             if (data != null) {
                 data.num(ActivitySummaryEntries.DISTANCE_METERS)?.takeIf { it > 0 }?.let {
-                    stats += GolfStat("Distancia caminada", formatDistance(it))
+                    stats += GolfStat("Distance walked", formatDistance(it))
                 }
                 data.num(ActivitySummaryEntries.STEPS)?.takeIf { it > 0 }?.let {
-                    stats += GolfStat("Pasos", "%,d".format(it.toLong()))
+                    stats += GolfStat("Steps", "%,d".format(it.toLong()))
                 }
                 data.num(ActivitySummaryEntries.CALORIES_BURNT)?.takeIf { it > 0 }?.let {
-                    stats += GolfStat("Calorías", "%,d kcal".format(it.toLong()))
+                    stats += GolfStat("Calories", "%,d kcal".format(it.toLong()))
                 }
                 data.num(ActivitySummaryEntries.HR_AVG)?.takeIf { it > 0 }?.let {
                     stats += GolfStat("Pulso medio", "${it.toInt()} bpm")
@@ -229,12 +229,12 @@ data class GolfRound(
                 val hrMax = data.num(ActivitySummaryEntries.HR_MAX)?.takeIf { it > 0 }
                 if (hrMin != null || hrMax != null) {
                     stats += GolfStat(
-                        "Pulso mín/máx",
+                        "Heart rate min/max",
                         "${hrMin?.toInt() ?: "—"} / ${hrMax?.toInt() ?: "—"} bpm",
                     )
                 }
                 data.num(ActivitySummaryEntries.WORKOUT_LOAD)?.takeIf { it > 0 }?.let {
-                    stats += GolfStat("Carga de entreno", "${it.toInt()}")
+                    stats += GolfStat("Workout load", "${it.toInt()}")
                 }
             }
 
@@ -242,8 +242,8 @@ data class GolfRound(
             if (hasScorecard) {
                 // Defensive: if some future device/firmware does send scoring fields, surface them
                 // instead of hiding them. Not expected with the current Huawei integration.
-                data!!.num("holes")?.let { stats += GolfStat("Hoyos", "${it.toInt()}") }
-                data.num("golfHoles")?.let { stats += GolfStat("Hoyos", "${it.toInt()}") }
+                data!!.num("holes")?.let { stats += GolfStat("Holes", "${it.toInt()}") }
+                data.num("golfHoles")?.let { stats += GolfStat("Holes", "${it.toInt()}") }
                 data.num("par")?.let { stats += GolfStat("Par", "${it.toInt()}") }
                 data.num("golfPar")?.let { stats += GolfStat("Par", "${it.toInt()}") }
                 data.num("score")?.let { stats += GolfStat("Score", "${it.toInt()}") }
@@ -254,7 +254,7 @@ data class GolfRound(
             }
 
             return GolfRound(
-                title = summary.name?.takeIf { it.isNotBlank() } ?: "Ronda de golf",
+                title = summary.name?.takeIf { it.isNotBlank() } ?: "Golf round",
                 whenLabel = start?.let { FMT.format(it) }.orEmpty(),
                 durationSeconds = dur,
                 rawHuaweiType = UltimateGolf.rawHuaweiType(summary),

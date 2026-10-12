@@ -73,10 +73,10 @@ fun SleepScreen(
         containerColor = scheme.background,
         topBar = {
             TopAppBar(
-                title = { Text("Sueño", fontWeight = FontWeight.Bold) },
+                title = { Text("Sleep", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -117,7 +117,7 @@ private fun DaySelector(state: SleepUiState, onPrev: () -> Unit, onNext: () -> U
     DashboardCard {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onPrev) {
-                Icon(Icons.Filled.ChevronLeft, contentDescription = "Día anterior", tint = scheme.onSurface)
+                Icon(Icons.Filled.ChevronLeft, contentDescription = "Previous day", tint = scheme.onSurface)
             }
             Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
                 SectionLabel(if (state.isToday) "Hoy" else "Noche de")
@@ -126,7 +126,7 @@ private fun DaySelector(state: SleepUiState, onPrev: () -> Unit, onNext: () -> U
             }
             IconButton(onClick = onNext, enabled = !state.isToday) {
                 Icon(
-                    Icons.Filled.ChevronRight, contentDescription = "Día siguiente",
+                    Icons.Filled.ChevronRight, contentDescription = "Next day",
                     tint = if (state.isToday) scheme.onSurfaceVariant.copy(alpha = 0.3f) else scheme.onSurface,
                 )
             }
@@ -144,9 +144,9 @@ private fun ScoreCard(d: SleepDayData) {
     }
     DashboardCard {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            SectionLabel("Puntuación de sueño")
+            SectionLabel("Sleep score")
             Text(
-                if (d.scoreNative) "del dispositivo" else "estimada",
+                if (d.scoreNative) "from the device" else "estimada",
                 style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant,
             )
         }
@@ -170,10 +170,10 @@ private fun HypnogramCard(d: SleepDayData) {
     val scheme = MaterialTheme.colorScheme
     val colors = phaseColors(scheme)
     DashboardCard {
-        SectionLabel("Fases del sueño")
+        SectionLabel("Sleep stages")
         Spacer(Modifier.height(10.dp))
         if (d.segments.isEmpty()) {
-            Text("Sin detalle de fases", style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
+            Text("No stage detail", style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
         } else {
             val totalMin = ((d.sessionEndMillis - d.sessionStartMillis) / 60000L).toInt().coerceAtLeast(1)
             Hypnogram(d.segments, totalMin, colors, scheme.surfaceContainerHighest)
@@ -223,10 +223,10 @@ private fun Hypnogram(segments: List<SleepSegment>, totalMin: Int, colors: Map<S
 @Composable
 private fun PhaseLegend(d: SleepDayData, colors: Map<SleepPhase, Color>) {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        LegendRow(colors[SleepPhase.DEEP]!!, "Profundo", d.deepMin, d.totalMin)
+        LegendRow(colors[SleepPhase.DEEP]!!, "Deep", d.deepMin, d.totalMin)
         LegendRow(colors[SleepPhase.REM]!!, "REM", d.remMin, d.totalMin)
-        LegendRow(colors[SleepPhase.LIGHT]!!, "Ligero", d.lightMin, d.totalMin)
-        LegendRow(colors[SleepPhase.AWAKE]!!, "Despierto", d.awakeMin, d.totalMin)
+        LegendRow(colors[SleepPhase.LIGHT]!!, "Light", d.lightMin, d.totalMin)
+        LegendRow(colors[SleepPhase.AWAKE]!!, "Awake", d.awakeMin, d.totalMin)
     }
 }
 
@@ -250,13 +250,13 @@ private fun SummaryCard(d: SleepDayData) {
         Spacer(Modifier.height(10.dp))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Stat("Total", hoursMinutes(d.totalMin), scheme.onSurface)
-            Stat("Profundo", hoursMinutes(d.deepMin), scheme.onSurface)
+            Stat("Deep", hoursMinutes(d.deepMin), scheme.onSurface)
             Stat("REM", hoursMinutes(d.remMin), scheme.onSurface)
         }
         Spacer(Modifier.height(12.dp))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Stat("Ligero", hoursMinutes(d.lightMin), scheme.onSurface)
-            Stat("Despierto", hoursMinutes(d.awakeMin), scheme.onSurface)
+            Stat("Light", hoursMinutes(d.lightMin), scheme.onSurface)
+            Stat("Awake", hoursMinutes(d.awakeMin), scheme.onSurface)
             Stat("Despertares", "${d.awakenings}", scheme.onSurface)
         }
     }
@@ -267,11 +267,11 @@ private fun SummaryCard(d: SleepDayData) {
 private fun TrueSleepCard(d: SleepDayData) {
     val scheme = MaterialTheme.colorScheme
     val items = buildList {
-        d.sleepEfficiency?.let { add("Eficiencia" to "$it%") }
+        d.sleepEfficiency?.let { add("Efficiency" to "$it%") }
         d.sleepLatencyMin?.let { add("Latencia" to "$it min") }
         if (d.hrMin != null && d.hrMax != null) add("Pulso" to "${d.hrMin}–${d.hrMax} bpm")
         else d.hrAvg?.let { add("Pulso medio" to "$it bpm") }
-        d.breathAvg?.let { add("Respiración" to "$it/min") }
+        d.breathAvg?.let { add("Breathing" to "$it/min") }
         d.hrvAvg?.let { add("HRV media" to "$it ms") }
         d.snoreCount?.let { add("Ronquidos" to "$it") }
         d.apneaIndex?.let { add("Apnea (RDI)" to "$it") }
@@ -297,7 +297,7 @@ private fun Spo2Card(d: SleepDayData) {
     DashboardCard {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             SectionLabel("SpO₂ nocturno")
-            Text("mín ${d.spo2Min}% · media ${d.spo2Avg}%", style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
+            Text("min ${d.spo2Min}% · avg ${d.spo2Avg}%", style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
         }
         Spacer(Modifier.height(10.dp))
         Row(verticalAlignment = Alignment.Bottom) {
@@ -368,9 +368,9 @@ private fun LoadingCard() {
 @Composable
 private fun EmptyCard() {
     DashboardCard {
-        Text("Sin datos de sueño para este día", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text("No sleep data for this day", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(Modifier.height(6.dp))
-        Text("Sincroniza el reloj o elige otra noche.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text("Sync the watch or pick another night.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 

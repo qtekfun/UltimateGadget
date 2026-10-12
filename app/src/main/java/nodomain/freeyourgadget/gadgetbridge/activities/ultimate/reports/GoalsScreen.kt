@@ -82,10 +82,10 @@ fun GoalsScreen(
         containerColor = scheme.background,
         topBar = {
             TopAppBar(
-                title = { Text("Objetivos", fontWeight = FontWeight.Bold) },
+                title = { Text("Goals", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -111,7 +111,7 @@ fun GoalsScreen(
             item { StepGoalCard(g) { editing = true } }
             item { StreakCard(g) }
             item {
-                SectionLabel("Medallas")
+                SectionLabel("Medals")
                 Spacer(Modifier.height(8.dp))
                 MedalGrid(g.medals)
             }
@@ -135,7 +135,7 @@ private fun StepGoalCard(goals: GoalsData, onEdit: () -> Unit) {
     DashboardCard {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
-                SectionLabel("Objetivo diario de pasos")
+                SectionLabel("Daily step goal")
                 Spacer(Modifier.height(6.dp))
                 Text("%,d".format(goals.stepGoal), style = MetricValueStyle, color = scheme.onSurface)
             }
@@ -151,7 +151,7 @@ private fun StepGoalCard(goals: GoalsData, onEdit: () -> Unit) {
             trackColor = scheme.surfaceContainerHighest,
         )
         Spacer(Modifier.height(8.dp))
-        Text("Hoy ${"%,d".format(goals.todaySteps)} de ${"%,d".format(goals.stepGoal)} pasos",
+        Text("Today ${"%,d".format(goals.todaySteps)} of ${"%,d".format(goals.stepGoal)} steps",
             color = scheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
     }
 }
@@ -165,11 +165,11 @@ private fun StreakCard(goals: GoalsData) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Filled.LocalFireDepartment, contentDescription = null, tint = scheme.tertiary, modifier = Modifier.size(20.dp))
                     Spacer(Modifier.width(6.dp))
-                    SectionLabel("Racha actual")
+                    SectionLabel("Current streak")
                 }
                 Spacer(Modifier.height(6.dp))
                 Text("${goals.currentStreak}", style = MetricValueStyle, color = scheme.onSurface)
-                Text(if (goals.currentStreak == 1) "día" else "días", color = scheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
+                Text(if (goals.currentStreak == 1) "day" else "days", color = scheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
             }
         }
         Surface(Modifier.weight(1f), shape = RoundedCornerShape(20.dp), color = scheme.surfaceContainer) {
@@ -177,7 +177,7 @@ private fun StreakCard(goals: GoalsData) {
                 SectionLabel("Mejor racha")
                 Spacer(Modifier.height(6.dp))
                 Text("${goals.bestStreak}", style = MetricValueStyle, color = scheme.onSurface)
-                Text(if (goals.bestStreak == 1) "día" else "días", color = scheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
+                Text(if (goals.bestStreak == 1) "day" else "days", color = scheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
             }
         }
     }
@@ -234,17 +234,17 @@ private fun StepGoalDialog(current: Int, onDismiss: () -> Unit, onConfirm: (Int)
     var text by remember { mutableStateOf(current.toString()) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Objetivo de pasos") },
+        title = { Text("Step goal") },
         text = {
             Column {
-                Text("Fija tu meta diaria de pasos.", style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
+                Text("Set your daily step goal.", style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
                 Spacer(Modifier.height(12.dp))
                 OutlinedTextField(
                     value = text,
                     onValueChange = { new -> text = new.filter { it.isDigit() }.take(6) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    label = { Text("Pasos") },
+                    label = { Text("Steps") },
                 )
             }
         },
@@ -262,10 +262,10 @@ private fun StepGoalDialog(current: Int, onDismiss: () -> Unit, onConfirm: (Int)
 private fun sampleGoals() = GoalsData(
     stepGoal = 10000, todaySteps = 8421, currentStreak = 4, bestStreak = 12,
     medals = listOf(
-        Medal("first_goal", "Primer objetivo", "Alcanza tu meta en un día", true),
-        Medal("streak_7", "Semana perfecta", "7 días seguidos", true),
-        Medal("streak_30", "Mes de fuego", "30 días seguidos", false),
-        Medal("steps_1m", "Millón de pasos", "1 000 000 acumulados", false),
+        Medal("first_goal", "Primer objetivo", "Reach your goal in a day", true),
+        Medal("streak_7", "Perfect week", "7 days in a row", true),
+        Medal("streak_30", "Month on fire", "30 days in a row", false),
+        Medal("steps_1m", "A million steps", "1 000 000 acumulados", false),
     ),
 )
 
