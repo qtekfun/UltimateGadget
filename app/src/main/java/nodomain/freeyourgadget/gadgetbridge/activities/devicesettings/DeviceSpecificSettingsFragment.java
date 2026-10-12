@@ -50,6 +50,8 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.media.AudioManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -546,7 +548,16 @@ public class DeviceSpecificSettingsFragment extends AbstractPreferenceFragment i
      * delayed execution so that the preferences are applied first
      */
     private void invokeLater(Runnable runnable) {
-        getListView().post(runnable);
+        final View listView = getListView();
+        if (listView != null) {
+            listView.post(runnable);
+        } else {
+            // The settings list view can already be gone (fragment detached/destroyed) when a
+            // deferred preference change runs - e.g. a device sync updating a time/date pref after
+            // the user has left the screen. Fall back to the main looper so the configuration is
+            // still sent to the device instead of crashing on a null list view.
+            new Handler(Looper.getMainLooper()).post(runnable);
+        }
     }
 
     /*
