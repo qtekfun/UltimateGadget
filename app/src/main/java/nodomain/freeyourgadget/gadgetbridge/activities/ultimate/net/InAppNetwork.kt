@@ -94,10 +94,24 @@ interface InAppNetwork {
     fun fetchHuamiKeys(email: String, password: String, regionIndex: Int): List<HuamiKey>
 
     /**
+     * Blocking. Lists the account's Huami/Zepp devices from tokens captured by a browser login
+     * (so OTP/captcha are handled on Zepp's own page). No credentials are sent here.
+     */
+    @Throws(Exception::class)
+    fun fetchHuamiKeysWithToken(userId: String, appToken: String, regionIndex: Int): List<HuamiKey>
+
+    /**
      * Blocking. Logs in to the Xiaomi (Mi Fitness) account over HTTPS and returns the account's
      * wearables with auth keys. The credentials are used for this call only and never stored or
      * logged. 2FA and captcha challenges are not supported.
      */
     @Throws(Exception::class)
     fun fetchXiaomiKeys(email: String, password: String): List<XiaomiKey>
+
+    /**
+     * Blocking. Lists the account's Xiaomi (Mi Fitness) wearables from a passToken captured by a
+     * browser login (so OTP/captcha are handled on Xiaomi's own page). No password is sent here.
+     */
+    @Throws(Exception::class)
+    fun fetchXiaomiKeysWithPassToken(userId: String, passToken: String): List<XiaomiKey>
 }

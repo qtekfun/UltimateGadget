@@ -47,6 +47,12 @@ object InAppNetworkImpl : InAppNetwork {
     override fun fetchHuamiKeys(email: String, password: String, regionIndex: Int): List<HuamiKey> =
         throw UnsupportedOperationException("This build has no network access")
 
+    override fun fetchHuamiKeysWithToken(userId: String, appToken: String, regionIndex: Int): List<HuamiKey> =
+        throw UnsupportedOperationException("This build has no network access")
+
     override fun fetchXiaomiKeys(email: String, password: String): List<XiaomiKey> =
+        throw UnsupportedOperationException("This build has no network access")
+
+    override fun fetchXiaomiKeysWithPassToken(userId: String, passToken: String): List<XiaomiKey> =
         throw UnsupportedOperationException("This build has no network access")
 }

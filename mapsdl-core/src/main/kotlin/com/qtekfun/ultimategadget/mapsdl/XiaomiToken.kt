@@ -84,6 +84,57 @@ object XiaomiToken {
         return getSourceList(session)
     }
 
+    /**
+     * Lists the account's wearables from a browser-login session, so the OTP and captcha are
+     * handled on Xiaomi's own login page. [userId] is the numeric account id and [passToken] the
+     * long-lived cookie set after a successful web sign-in on account.xiaomi.com; both are captured
+     * from the WebView cookies. No password is sent. Blocking I/O.
+     */
+    fun fetchAuthKeysWithPassToken(userId: String, passToken: String): List<XiaomiDevice> {
+        val session = loginWithPassToken(userId.trim(), passToken.trim())
+        return getSourceList(session)
+    }
+
+    // Re-login without a password: serviceLogin carrying userId + passToken cookies returns the
+    // session (code 0 with ssecurity/nonce/location) directly, no credential or captcha step.
+    private fun loginWithPassToken(userId: String, passToken: String): Session {
+        val url = "$URL_SERVICE_LOGIN?_json=true&sid=$SID&_locale=en_US"
+        val conn = (URL(url).openConnection() as HttpURLConnection).apply {
+            requestMethod = "GET"
+            connectTimeout = 20_000
+            readTimeout = 20_000
+            setRequestProperty("User-Agent", UA_WEB)
+            setRequestProperty("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+            setRequestProperty("Accept-Language", "en-US,en;q=0.5")
+            setRequestProperty("Cookie", "userId=$userId; passToken=$passToken")
+        }
+        val auth = try {
+            val code = conn.responseCode
+            if (code != 200) throw XiaomiException("serviceLogin (passToken) falló (HTTP $code).")
+            val json = parseXiaomiJson(readBody(conn))
+            if (json.optInt("code", -1) != 0) {
+                val desc = json.optString("description").ifBlank { "código ${json.optInt("code", -1)}" }
+                throw XiaomiException("Sesión Xiaomi no válida: $desc. Vuelve a iniciar sesión.")
+            }
+            val ssecurity = json.optString("ssecurity")
+            val location = json.optString("location")
+            if (ssecurity.isBlank() || location.isBlank()) {
+                throw XiaomiException("La sesión Xiaomi no devolvió ssecurity/location. Vuelve a iniciar sesión.")
+            }
+            Auth(
+                ssecurity = ssecurity,
+                nonce = json.opt("nonce")?.toString().orEmpty(),
+                userId = json.opt("userId")?.toString().orEmpty().ifBlank { userId },
+                cUserId = json.optString("cUserId"),
+                location = location,
+            )
+        } finally {
+            conn.disconnect()
+        }
+        val serviceToken = getServiceToken(auth)
+        return Session(auth.ssecurity, serviceToken, auth.userId, auth.cUserId)
+    }
+
     // ---- Mi Account login (sid=miothealth) ----
 
     private fun login(email: String, password: String): Session {
