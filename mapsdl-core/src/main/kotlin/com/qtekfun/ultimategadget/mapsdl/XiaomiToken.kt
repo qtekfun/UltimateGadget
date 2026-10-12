@@ -61,8 +61,12 @@ object XiaomiToken {
         "Mozilla/5.0 (Linux; Android 12; Pixel 4 Build/SP1A.210812.016.C1; wv) " +
             "AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/131.0.6778.200 Mobile Safari/537.36"
     private const val UA_API = "Android-12-9.8.348i-google-Pixel 4"
-    // region_tag hint; the source list is served from the base domain regardless.
-    private const val REGION_TAG = "de"
+    // The source list is served from the base domain, but it is routed to the account's regional
+    // data store by the `region_tag` header. The account's region is not known up front (it is set
+    // when the Mi account was created), so the request is retried across the known shards until one
+    // returns the account's devices. Order: Europe, Russia (huami-token's default), Singapore/intl,
+    // India, US.
+    private val REGION_TAGS = listOf("de", "ru", "sg", "i2", "in", "us")
 
     private const val JSON_PREFIX = "&&&START&&&"
 
@@ -286,6 +290,28 @@ object XiaomiToken {
     // ---- Device listing (encrypted Mi Fitness health API) ----
 
     private fun getSourceList(session: Session): List<XiaomiDevice> {
+        // The account's region is unknown, so retry across the shards (see REGION_TAGS) until one
+        // returns the bound devices. Keep the last server-reported error for a useful message.
+        var lastError: String? = null
+        for (region in REGION_TAGS) {
+            val result = trySourceList(session, region)
+            if (result.devices.isNotEmpty()) return result.devices
+            if (result.serverError != null) lastError = result.serverError
+        }
+        throw XiaomiException(
+            if (lastError != null) {
+                "Xiaomi returned no devices for this account ($lastError)."
+            } else {
+                "No devices with an auth key were found on this Xiaomi account."
+            },
+        )
+    }
+
+    private class SourceListResult(val devices: List<XiaomiDevice>, val serverError: String?)
+
+    // One get_source_list attempt against a given region shard. Returns the parsed devices (may be
+    // empty) and, if the server reported a non-zero code, its code/description for diagnostics.
+    private fun trySourceList(session: Session, regionTag: String): SourceListResult {
         // status=1 -> bound wearables, carrying auth_key in their detail.
         val data = "{\"page_size\":50,\"status\":1}"
         val nonce = XiaomiCrypto.generateNonce()
@@ -298,24 +324,34 @@ object XiaomiToken {
             readTimeout = 30_000
             doOutput = true
             setRequestProperty("User-Agent", UA_API)
-            setRequestProperty("region_tag", REGION_TAG)
+            setRequestProperty("region_tag", regionTag)
             setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
             setRequestProperty("Cookie", "cUserId=${session.cUserId}; serviceToken=${session.serviceToken}; locale=en_us")
         }
         val body: String
+        val httpCode: Int
         try {
             conn.outputStream.use { it.write(form.toByteArray(Charsets.UTF_8)) }
-            val code = conn.responseCode
+            httpCode = conn.responseCode
             body = readBody(conn)
-            if (code !in 200..299) throw XiaomiException("Xiaomi device listing failed (HTTP $code).")
         } finally {
             conn.disconnect()
+        }
+        if (httpCode !in 200..299) {
+            return SourceListResult(emptyList(), "HTTP $httpCode @ $regionTag")
         }
 
         // The body is RC4-encrypted base64; fall back to raw JSON for server error messages.
         val json = runCatching { JSONObject(XiaomiCrypto.decryptResponse(body, nonce, session.ssecurity)) }
             .recoverCatching { JSONObject(body) }
-            .getOrElse { throw XiaomiException("Respuesta ilegible del servidor Xiaomi.") }
+            .getOrNull() ?: return SourceListResult(emptyList(), "unreadable response @ $regionTag")
+
+        // A non-zero code means this shard refused the request (often the wrong region); keep it.
+        val code = json.optInt("code", 0)
+        if (code != 0) {
+            val desc = json.optString("description").ifBlank { json.optString("message") }
+            return SourceListResult(emptyList(), "code $code${if (desc.isNotBlank()) " $desc" else ""} @ $regionTag")
+        }
 
         val list = json.optJSONObject("result")?.optJSONArray("list") ?: JSONArray()
         val out = ArrayList<XiaomiDevice>(list.length())
@@ -334,10 +370,7 @@ object XiaomiToken {
             val name = src.optString("name").trim().ifBlank { "Xiaomi" }
             out += XiaomiDevice(name = name, mac = mac, authKey = authKey)
         }
-        if (out.isEmpty()) {
-            throw XiaomiException("No devices with an auth key were found on this Xiaomi account.")
-        }
-        return out
+        return SourceListResult(out, null)
     }
 
     // ---- small helpers ----
