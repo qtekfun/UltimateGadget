@@ -1,103 +1,103 @@
-# UltimateGadget — Especificación inicial
+# UltimateGadget — Initial specification
 
-Fork de Gadgetbridge (com.qtekfun.ultimategadget), séptima app de la familia Ultimate. Objetivo: Gadgetbridge con interfaz mucho más cuidada y modo golf funcional en relojes Huawei (descarga de mapas de campos, distancias GPS al green, sincronización de rondas), sin depender de Huawei Health ni de HMS en el móvil.
+Fork of Gadgetbridge (com.qtekfun.ultimategadget), the seventh app in the Ultimate family. Goal: Gadgetbridge with a much more polished interface and a working golf mode on Huawei watches (downloading course maps, GPS distances to the green, syncing rounds), without depending on Huawei Health or HMS on the phone.
 
-## 1. Decisiones de la entrevista
+## 1. Decisions from the interview
 
-| Tema | Decisión |
+| Topic | Decision |
 |---|---|
-| Base | Fork de Gadgetbridge con la UI en un módulo aparte (`:ui`, Jetpack Compose). El núcleo se toca lo mínimo para poder integrar cambios de upstream |
-| Alcance | Se conserva todo lo que trae Gadgetbridge (todas las marcas) |
-| Reloj obligatorio | Huawei Watch GT Runner 2 |
-| Prioridad | Primero funcionalidad (protocolo y golf); la UI nueva llega cuando lo difícil esté demostrado |
-| Privacidad | Cero Huawei Health y cero HMS en el móvil; todo local salvo lo imprescindible |
-| Fuente de mapas | Servidores de Huawei (decisión de partida, ver conflicto abierto) |
-| Salud | Actividades y rutas GPS (GPX/FIT), pasos, sueño y pulso con gráficas más bonitas, notificaciones, esferas y apps del reloj |
-| Actualizaciones GPS | Quiere las actualizaciones A-GNSS (efemérides/almanaque) del reloj, descargadas y enviadas por UltimateGadget sin Huawei Health |
-| Sincronización | Nextcloud (datos y ajustes), con credenciales cifradas como en las otras apps |
-| Dispositivos de prueba | Pixel 8, OPPO Find X9 Ultra (ROM global) y un móvil Huawei con Huawei Health y el reloj conectado por adb para el análisis |
+| Base | Fork of Gadgetbridge with the UI in a separate module (`:ui`, Jetpack Compose). The core is touched as little as possible so upstream changes can still be integrated |
+| Scope | Everything Gadgetbridge ships is kept (all brands) |
+| Required watch | Huawei Watch GT Runner 2 |
+| Priority | Functionality first (protocol and golf); the new UI comes once the hard parts are proven |
+| Privacy | Zero Huawei Health and zero HMS on the phone; everything local except the essentials |
+| Map source | Huawei servers (starting decision, see the open conflict) |
+| Health | Activities and GPS routes (GPX/FIT), steps, sleep and heart rate with nicer charts, notifications, watchfaces and watch apps |
+| GPS updates | Wants the watch's A-GNSS updates (ephemeris/almanac), downloaded and sent by UltimateGadget without Huawei Health |
+| Sync | Nextcloud (data and settings), with encrypted credentials as in the other apps |
+| Test devices | Pixel 8, OPPO Find X9 Ultra (global ROM) and a Huawei phone with Huawei Health and the watch connected over adb for analysis |
 
-## 2. Golf: qué debe hacer
+## 2. Golf: what it must do
 
-1. Descargar mapas de campos al reloj sin pasar por Huawei Health.
-2. Distancias GPS al green funcionando en el reloj con los mapas cargados.
-3. Sincronizar rondas (tarjeta, golpes, trayectorias) a la app.
-4. Fuente de mapas propia (OpenStreetMap, etiquetas `golf=*`) en un repo de datos aparte, como en UltimatePhone y UltimateMaps.
-5. **Problema central:** el modo golf aparece en el reloj solo mientras está conectado a la app original y desaparece al desconectarse. Hay que averiguar qué le envía Huawei Health al reloj para activarlo (capacidades, lista de apps, servicio, flag) y replicarlo desde UltimateGadget.
+1. Download course maps to the watch without going through Huawei Health.
+2. GPS distances to the green working on the watch with the maps loaded.
+3. Sync rounds (scorecard, strokes, tracks) to the app.
+4. Our own map source (OpenStreetMap, `golf=*` tags) in a separate data repo, as in UltimatePhone and UltimateMaps.
+5. **Core problem:** golf mode appears on the watch only while it is connected to the original app and disappears when it disconnects. We must find out what Huawei Health sends the watch to enable it (capabilities, app list, service, flag) and replicate it from UltimateGadget.
 
-### Actualizaciones de GPS (A-GNSS)
+### GPS updates (A-GNSS)
 
-Objetivo: que el reloj reciba datos de ayuda de satélites actualizados para conseguir el fix GPS rápido, sobre todo antes de golf, carrera o ruta, sin Huawei Health.
+Goal: have the watch receive up-to-date satellite assistance data to get a fast GPS fix, especially before golf, a run or a route, without Huawei Health.
 
-- Averiguar de dónde salen los datos (servidores de Huawei, o fuentes abiertas/públicas compatibles con el formato del reloj), su formato, su caducidad y cómo se transfieren al reloj.
-- Descarga automática y programada (solo con Wi-Fi, configurable) y botón de actualización manual, con indicador de "datos GPS válidos hasta…".
-- Si la fuente es de Huawei, aplica el mismo conflicto y la misma decisión A/B/C de la sección 3. Si existe una fuente abierta equivalente, es preferible.
-- Entra en la Fase 1 junto al golf, porque comparte el canal de transferencia de ficheros.
+- Find out where the data comes from (Huawei servers, or open/public sources compatible with the watch's format), its format, its expiry and how it is transferred to the watch.
+- Automatic, scheduled download (Wi-Fi only, configurable) and a manual update button, with a "GPS data valid until…" indicator.
+- If the source is Huawei's, the same conflict and the same A/B/C decision from section 3 apply. If an equivalent open source exists, it is preferred.
+- It goes into Phase 1 alongside golf, because it shares the file-transfer channel.
 
-## 3. Conflicto abierto (se resuelve en la Fase 0)
+## 3. Open conflict (resolved in Phase 0)
 
-Has pedido a la vez "mapas de los servidores de Huawei" y "cero Huawei Health y cero HMS". Es compatible solo si UltimateGadget habla directamente con los servidores de Huawei sin la app original, y eso probablemente exige iniciar sesión con una cuenta de Huawei y reproducir su autenticación. La Fase 0 debe decidir entre:
+You have asked for both "maps from Huawei's servers" and "zero Huawei Health and zero HMS". That is only compatible if UltimateGadget talks directly to Huawei's servers without the original app, which probably requires signing in with a Huawei account and reproducing its authentication. Phase 0 must decide between:
 
-- **A.** La app habla con Huawei directamente (cuenta opt-in explícita).
-- **B.** La descarga se hace una vez en tu equipo/servidor con tu cuenta y el repo de datos publica los mapas ya convertidos; el móvil no toca Huawei.
-- **C.** Mapas desde OpenStreetMap y los de Huawei solo para validar el formato.
+- **A.** The app talks to Huawei directly (explicit opt-in account).
+- **B.** The download is done once on your machine/server with your account and the data repo publishes the already-converted maps; the phone never touches Huawei.
+- **C.** Maps from OpenStreetMap, and Huawei's only to validate the format.
 
-La opción B encaja mejor con "cero Huawei en el móvil" y con el modelo de repo de datos que ya usas.
+Option B fits best with "zero Huawei on the phone" and with the data-repo model you already use.
 
-## 4. Licencia y marco legal
+## 4. License and legal framework
 
-- Gadgetbridge es AGPL-3.0: UltimateGadget debe seguir siendo AGPL-3.0 con el código publicado.
-- La ingeniería inversa se hace sobre tu propio reloj y tu propia cuenta, por interoperabilidad. Usa preferiblemente una cuenta de Huawei secundaria: hay riesgo de bloqueo por incumplir sus condiciones de uso.
-- No se redistribuyen binarios, mapas ni claves de Huawei en el repositorio.
+- Gadgetbridge is AGPL-3.0: UltimateGadget must stay AGPL-3.0 with its source published.
+- Reverse engineering is done on your own watch and your own account, for interoperability. Prefer a secondary Huawei account: there is a risk of being blocked for breaching their terms of use.
+- Binaries, maps and Huawei keys are not redistributed in the repository.
 
-### Servicios de terceros en la app compañera de mapas
+### Third-party services in the companion map app
 
-La app principal mantiene "cero HMS y cero servicios de terceros". La app compañera de descarga de
-mapas (`mapdownloader`, la única con acceso a internet) incluye además una utilidad **opcional** para
-obtener la clave Bluetooth (auth key) de relojes Amazfit/Zepp y Xiaomi directamente de los servidores
-de Huami/Zepp, replicando el método huami-token al que remite la guía oficial de Gadgetbridge. Decisión
-acordada:
+The main app keeps "zero HMS and zero third-party services". The companion map-download app
+(`mapdownloader`, the only one with internet access) additionally includes an **optional** utility to
+obtain the Bluetooth key (auth key) of Amazfit/Zepp and Xiaomi watches directly from the Huami/Zepp
+servers, replicating the huami-token method the official Gadgetbridge guide points to. Agreed
+decision:
 
-- Vive solo en la app de mapas, nunca en la app principal.
-- El email y la contraseña de la cuenta Zepp/Amazfit se usan únicamente para el login (HTTPS contra
-  Huami/Zepp) y **no se almacenan** en ningún sitio ni se registran en logs.
-- Es de uso voluntario y solo sobre la cuenta propia, por interoperabilidad; el host de listado de
-  dispositivos es seleccionable por región.
+- It lives only in the map app, never in the main app.
+- The Zepp/Amazfit account email and password are used only for the login (HTTPS against
+  Huami/Zepp) and are **not stored** anywhere or written to logs.
+- It is opt-in and only for your own account, for interoperability; the device-listing host is
+  selectable by region.
 
-### Variante `play` (todo en uno)
+### `play` variant (all-in-one)
 
-Decisión acordada, a propósito **fuera de la regla** "cero red en la app principal": el flavor `play`
-(`com.qtekfun.ultimategadget.play`, se instala junto a `mainline`) lleva permiso `INTERNET` y hace en
-la propia app lo que hace la app compañera: descarga de mapas base del catálogo, campos de golf de
-Huawei (envío directo al reloj), A-GNSS y la clave Bluetooth Amazfit/Zepp. No es un build de tienda.
+Agreed decision, deliberately **outside the rule** "zero network in the main app": the `play` flavor
+(`com.qtekfun.ultimategadget.play`, installs alongside `mainline`) carries the `INTERNET` permission and does in
+the app itself what the companion does: downloading base maps from the catalog, Huawei golf courses
+(sent directly to the watch), A-GNSS and the Amazfit/Zepp Bluetooth key. It is not a store build.
 
-- `mainline` y `banglejs` no cambian: `mainline` sigue sin `INTERNET` y con la compañera aparte.
-- La lógica de red vive en el módulo `:mapsdl-core`, compartido con la compañera; solo `play` lo
-  enlaza. El resto del código accede por el contrato `InAppNetwork` (stub inerte sin red).
-- La clave Zepp/Amazfit sigue las mismas reglas: solo cuenta propia, credenciales únicamente para el
-  login HTTPS, sin almacenarlas ni registrarlas (pantalla con `FLAG_SECURE`, estado solo en memoria).
+- `mainline` and `banglejs` do not change: `mainline` still has no `INTERNET` and uses the separate companion.
+- The network logic lives in the `:mapsdl-core` module, shared with the companion; only `play` links
+  it. The rest of the code accesses it through the `InAppNetwork` contract (an inert, network-free stub).
+- The Zepp/Amazfit key follows the same rules: own account only, credentials only for the HTTPS
+  login, not stored or logged (screen with `FLAG_SECURE`, state in memory only).
 
-## 5. Fases
+## 5. Phases
 
-- **Fase 0 — Spike de protocolo (en el equipo de Z, con el reloj por adb).** Ver `01-prompt-fase0-spike.md`. Entregable: informe con la conclusión sobre cómo se activa el golf y cómo se transfieren los mapas, y la decisión A/B/C.
-- **Fase 1 — Golf mínimo y GPS.** Activar el modo golf en el reloj desde UltimateGadget, cargar un campo de prueba y enviar una actualización A-GNSS.
-- **Fase 2 — Mapas.** Descarga y conversión de campos, repo de datos aparte, selección de regiones.
-- **Fase 3 — Rondas.** Sincronización de tarjetas, golpes y trayectorias; exportación GPX/FIT.
-- **Fase 4 — UI nueva.** Módulo `:ui` en Compose: inicio, salud, actividades, golf, esferas, ajustes. Tema oscuro/claro y Material You.
-- **Fase 5 — Nextcloud.** Copia de datos y ajustes con credenciales cifradas.
-- **Fase 6 — Releases.** CI y publicación como UltimateGallery.
+- **Phase 0 — Protocol spike (on Z's machine, with the watch over adb).** See `01-prompt-phase0-spike.md`. Deliverable: a report with the conclusion on how golf is enabled and how maps are transferred, and the A/B/C decision.
+- **Phase 1 — Minimal golf and GPS.** Enable golf mode on the watch from UltimateGadget, load a test course and send an A-GNSS update.
+- **Phase 2 — Maps.** Download and conversion of courses, separate data repo, region selection.
+- **Phase 3 — Rounds.** Sync of scorecards, strokes and tracks; GPX/FIT export.
+- **Phase 4 — New UI.** `:ui` module in Compose: home, health, activities, golf, watchfaces, settings. Dark/light theme and Material You.
+- **Phase 5 — Nextcloud.** Backup of data and settings with encrypted credentials.
+- **Phase 6 — Releases.** CI and publishing like UltimateGallery.
 
-## 6. Criterios de aceptación de la Fase 0
+## 6. Phase 0 acceptance criteria
 
-- Documentado el mensaje exacto (servicio/comando y valores) que activa el modo golf en el GT Runner 2.
-- Reproducido ese mensaje desde un cliente propio (el código de Gadgetbridge modificado) y el modo golf aparece en el reloj sin Huawei Health conectado.
-- Documentado el formato de un mapa de campo y cómo llega al reloj.
-- Documentado cómo llegan al reloj las actualizaciones A-GNSS (origen, formato, caducidad, transferencia) y si se puede enviar un paquete desde un cliente propio.
-- Decisión A/B/C justificada con la evidencia.
+- Documented the exact message (service/command and values) that enables golf mode on the GT Runner 2.
+- Reproduced that message from our own client (the modified Gadgetbridge code) and golf mode appears on the watch without Huawei Health connected.
+- Documented the format of a course map and how it reaches the watch.
+- Documented how A-GNSS updates reach the watch (origin, format, expiry, transfer) and whether a package can be sent from our own client.
+- A/B/C decision justified with the evidence.
 
-## 7. Backlog / ideas futuras
+## 7. Backlog / future ideas
 
-Ítems anotados para abordar más adelante (sin fase asignada todavía):
+Items noted to tackle later (no phase assigned yet):
 
-- **Actualización de firmware de los relojes Huawei.** Objetivo: poder descargar el firmware con la app sidecar de mapas (que sí tiene internet) y transferirlo al reloj desde UltimateGadget, sin Huawei Health ni HMS. Probablemente requiera ingeniería inversa del origen/formato de descarga y del protocolo de transferencia e instalación en el reloj. Analizar solo sobre el reloj y la cuenta propios, por interoperabilidad; parar y consultar si exige romper cifrado/autenticación de Huawei más allá de observar la sesión propia. No redistribuir binarios de firmware.
-- **Editor de watchfaces.** Editor propio en la UI nueva para crear/personalizar esferas (más allá de instalar/activar las que ya existen). Pendiente de definir alcance (elementos, fondos, complicaciones) y el formato de esfera del GT Runner 2.
+- **Firmware updates for Huawei watches.** Goal: be able to download the firmware with the map sidecar app (which does have internet) and transfer it to the watch from UltimateGadget, without Huawei Health or HMS. It will probably require reverse engineering the download origin/format and the transfer-and-install protocol on the watch. Analyze only on your own watch and account, for interoperability; stop and ask if it requires breaking Huawei's encryption/authentication beyond observing your own session. Do not redistribute firmware binaries.
+- **Watchface editor.** Our own editor in the new UI to create/customize watchfaces (beyond installing/activating the existing ones). Scope still to be defined (elements, backgrounds, complications) and the GT Runner 2 watchface format.

@@ -1,97 +1,97 @@
-# Diseño A-GNSS (Huawei, sin Huawei Health)
+# A-GNSS design (Huawei, without Huawei Health)
 
-Estado: diseño acordado 2026-10-10. Implementación por incrementos (ver final).
-Recon y evidencia: `~/re/agnss/agnss-notes.md` (fuera del repo). Paquete real decodificado y
-codec RTCM3 validado byte-perfecto contra el reloj (GT Runner 2).
+Status: design agreed 2026-10-10. Implemented incrementally (see end).
+Recon and evidence: `~/re/agnss/agnss-notes.md` (outside the repo). Real decoded package and
+RTCM3 codec validated byte-perfect against the watch (GT Runner 2).
 
-## Qué sabemos (hechos del recon)
-- **Lado reloj YA implementado en el núcleo** (upstream, autor Me7c7): service `0x1f`,
-  `HuaweiEphemerisManager` + `SendEphemeris*` + `packets/Ephemeris.java`. El reloj INICIA; UG sirve
-  un `ephemeris.zip` desde `getExternalFilesDir(null)` (troceado, CRC16, por tag/uuid/versión).
-- **El GT Runner 2 solo pide `HW_AGNSS` (ver 3)** — nunca `HW_PGNSS`. Verificado con handshake pasivo
-  (solo control, 0 efemérides subidas). → no hace falta el formato propietario PGNSS.
-- **`HW_AGNSS` = RTCM 3.3 estándar**: frames 1019 (GPS) / 1020 (GLONASS) / 1042 (BeiDou) /
-  1046 (Galileo). Sin cifrado ni .so: HH solo descomprime la respuesta del server. UG sirve el RTCM
-  **descomprimido**. Codec validado (decode→encode idéntico en las 113 frames reales).
+## What we know (recon facts)
+- **Watch side ALREADY implemented in the core** (upstream, author Me7c7): service `0x1f`,
+  `HuaweiEphemerisManager` + `SendEphemeris*` + `packets/Ephemeris.java`. The watch INITIATES; UG serves
+  an `ephemeris.zip` from `getExternalFilesDir(null)` (chunked, CRC16, by tag/uuid/version).
+- **The GT Runner 2 only requests `HW_AGNSS` (see 3)** — never `HW_PGNSS`. Verified with a passive
+  handshake (control only, 0 ephemeris uploaded). → the proprietary PGNSS format is not needed.
+- **`HW_AGNSS` = standard RTCM 3.3**: frames 1019 (GPS) / 1020 (GLONASS) / 1042 (BeiDou) /
+  1046 (Galileo). No encryption or .so: HH only decompresses the server response. UG serves the RTCM
+  **decompressed**. Codec validated (decode→encode identical across the 113 real frames).
 
-## Decisión de arquitectura: la descarga va en la companion (mapdownloader)
-Motivo decisivo: **el núcleo de Gadgetbridge se quita `INTERNET` a propósito**
-(`AndroidManifest.xml`: `tools:node="remove"` + Internet Helper). Dar internet a UG rompe ese pilar
-y contradice la regla "modificar el núcleo lo mínimo". Por tanto:
-- **mapdownloader** (ya tiene internet) = **productor A-GNSS**: descarga efemérides públicas y
-  encodea el RTCM. El encoder es Kotlin puro (bit-packing + parseo de texto RINEX; sin deps nativas).
-- **UltimateGadget** = **servidor**: ensambla el `ephemeris.zip` y lo sirve al reloj por el
-  `HuaweiEphemerisManager` existente. No toca internet ni el núcleo.
-- La spec ("descargadas y enviadas por UltimateGadget … descarga programada solo Wi-Fi, botón manual,
-  indicador válido hasta") se cumple a nivel de **familia** UltimateGadget (companion + app).
+## Architecture decision: the download goes in the companion (mapdownloader)
+Decisive reason: **the Gadgetbridge core has `INTERNET` removed on purpose**
+(`AndroidManifest.xml`: `tools:node="remove"` + Internet Helper). Giving UG internet breaks that pillar
+and contradicts the rule "modify the core as little as possible". Therefore:
+- **mapdownloader** (already has internet) = **A-GNSS producer**: downloads public ephemeris and
+  encodes the RTCM. The encoder is pure Kotlin (bit-packing + RINEX text parsing; no native deps).
+- **UltimateGadget** = **server**: assembles the `ephemeris.zip` and serves it to the watch through the
+  existing `HuaweiEphemerisManager`. It touches neither internet nor the core.
+- The spec ("downloaded and sent by UltimateGadget … scheduled Wi-Fi-only download, manual button,
+  valid-until indicator") is met at the UltimateGadget **family** level (companion + app).
 
-## Entrega del zip: servicio bound (modelo "Internet Helper")
-Android no deja que la companion escriba en `Android/data/com.qtekfun.ultimategadget/files/`
-(scoped storage). Elegido: **UG se enlaza a un servicio de la companion** y recibe los bytes.
+## Delivering the zip: bound service ("Internet Helper" model)
+Android does not let the companion write into `Android/data/com.qtekfun.ultimategadget/files/`
+(scoped storage). Chosen: **UG binds to a companion service** and receives the bytes.
 
-- La companion expone un `Service` (p. ej. `AgnssHelperService`) con interfaz **Messenger o AIDL**,
-  protegido por **permiso custom signature** (`com.qtekfun.ultimategadget.permission.AGNSS`,
-  `protectionLevel="signature"`). Ambas apps firman con el mismo `UG_KEYSTORE` (y el mismo debug key),
-  así que la firma coincide. El servicio además verifica el paquete llamante.
-- Contrato (async, no bloquear el binder — la companion puede tener que descargar):
+- The companion exposes a `Service` (e.g. `AgnssHelperService`) with a **Messenger or AIDL** interface,
+  protected by a **custom signature permission** (`com.qtekfun.ultimategadget.permission.AGNSS`,
+  `protectionLevel="signature"`). Both apps sign with the same `UG_KEYSTORE` (and the same debug key),
+  so the signature matches. The service also verifies the calling package.
+- Contract (async, do not block the binder — the companion may have to download):
   `requestAgnss(maxAgeSeconds, constellationsMask) -> { rtcmBytes, validUntilMillis,
   generatedAtMillis, satCountsByConstellation, resultCode }`.
-  - Si la cache de la companion está fresca (≤ maxAge) devuelve al instante; si no, descarga RINEX
-    (solo Wi-Fi salvo que el usuario fuerce) + encodea + cachea + devuelve.
-- **UG ensambla el `ephemeris.zip`** con los `rtcmBytes`: `time`=ahora, `ephemeris_config.json`
+  - If the companion's cache is fresh (≤ maxAge) it returns instantly; otherwise it downloads RINEX
+    (Wi-Fi only unless the user forces it) + encodes + caches + returns.
+- **UG assembles the `ephemeris.zip`** with the `rtcmBytes`: `time`=now, `ephemeris_config.json`
   `{"higeo/v1/gnssinfo?type=0x0004/HW_AGNSS":{"ver":3,"uuid":"<uuid>","files":["HW_AGNSS_RTCM_33"]}}`,
-  y `<uuid>/HW_AGNSS_RTCM_33` = `rtcmBytes`. Así UG controla la frescura del `time` y el formato del
-  protocolo (su competencia). El nombre `HW_AGNSS_RTCM_33` reproduce el de HH (`hexdigest(MAC)+name`).
+  and `<uuid>/HW_AGNSS_RTCM_33` = `rtcmBytes`. This way UG controls the freshness of `time` and the
+  protocol format (its concern). The name `HW_AGNSS_RTCM_33` reproduces HH's (`hexdigest(MAC)+name`).
 
-### Flujo sin bloquear
-El reloj reintenta cada ~20 s mientras le falte A-GNSS (observado). Por eso UG no bloquea:
-1. Reloj pide (operationInfo==1). Si UG tiene un zip fresco (toe dentro de validez) → sirve
-   (re-sella `time`=ahora). El check de 30 min del manager es "descarga reciente", no la validez real
-   de la efeméride (~2-4 h); por eso re-sellar es correcto.
-2. Si no hay/está viejo → UG lanza `requestAgnss` **async** e ignora esta petición. El siguiente
-   reintento del reloj (~20 s) ya encuentra el zip listo.
-3. Companion no instalada / sin red → UG ignora (comportamiento actual) y la UI avisa. Sin crash.
+### Non-blocking flow
+The watch retries every ~20 s while it lacks A-GNSS (observed). So UG does not block:
+1. Watch asks (operationInfo==1). If UG has a fresh zip (toe within validity) → it serves it
+   (re-seals `time`=now). The manager's 30-min check is "recent download", not the real ephemeris
+   validity (~2-4 h); that is why re-sealing is correct.
+2. If none/stale → UG launches `requestAgnss` **async** and ignores this request. The watch's next
+   retry (~20 s) already finds the zip ready.
+3. Companion not installed / no network → UG ignores (current behavior) and the UI warns. No crash.
 
-### Prefetch y scheduler (spec: programada, Wi-Fi, configurable)
-- La companion corre un job **WorkManager periódico** (solo Wi-Fi, intervalo configurable) que
-  refresca su cache, para que el `requestAgnss` del momento de conexión sea instantáneo y resista
-  estar sin red puntualmente. UG también puede disparar un prefetch al **conectar** el reloj.
-- El schedule vive en la UI de la companion (tiene la red). UG muestra estado + "actualizar ahora"
-  (= `requestAgnss(maxAge=0)`) + "válido hasta".
+### Prefetch and scheduler (spec: scheduled, Wi-Fi, configurable)
+- The companion runs a **periodic WorkManager job** (Wi-Fi only, configurable interval) that
+  refreshes its cache, so the `requestAgnss` at connection time is instant and survives being
+  briefly offline. UG can also trigger a prefetch when the watch **connects**.
+- The schedule lives in the companion's UI (it has the network). UG shows status + "update now"
+  (= `requestAgnss(maxAge=0)`) + "valid until".
 
-## Indicador "válido hasta"
-La companion calcula `validUntilMillis` = max(toe) + intervalo de ajuste (~2-4 h) de las efemérides
-incluidas, y lo devuelve. UG lo muestra en la pantalla A-GNSS.
+## "Valid until" indicator
+The companion computes `validUntilMillis` = max(toe) + the fit interval (~2-4 h) of the included
+ephemeris, and returns it. UG shows it on the A-GNSS screen.
 
 ## Encoder (companion) — RINEX nav → RTCM3
-- Fuente: efemérides broadcast públicas multi-GNSS (RINEX 3 `*_MN.rnx`, IGS/BKG anónimo, ~1 MB).
-  Confirmar endpoint abierto sin login (BKG). Elegir la última efeméride por satélite (toe ≤ ahora).
-- Mensajes: 1019 (GPS), 1020 (GLONASS, **sign-magnitude** en varios campos), 1042 (BeiDou),
-  1046 (Galileo I/NAV). Tablas de campos y escalas validadas en `~/re/scripts/rtcm_codec2.py`.
-- Frame: `0xD3` + 6 bits reservados + 10 bits longitud + payload + **CRC24Q** (poly 0x1864CFB).
-- Salida: RTCM crudo (sin gzip; UG sirve el descomprimido). Validar contra el paquete real de HH.
+- Source: public multi-GNSS broadcast ephemeris (RINEX 3 `*_MN.rnx`, IGS/BKG anonymous, ~1 MB).
+  Confirm an open endpoint without login (BKG). Pick the latest ephemeris per satellite (toe ≤ now).
+- Messages: 1019 (GPS), 1020 (GLONASS, **sign-magnitude** in several fields), 1042 (BeiDou),
+  1046 (Galileo I/NAV). Field and scale tables validated in `~/re/scripts/rtcm_codec2.py`.
+- Frame: `0xD3` + 6 reserved bits + 10 length bits + payload + **CRC24Q** (poly 0x1864CFB).
+- Output: raw RTCM (no gzip; UG serves the decompressed form). Validate against HH's real package.
 
-## UG — cambios (pequeños, aislados, fuera del núcleo salvo re-sellado)
-- Habilitar opción A-GNSS para Huawei (hoy `supportsAgps` excluye HuaweiCoordinator): pantalla
-  Ultimate con estado / "válido hasta" / "actualizar ahora" / aviso si falta la companion.
-- Cliente del `AgnssHelperService` (bind) + ensamblado del `ephemeris.zip` + re-sellado de `time`.
-- En `HuaweiEphemerisManager`: servir el zip (ya existe) y exponer "válido hasta". Quitar/gate el
-  logging diagnóstico `UG-AGNSS` de `packets/Ephemeris.java` antes de mergear.
+## UG — changes (small, isolated, outside the core except re-sealing)
+- Enable the A-GNSS option for Huawei (today `supportsAgps` excludes HuaweiCoordinator): an Ultimate
+  screen with status / "valid until" / "update now" / a warning if the companion is missing.
+- Client for the `AgnssHelperService` (bind) + assembly of the `ephemeris.zip` + re-sealing of `time`.
+- In `HuaweiEphemerisManager`: serve the zip (already exists) and expose "valid until". Remove/gate the
+  `UG-AGNSS` diagnostic logging in `packets/Ephemeris.java` before merging.
 
-## Seguridad / privacidad
-- Permiso signature para el servicio; verificación del paquete llamante.
-- Datos 100% públicos (IGS/BKG), cero Huawei/HMS, sin binarios ni claves de Huawei.
-- No se redistribuye nada de Huawei. El RTCM se genera a partir de datos abiertos.
+## Security / privacy
+- Signature permission for the service; verification of the calling package.
+- 100% public data (IGS/BKG), zero Huawei/HMS, no Huawei binaries or keys.
+- Nothing from Huawei is redistributed. The RTCM is generated from open data.
 
-## Riesgo de brick (envío al reloj)
-Bajo: es RTCM 3.3 estándar, idéntico en formato a lo que manda HH, y el reloj lo está pidiendo.
-Aun así, el **primer envío real al reloj es gated**: se hace con el usuario delante (Inc 2).
+## Brick risk (sending to the watch)
+Low: it is standard RTCM 3.3, identical in format to what HH sends, and the watch is asking for it.
+Even so, the **first real send to the watch is gated**: done with the user present (Inc 2).
 
-## Incrementos
-- **Inc 1 (offline, seguro):** encoder RINEX→RTCM3 + ensamblado `ephemeris.zip` en la companion.
-  Validación offline: decodificar nuestra salida y comparar con el paquete real de HH (tipos/CRC/
-  rangos sqrtA). Sin tocar el reloj.
-- **Inc 2 (gated, usuario delante):** primer envío real al reloj. Para de-riesgar, primero empujar un
-  zip generado por la companion vía adb (dev) y confirmar que el reloj lo acepta; luego cablear el
-  bind UG↔companion y repetir por la vía de producción.
-- **Inc 3:** scheduler (Wi-Fi, configurable) + prefetch al conectar + indicador "válido hasta" + UI.
+## Increments
+- **Inc 1 (offline, safe):** RINEX→RTCM3 encoder + `ephemeris.zip` assembly in the companion.
+  Offline validation: decode our output and compare with HH's real package (types/CRC/
+  sqrtA ranges). Without touching the watch.
+- **Inc 2 (gated, user present):** first real send to the watch. To de-risk, first push a
+  companion-generated zip via adb (dev) and confirm the watch accepts it; then wire up the
+  UG↔companion bind and repeat through the production path.
+- **Inc 3:** scheduler (Wi-Fi, configurable) + prefetch on connect + "valid until" indicator + UI.
