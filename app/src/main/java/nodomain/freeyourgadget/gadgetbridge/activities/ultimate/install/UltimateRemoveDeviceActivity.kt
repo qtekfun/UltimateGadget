@@ -67,16 +67,16 @@ import nodomain.freeyourgadget.gadgetbridge.util.kotlin.getParcelableCompat
 import org.slf4j.LoggerFactory
 
 /**
- * Confirmación de borrado de dispositivo en estética Ultimate.
+ * Device-deletion confirmation in the Ultimate look.
  *
  * Hace exactamente lo mismo que
  * [nodomain.freeyourgadget.gadgetbridge.activities.DeviceDeleteActivity], pero mostrando antes una
- * confirmación en lugar de borrar directamente: tras confirmar,
- *  - `coordinator.deleteDevice(device, deleteFiles)` (quita/olvida el dispositivo y, opcionalmente, sus datos),
- *  - `BondingUtil.Unpair(context, address)` (desempareja el Bluetooth),
- *  - elimina el acceso directo dinámico (Android R+),
- *  - emite `DeviceManager.ACTION_REFRESH_DEVICELIST` para refrescar la lista,
- *  - da feedback (toast de éxito o texto de error) y cierra.
+ * confirmation instead of deleting directly: after confirming,
+ *  - `coordinator.deleteDevice(device, deleteFiles)` (removes/forgets the device and, optionally, its data),
+ *  - `BondingUtil.Unpair(context, address)` (unpairs the Bluetooth),
+ *  - removes the dynamic shortcut (Android R+),
+ *  - emite `DeviceManager.ACTION_REFRESH_DEVICELIST` to refresh the list,
+ *  - gives feedback (success toast or error text) and closes.
  */
 class UltimateRemoveDeviceActivity : AppCompatActivity() {
 
