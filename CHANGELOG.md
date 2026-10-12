@@ -2,6 +2,12 @@
 
 <!-- For contributors: do not modify this file - the project maintainers will update it as needed -->
 
+#### 0.115.4
+
+* Apagar el dispositivo: la pantalla del dispositivo muestra ahora **"Apagar"** siempre que el reloj/anillo lo soporte (todos los anillos Colmi/Yawell y cualquier otro que lo permita). Antes la opción existía en el núcleo pero no se ofrecía en la interfaz nueva
+* Ajustes del dispositivo: corregido un **cierre inesperado** al aplicar un cambio de hora/fecha (p. ej. al sincronizar un anillo Colmi) después de salir de la pantalla de ajustes
+* Clave Bluetooth **Xiaomi (Mi Fitness)**: se puede obtener la clave de Mi Band 8/9 y relojes Xiaomi iniciando sesión en la cuenta Xiaomi, igual que ya se hacía con Amazfit/Zepp (en **UltimateGadget Play** dentro de la app, y en la app compañera de mapas). El 2FA y el captcha no están soportados. Sin validar en un dispositivo real todavía
+
 #### 0.115.3
 
 * Conexión: **un solo reloj a la vez**. La reconexión automática (arranque, reintentos, escaneo, app abierta) solo apunta al **último reloj usado** y no se busca ninguno mientras otro está conectando o conectado. Al conectarse un reloj se cancelan las búsquedas de los demás; conectar otro a mano toma el control y desconecta el actual
