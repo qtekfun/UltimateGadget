@@ -73,11 +73,11 @@ class UltimateAccountLoginActivity : AppCompatActivity() {
         }
         val hint = TextView(this).apply {
             text = if (provider == PROVIDER_XIAOMI) {
-                "Inicia sesión en tu cuenta Xiaomi (Mi Fitness). Al terminar la verificación, la clave se " +
-                    "capturará automáticamente."
+                "Sign in to your Xiaomi (Mi Fitness) account. The key is captured automatically once " +
+                    "verification is complete."
             } else {
-                "Inicia sesión en tu cuenta Amazfit/Zepp. Al terminar la verificación, la clave se " +
-                    "capturará automáticamente."
+                "Sign in to your Amazfit/Zepp account. The key is captured automatically once " +
+                    "verification is complete."
             }
             setTextColor(Color.WHITE)
             setPadding(32, 32, 32, 32)
