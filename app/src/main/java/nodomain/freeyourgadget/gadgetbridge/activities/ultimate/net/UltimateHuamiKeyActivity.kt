@@ -98,12 +98,18 @@ private fun KeyScreen(onBack: () -> Unit) {
     var busy by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     var keys by remember { mutableStateOf<List<HuamiKey>?>(null) }
+    // Xiaomi (Mi Fitness) section — independent credentials, also kept in-memory only.
+    var xEmail by remember { mutableStateOf("") }
+    var xPassword by remember { mutableStateOf("") }
+    var xBusy by remember { mutableStateOf(false) }
+    var xError by remember { mutableStateOf<String?>(null) }
+    var xKeys by remember { mutableStateOf<List<XiaomiKey>?>(null) }
 
     Scaffold(
         containerColor = palette.background,
         topBar = {
             TopAppBar(
-                title = { Text("Clave Bluetooth Amazfit / Zepp") },
+                title = { Text("Clave Bluetooth del reloj") },
                 navigationIcon = {
                     IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null) }
                 },
@@ -119,9 +125,10 @@ private fun KeyScreen(onBack: () -> Unit) {
             Modifier.fillMaxSize().padding(inner).padding(16.dp).verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
+            Text("Amazfit / Zepp", style = MaterialTheme.typography.titleMedium, color = palette.onSurface)
             Text(
-                "Usa tu propia cuenta Zepp/Amazfit. El correo y la contraseña solo se envían por HTTPS a Huami/Zepp " +
-                    "para iniciar sesión y no se guardan en ningún sitio.",
+                "Usa tu propia cuenta Zepp/Amazfit (sirve también para Mi Band emparejadas con Zepp). El correo y la " +
+                    "contraseña solo se envían por HTTPS a Huami/Zepp para iniciar sesión y no se guardan en ningún sitio.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = palette.onSurfaceVariant,
             )
@@ -169,6 +176,65 @@ private fun KeyScreen(onBack: () -> Unit) {
                     ) {
                         Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             Text(k.mac, style = MaterialTheme.typography.titleMedium, color = palette.onSurface)
+                            Text(k.authKey, style = MaterialTheme.typography.bodyMedium, color = palette.onSurfaceVariant)
+                            TextButton(onClick = {
+                                val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                cm.setPrimaryClip(ClipData.newPlainText("auth key", k.authKey))
+                                Toast.makeText(context, "Clave copiada", Toast.LENGTH_SHORT).show()
+                            }) { Text("Copiar clave") }
+                        }
+                    }
+                }
+            }
+
+            // --- Xiaomi (Mi Fitness) ---
+            Text("Xiaomi (Mi Fitness)", style = MaterialTheme.typography.titleMedium, color = palette.onSurface)
+            Text(
+                "Para Mi Band 8/9 y relojes Xiaomi emparejados con la app Mi Fitness / Xiaomi Wear. Usa tu cuenta " +
+                    "Xiaomi; el 2FA y el captcha no están soportados. El correo y la contraseña solo se usan para el " +
+                    "login (HTTPS) y no se guardan.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = palette.onSurfaceVariant,
+            )
+            OutlinedTextField(
+                value = xEmail, onValueChange = { xEmail = it }, label = { Text("Correo Xiaomi") },
+                singleLine = true, modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+            )
+            OutlinedTextField(
+                value = xPassword, onValueChange = { xPassword = it }, label = { Text("Contraseña") },
+                singleLine = true, modifier = Modifier.fillMaxWidth(),
+                visualTransformation = PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            )
+            Button(
+                enabled = !xBusy && xEmail.isNotBlank() && xPassword.isNotEmpty(),
+                onClick = {
+                    xBusy = true; xError = null; xKeys = null
+                    val e = xEmail.trim(); val p = xPassword
+                    scope.launch {
+                        runCatching { withContext(Dispatchers.IO) { InAppNetworkImpl.fetchXiaomiKeys(e, p) } }
+                            .onSuccess { xKeys = it }
+                            .onFailure { xError = it.message ?: "Error de red" }
+                        // Drop the password as soon as the call is over.
+                        xPassword = ""
+                        xBusy = false
+                    }
+                },
+            ) { Text(if (xBusy) "Consultando…" else "Obtener claves (Xiaomi)") }
+            xError?.let { Text(it, color = palette.error, style = MaterialTheme.typography.bodySmall) }
+            xKeys?.let { list ->
+                if (list.isEmpty()) {
+                    Text("La cuenta no tiene dispositivos con clave.", color = palette.onSurfaceVariant)
+                }
+                list.forEach { k ->
+                    Card(
+                        Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = palette.surfaceContainer),
+                    ) {
+                        Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text(if (k.name.isBlank()) k.mac else "${k.name} · ${k.mac}", style = MaterialTheme.typography.titleMedium, color = palette.onSurface)
                             Text(k.authKey, style = MaterialTheme.typography.bodyMedium, color = palette.onSurfaceVariant)
                             TextButton(onClick = {
                                 val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager

@@ -24,6 +24,7 @@ import com.qtekfun.ultimategadget.mapsdl.GolfApi
 import com.qtekfun.ultimategadget.mapsdl.HuamiRegion
 import com.qtekfun.ultimategadget.mapsdl.HuamiToken
 import com.qtekfun.ultimategadget.mapsdl.MapRegion
+import com.qtekfun.ultimategadget.mapsdl.XiaomiToken
 import com.qtekfun.ultimategadget.mapsdl.agnss.AgnssDownloader
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.phonemaps.PhoneMapStore
 import java.io.File
@@ -97,4 +98,7 @@ object InAppNetworkImpl : InAppNetwork {
         val region = HuamiRegion.values().getOrElse(regionIndex) { HuamiRegion.GLOBAL }
         return HuamiToken.fetchAuthKeys(email, password, region).map { HuamiKey(it.mac, it.active, it.pasteKey) }
     }
+
+    override fun fetchXiaomiKeys(email: String, password: String): List<XiaomiKey> =
+        XiaomiToken.fetchAuthKeys(email, password).map { XiaomiKey(it.name, it.mac, it.pasteKey) }
 }

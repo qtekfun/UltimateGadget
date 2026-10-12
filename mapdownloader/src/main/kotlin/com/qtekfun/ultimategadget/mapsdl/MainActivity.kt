@@ -200,7 +200,7 @@ private fun HomeScreen(folderLabel: String, onPick: () -> Unit, onOpen: (String)
             ToolTile("🗺️", "Mapas offline", "Mapas base (.pmtiles) para el reloj") { onOpen("maps") }
             ToolTile("⛳", "Campos de golf", "Mapas de campos para enviar al reloj") { onOpen("golf") }
             ToolTile("🛰️", "A-GNSS (GPS)", "Efemérides para que el reloj fije antes") { onOpen("agnss") }
-            ToolTile("🔑", "Auth key (Amazfit/Zepp)", "Clave Bluetooth sin la app Zepp") { onOpen("authkey") }
+            ToolTile("🔑", "Auth key (Amazfit/Zepp/Xiaomi)", "Clave Bluetooth sin la app oficial") { onOpen("authkey") }
         }
     }
 }
@@ -571,6 +571,7 @@ private fun AuthKeyScreen(onBack: () -> Unit) {
     val scope = rememberCoroutineScope()
     val clipboard = androidx.compose.ui.platform.LocalClipboardManager.current
 
+    // Amazfit / Zepp (Huami servers)
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var region by remember { mutableStateOf(HuamiRegion.GLOBAL) }
@@ -578,18 +579,33 @@ private fun AuthKeyScreen(onBack: () -> Unit) {
     var status by remember { mutableStateOf("") }
     var error by remember { mutableStateOf(false) }
     var devices by remember { mutableStateOf<List<HuamiDevice>>(emptyList()) }
+    // Xiaomi (Mi Fitness servers)
+    var xEmail by remember { mutableStateOf("") }
+    var xPassword by remember { mutableStateOf("") }
+    var xLoading by remember { mutableStateOf(false) }
+    var xStatus by remember { mutableStateOf("") }
+    var xError by remember { mutableStateOf(false) }
+    var xDevices by remember { mutableStateOf<List<XiaomiDevice>>(emptyList()) }
 
-    Scaffold(containerColor = Scheme.background, topBar = { bar("Auth key (Amazfit/Zepp)", onBack) }) { inner ->
+    fun copy(key: String, set: (String) -> Unit) {
+        clipboard.setText(androidx.compose.ui.text.AnnotatedString(key))
+        set("Clave copiada")
+    }
+
+    Scaffold(containerColor = Scheme.background, topBar = { bar("Auth key", onBack) }) { inner ->
         Column(
-            Modifier.padding(inner).fillMaxSize().padding(16.dp),
+            Modifier.padding(inner).fillMaxSize()
+                .verticalScroll(androidx.compose.foundation.rememberScrollState()).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Hint(
-                "Obtén la clave Bluetooth de tus relojes Amazfit/Zepp desde los servidores de Huami, para " +
-                    "emparejarlos en UltimateGadget sin la app Zepp (mantén pulsado el dispositivo al descubrir → Auth key).",
+                "Obtén la clave Bluetooth de tu reloj/banda desde los servidores del fabricante, para emparejarlo " +
+                    "en UltimateGadget sin la app oficial (mantén pulsado el dispositivo al descubrir → Auth key). " +
+                    "El email y la contraseña se usan solo para el login (HTTPS) y no se guardan.",
             )
-            Hint("Tu email y contraseña se usan solo para el login (HTTPS) y no se guardan. Las cuentas fuera de EE. UU. pueden fallar.")
 
+            // --- Amazfit / Zepp ---
+            SectionLabel("AMAZFIT / ZEPP (Y MI BAND VÍA ZEPP)")
             androidx.compose.material3.OutlinedTextField(
                 value = email, onValueChange = { email = it },
                 label = { Text("Email de la cuenta Zepp/Amazfit") }, singleLine = true,
@@ -607,14 +623,12 @@ private fun AuthKeyScreen(onBack: () -> Unit) {
                 ),
                 modifier = Modifier.fillMaxWidth(),
             )
-
             Hint("Región de la cuenta (si no aparecen dispositivos, prueba otra):")
             androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 HuamiRegion.entries.forEach { r ->
                     androidx.compose.material3.FilterChip(selected = region == r, onClick = { region = r }, label = { Text(r.label) })
                 }
             }
-
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                 Button(
                     enabled = !loading && email.isNotBlank() && password.isNotBlank(),
@@ -628,17 +642,56 @@ private fun AuthKeyScreen(onBack: () -> Unit) {
                             loading = false
                         }
                     },
-                ) { Text("Obtener claves") }
+                ) { Text("Obtener claves (Zepp)") }
                 if (loading) CircularProgressIndicator(Modifier.padding(start = 4.dp))
             }
             StatusLine(status, error)
-
             devices.forEach { d ->
                 ItemCard(d.mac, d.pasteKey) {
-                    OutlinedButton(onClick = {
-                        clipboard.setText(androidx.compose.ui.text.AnnotatedString(d.pasteKey))
-                        status = "Clave copiada"; error = false
-                    }) { Text("Copiar") }
+                    OutlinedButton(onClick = { copy(d.pasteKey) { status = it; error = false } }) { Text("Copiar") }
+                }
+            }
+
+            // --- Xiaomi (Mi Fitness) ---
+            SectionLabel("XIAOMI (MI FITNESS: MI BAND 8/9, RELOJES XIAOMI)")
+            Hint("Para los dispositivos que emparejaste con la app Mi Fitness / Xiaomi Wear. El 2FA y el captcha no están soportados.")
+            androidx.compose.material3.OutlinedTextField(
+                value = xEmail, onValueChange = { xEmail = it },
+                label = { Text("Email de la cuenta Xiaomi") }, singleLine = true,
+                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                    keyboardType = androidx.compose.ui.text.input.KeyboardType.Email,
+                ),
+                modifier = Modifier.fillMaxWidth(),
+            )
+            androidx.compose.material3.OutlinedTextField(
+                value = xPassword, onValueChange = { xPassword = it },
+                label = { Text("Contraseña") }, singleLine = true,
+                visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
+                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                    keyboardType = androidx.compose.ui.text.input.KeyboardType.Password,
+                ),
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Button(
+                    enabled = !xLoading && xEmail.isNotBlank() && xPassword.isNotBlank(),
+                    onClick = {
+                        xLoading = true; xStatus = ""; xError = false; xDevices = emptyList()
+                        val e = xEmail.trim(); val p = xPassword
+                        scope.launch {
+                            runCatching { withContext(Dispatchers.IO) { XiaomiToken.fetchAuthKeys(e, p) } }
+                                .onSuccess { xDevices = it; xStatus = "${it.size} dispositivo(s) encontrados" }
+                                .onFailure { xStatus = it.message ?: "Error"; xError = true }
+                            xLoading = false
+                        }
+                    },
+                ) { Text("Obtener claves (Xiaomi)") }
+                if (xLoading) CircularProgressIndicator(Modifier.padding(start = 4.dp))
+            }
+            StatusLine(xStatus, xError)
+            xDevices.forEach { d ->
+                ItemCard(if (d.name.isBlank()) d.mac else "${d.name} · ${d.mac}", d.pasteKey) {
+                    OutlinedButton(onClick = { copy(d.pasteKey) { xStatus = it; xError = false } }) { Text("Copiar") }
                 }
             }
         }
