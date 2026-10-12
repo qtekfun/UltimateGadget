@@ -92,10 +92,10 @@ class UltimateAgnssActivity : AppCompatActivity() {
     private fun refresh() {
         if (busy) return
         if (!HuaweiAgnssHelper.sourceAvailable(this)) {
-            isError = true; message = "Instala la app de mapas de UltimateGadget para descargar A-GNSS"
+            isError = true; message = "Install the UltimateGadget map app to download A-GNSS"
             return
         }
-        busy = true; isError = false; message = "Descargando efemérides…"
+        busy = true; isError = false; message = "Downloading ephemeris…"
         HuaweiAgnssHelper.refresh(this, wifiOnly) { ok, msg ->
             runOnUiThread {
                 busy = false; isError = !ok; message = msg
@@ -116,7 +116,7 @@ class UltimateAgnssActivity : AppCompatActivity() {
             containerColor = palette.background,
             topBar = {
                 TopAppBar(
-                    title = { Text("Actualizar GPS (A-GNSS)", fontWeight = FontWeight.Bold) },
+                    title = { Text("Update GPS (A-GNSS)", fontWeight = FontWeight.Bold) },
                     navigationIcon = {
                         IconButton(onClick = { finish() }) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
@@ -132,9 +132,9 @@ class UltimateAgnssActivity : AppCompatActivity() {
         ) { inner ->
             Column(Modifier.padding(inner).fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(
-                    "Descarga datos de satélites (efemérides públicas) a través de la app de mapas y los " +
-                        "prepara para que el reloj fije el GPS en segundos. El reloj los recoge al conectarse; " +
-                        "no se envía nada a la fuerza.",
+                    "Downloads satellite data (public ephemeris) through the map app and " +
+                        "prepares it so the watch gets a GPS fix in seconds. The watch picks it up on connect; " +
+                        "nothing is forced onto it.",
                     style = MaterialTheme.typography.bodySmall, color = palette.onSurfaceVariant,
                 )
 
@@ -152,14 +152,14 @@ class UltimateAgnssActivity : AppCompatActivity() {
                             Text("Actualizado: ${fmtTime(s.fetchedAt)}", style = MaterialTheme.typography.bodySmall, color = palette.onSurfaceVariant)
                             val expired = System.currentTimeMillis() > s.validUntil
                             Text(
-                                if (expired) "Caducado — actualiza antes de salir" else "Válido hasta: ${fmtTime(s.validUntil)}",
+                                if (expired) "Expired — update before you head out" else "Valid until: ${fmtTime(s.validUntil)}",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = if (expired) palette.error else palette.secondary,
                             )
                             if (s.source.isNotBlank()) Text("Fuente: ${s.source}", style = MaterialTheme.typography.bodySmall, color = palette.onSurfaceVariant)
                         } else {
-                            Text("Sin datos todavía", color = palette.onSurface, fontWeight = FontWeight.SemiBold)
-                            Text("Pulsa «Actualizar ahora» para descargar.", style = MaterialTheme.typography.bodySmall, color = palette.onSurfaceVariant)
+                            Text("No data yet", color = palette.onSurface, fontWeight = FontWeight.SemiBold)
+                            Text("Tap \"Update now\" to download.", style = MaterialTheme.typography.bodySmall, color = palette.onSurfaceVariant)
                         }
                     }
                 }
@@ -169,7 +169,7 @@ class UltimateAgnssActivity : AppCompatActivity() {
                         .clickable(enabled = !busy) { refresh() }.padding(vertical = 14.dp),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text(if (busy) "Actualizando…" else "Actualizar ahora", color = palette.onPrimary, fontWeight = FontWeight.Bold)
+                    Text(if (busy) "Actualizando…" else "Update now", color = palette.onPrimary, fontWeight = FontWeight.Bold)
                 }
 
                 if (message.isNotBlank()) {
@@ -177,10 +177,10 @@ class UltimateAgnssActivity : AppCompatActivity() {
                 }
 
                 // Options
-                ToggleRow("Actualizar al conectar el reloj", autoOnConnect, palette) {
+                ToggleRow("Update when the watch connects", autoOnConnect, palette) {
                     autoOnConnect = it; setPref(HuaweiAgnssHelper.PREF_ENABLED, it)
                 }
-                ToggleRow("Descargar solo por Wi-Fi", wifiOnly, palette) {
+                ToggleRow("Download over Wi-Fi only", wifiOnly, palette) {
                     wifiOnly = it; setPref(HuaweiAgnssHelper.PREF_WIFI_ONLY, it)
                 }
             }

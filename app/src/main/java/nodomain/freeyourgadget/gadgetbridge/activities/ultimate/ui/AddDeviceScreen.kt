@@ -87,13 +87,13 @@ fun AddDeviceScreen(
 
             Spacer(Modifier.height(28.dp))
             Text(
-                "AÑADIR DISPOSITIVO",
+                "ADD DEVICE",
                 style = SectionLabelStyle,
                 color = palette.secondary,
             )
             Spacer(Modifier.height(8.dp))
             Text(
-                "Empareja tu reloj o pulsera",
+                "Pair your watch or band",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 color = palette.onSurface,
@@ -101,8 +101,8 @@ fun AddDeviceScreen(
             )
             Spacer(Modifier.height(12.dp))
             Text(
-                "Pon el dispositivo en modo de emparejamiento y mantenlo cerca. " +
-                    "Buscaremos dispositivos Bluetooth cercanos.",
+                "Put the device in pairing mode and keep it close. " +
+                    "We will scan for nearby Bluetooth devices.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = palette.onSurfaceVariant,
                 textAlign = TextAlign.Center,
@@ -112,7 +112,7 @@ fun AddDeviceScreen(
 
             if (!permissionsGranted) {
                 PermissionNote(
-                    text = "Necesitamos permiso de Bluetooth (y ubicación en versiones antiguas) para buscar dispositivos.",
+                    text = "We need Bluetooth permission (and location on older versions) to scan for devices.",
                 )
                 Spacer(Modifier.height(16.dp))
                 Button(
@@ -140,7 +140,7 @@ fun AddDeviceScreen(
                 ) {
                     Icon(Icons.Filled.Search, contentDescription = null)
                     Spacer(Modifier.size(8.dp))
-                    Text("Buscar dispositivos", fontWeight = FontWeight.Bold)
+                    Text("Scan for devices", fontWeight = FontWeight.Bold)
                 }
             }
         }

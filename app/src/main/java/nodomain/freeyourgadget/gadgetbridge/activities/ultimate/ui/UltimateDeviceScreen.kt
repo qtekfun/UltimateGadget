@@ -73,7 +73,7 @@ fun UltimateDeviceScreen(
             TopAppBar(
                 title = { Text("", style = MaterialTheme.typography.titleLarge) },
                 navigationIcon = {
-                    IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás") }
+                    IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back") }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = palette.background,
@@ -179,13 +179,13 @@ private fun OptionRow(opt: DeviceOptionUi, onClick: () -> Unit) {
 private fun DeviceScreenPreview() {
     val d = DeviceCardUi("A", "HUAWEI WATCH GT Runner 2", "Huawei", "Conectado", true, false, 82, "GT Runner 2", R.drawable.ic_device_default, 0)
     val opts = listOf(
-        DeviceOptionUi("disconnect", "Desconectar", "Cortar la conexión"),
-        DeviceOptionUi("settings", "Ajustes del dispositivo", "Notificaciones, alarmas, pantallas…"),
-        DeviceOptionUi("maps", "Mapas offline", "Instalar y borrar mapas del reloj"),
-        DeviceOptionUi("routes", "Rutas", "Enviar una ruta GPX"),
-        DeviceOptionUi("sync", "Sincronizar actividad", "Descargar datos nuevos"),
-        DeviceOptionUi("find", "Buscar dispositivo", null),
-        DeviceOptionUi("remove", "Quitar dispositivo", null, destructive = true),
+        DeviceOptionUi("disconnect", "Desconectar", "Drop the connection"),
+        DeviceOptionUi("settings", "Device settings", "Notifications, alarms, displays…"),
+        DeviceOptionUi("maps", "Offline maps", "Install and delete watch maps"),
+        DeviceOptionUi("routes", "Rutas", "Send a GPX route"),
+        DeviceOptionUi("sync", "Sync activity", "Download new data"),
+        DeviceOptionUi("find", "Find device", null),
+        DeviceOptionUi("remove", "Remove device", null, destructive = true),
     )
     UltimateTheme { UltimateDeviceScreen(d, opts, onBack = {}, onOption = {}) }
 }

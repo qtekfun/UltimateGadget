@@ -86,7 +86,7 @@ fun HealthDetailScreen(
                 title = { Text(titleFor(card), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -124,9 +124,9 @@ fun HealthDetailScreen(
 private fun StepsDetail(data: DashboardData?) {
     val s = data?.steps
     val scheme = MaterialTheme.colorScheme
-    if (s == null) { EmptyCard("Sin datos de pasos") ; return }
+    if (s == null) { EmptyCard("No step data") ; return }
     DashboardCard {
-        SectionLabel("Hoy")
+        SectionLabel("Today")
         Spacer(Modifier.height(6.dp))
         Text("%,d".format(s.steps), style = MetricValueStyle, color = scheme.onSurface)
         Spacer(Modifier.height(10.dp))
@@ -139,11 +139,11 @@ private fun StepsDetail(data: DashboardData?) {
         )
     }
     DashboardCard {
-        SectionLabel("Últimos 7 días")
+        SectionLabel("Last 7 days")
         Spacer(Modifier.height(8.dp))
         s.weekly.reversed().forEachIndexed { idx, v ->
             Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(if (idx == 0) "Hoy" else "-$idx d", color = scheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
+                Text(if (idx == 0) "Today" else "-$idx d", color = scheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
                 Text("%,d pasos".format(v), color = scheme.onSurface, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
             }
         }
@@ -154,7 +154,7 @@ private fun StepsDetail(data: DashboardData?) {
 private fun HeartDetail(data: DashboardData?) {
     val h = data?.heart
     val scheme = MaterialTheme.colorScheme
-    if (h == null) { EmptyCard("Sin datos de pulso") ; return }
+    if (h == null) { EmptyCard("No heart-rate data") ; return }
     DashboardCard {
         SectionLabel("Frecuencia cardiaca")
         Spacer(Modifier.height(6.dp))
@@ -177,15 +177,15 @@ private fun HeartDetail(data: DashboardData?) {
 private fun SleepDetail(data: DashboardData?) {
     val sl = data?.sleepStress
     val scheme = MaterialTheme.colorScheme
-    if (sl == null) { EmptyCard("Sin datos de sueño") ; return }
+    if (sl == null) { EmptyCard("No sleep data") ; return }
     DashboardCard {
-        SectionLabel("Sueño de anoche")
+        SectionLabel("Last night's sleep")
         Spacer(Modifier.height(6.dp))
         Text(String.format(Locale.getDefault(), "%dh %02dm", sl.sleepMinutes / 60, sl.sleepMinutes % 60),
             style = MetricValueStyle, color = scheme.onSurface)
         if (sl.stressLevel > 0) {
             Spacer(Modifier.height(10.dp))
-            Text("Estrés: ${sl.stressLevel}/100", color = scheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
+            Text("Stress: ${sl.stressLevel}/100", color = scheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
         }
     }
 }
@@ -197,7 +197,7 @@ private data class WorkoutType(val code: Int, val label: String, val iconRes: In
 @Composable
 private fun WorkoutsDetail(workouts: List<WorkoutRow>, onOpenWorkout: (WorkoutRow) -> Unit = {}) {
     val scheme = MaterialTheme.colorScheme
-    if (workouts.isEmpty()) { EmptyCard("Sin entrenos todavía") ; return }
+    if (workouts.isEmpty()) { EmptyCard("No workouts yet") ; return }
 
     // Distinct activity types present in the data, in order of first appearance.
     val types = remember(workouts) {
@@ -301,9 +301,9 @@ private fun EmptyCard(text: String) {
 }
 
 private fun titleFor(card: DashboardCardId) = when (card) {
-    DashboardCardId.STEPS -> "Pasos y actividad"
-    DashboardCardId.HEART -> "Pulso y SpO₂"
-    DashboardCardId.SLEEP_STRESS -> "Sueño y estrés"
+    DashboardCardId.STEPS -> "Steps and activity"
+    DashboardCardId.HEART -> "Heart rate and SpO₂"
+    DashboardCardId.SLEEP_STRESS -> "Sleep and stress"
     DashboardCardId.LAST_WORKOUT -> "Entrenos"
     DashboardCardId.READINESS -> "Readiness"
 }
