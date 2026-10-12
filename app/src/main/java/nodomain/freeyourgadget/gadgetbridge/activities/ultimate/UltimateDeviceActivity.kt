@@ -161,6 +161,12 @@ class UltimateDeviceActivity : AppCompatActivity() {
         // --- Dispositivo: acciones sobre el emparejamiento ---
         val sDev = "Dispositivo"
         options += DeviceOptionUi("find", "Buscar dispositivo", "Hacer sonar el dispositivo", section = sDev)
+        // Apagado: solo si el dispositivo lo soporta y está inicializado (hace falta estar conectado
+        // para enviar el comando). El gating es genérico: cubre los anillos Colmi/Yawell y cualquier
+        // otro dispositivo cuyo coordinator declare supportsPowerOff.
+        if (coordinator != null && device.isInitialized && cap { coordinator.supportsPowerOff(device) }) {
+            options += DeviceOptionUi("poweroff", "Apagar", "Apagar el dispositivo", section = sDev)
+        }
         options += DeviceOptionUi("remove", "Quitar dispositivo", "Desvincular de UltimateGadget", destructive = true, section = sDev)
         return options
     }
@@ -227,6 +233,19 @@ class UltimateDeviceActivity : AppCompatActivity() {
                     .setMessage("El reloj está sonando/vibrando. Pulsa Parar cuando lo encuentres.")
                     .setPositiveButton("Parar", null)
                     .setOnDismissListener { GBApplication.deviceService(device).onFindDevice(false) }
+                    .show()
+            }
+            "poweroff" -> {
+                // Gadgetbridge ya implementa el apagado (onPowerOff → comando del dispositivo).
+                // Confirmamos antes porque luego hay que encenderlo a mano para reconectar.
+                androidx.appcompat.app.AlertDialog.Builder(this)
+                    .setTitle("Apagar dispositivo")
+                    .setMessage("¿Apagar el dispositivo? Tendrás que encenderlo manualmente para volver a conectarlo.")
+                    .setPositiveButton("Apagar") { _, _ ->
+                        GBApplication.deviceService(device).onPowerOff()
+                        toast("Apagando…")
+                    }
+                    .setNegativeButton("Cancelar", null)
                     .show()
             }
             "remove" -> startActivity(
