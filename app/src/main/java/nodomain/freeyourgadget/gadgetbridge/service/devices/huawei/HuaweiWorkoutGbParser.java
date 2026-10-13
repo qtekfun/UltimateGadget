@@ -145,6 +145,9 @@ public class HuaweiWorkoutGbParser implements ActivitySummaryParser {
         } else {
             if (dataSample.getCadence() != -1) {
                 ac.setCadence(dataSample.getCadence());
+            } else if (summary.getNewSteps() && dataSample.getStepRate() != -1) {
+                // Elliptical and other step-based indoor workouts only fill the step rate.
+                ac.setCadence(dataSample.getStepRate() & 0xFF);
             }
         }
         if (dataSample.getSwolf() != -1) {
