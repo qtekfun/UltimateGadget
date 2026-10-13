@@ -53,7 +53,6 @@ object XiaomiToken {
     private const val URL_SERVICE_LOGIN = "https://account.xiaomi.com/pass/serviceLogin"
     private const val URL_SERVICE_LOGIN_AUTH2 = "https://account.xiaomi.com/pass/serviceLoginAuth2"
     // Device list lives on the base domain, not a regional subdomain (per huami-token).
-    private const val URL_SOURCE_LIST = "https://hlth.io.mi.com/app/v1/source/get_source_list"
     private const val SOURCE_LIST_PATH = "/app/v1/source/get_source_list"
 
     private const val SID = "miothealth"
@@ -61,12 +60,11 @@ object XiaomiToken {
         "Mozilla/5.0 (Linux; Android 12; Pixel 4 Build/SP1A.210812.016.C1; wv) " +
             "AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/131.0.6778.200 Mobile Safari/537.36"
     private const val UA_API = "Android-12-9.8.348i-google-Pixel 4"
-    // The source list is served from the base domain, but it is routed to the account's regional
-    // data store by the `region_tag` header. The account's region is not known up front (it is set
-    // when the Mi account was created), so the request is retried across the known shards until one
-    // returns the account's devices. Order: Europe, Russia (huami-token's default), Singapore/intl,
-    // India, US.
-    private val REGION_TAGS = listOf("de", "ru", "sg", "i2", "in", "us")
+    // The device list is routed to the account's regional data store. The region is not known up
+    // front, and it is addressed two different ways in the wild: as a `region_tag` header on the
+    // base host, and as a `<region>.hlth.io.mi.com` host. The listing is retried across regions and
+    // both host forms until one returns the account's devices. "de"/"eu" are Europe.
+    private val REGION_TAGS = listOf("de", "eu", "ru", "sg", "i2", "in", "us", "cn")
 
     private const val JSON_PREFIX = "&&&START&&&"
 
@@ -299,36 +297,55 @@ object XiaomiToken {
     private fun getSourceList(session: Session): List<XiaomiDevice> {
         // The account's region is unknown, so retry across the shards (see REGION_TAGS) until one
         // returns the bound devices. Keep the last server-reported error for a useful message.
-        // Structural trace (no values, privacy-safe) so a failure is diagnosable from the UI: per
-        // region either the server error, or "list=N" (how many sources came back — N>0 with no
-        // device means the items carried no auth_key, N==0 points at the session/cUserId).
-        val trace = ArrayList<String>()
-        for (region in REGION_TAGS) {
-            val result = trySourceList(session, region)
-            if (result.devices.isNotEmpty()) return result.devices
-            trace += result.serverError ?: "$region:list=${result.listSize}"
+        // Sweep every region × host-form × status in this one session (no extra logins): return the
+        // first that yields a device with an auth_key. Keep a privacy-safe trace (no values) of the
+        // non-empty lists and distinct errors so a failure says exactly which combo had data.
+        val base = "https://hlth.io.mi.com"
+        val hits = LinkedHashSet<String>()
+        val errors = LinkedHashSet<String>()
+        var anyOk = false
+        for (status in listOf(1, 2)) {
+            for (region in REGION_TAGS) {
+                for (host in linkedSetOf(base, "https://$region.hlth.io.mi.com")) {
+                    val r = trySourceList(session, host, region, status) ?: continue
+                    if (r.devices.isNotEmpty()) return r.devices
+                    when {
+                        r.serverError != null -> errors += r.serverError
+                        r.listSize >= 0 -> {
+                            anyOk = true
+                            if (r.listSize > 0) hits += "s$status/$region/${host.substringAfter("://").substringBefore('.')}=${r.listSize}"
+                        }
+                    }
+                }
+            }
         }
         val cuid = if (session.cUserId.isBlank()) "cUserId=empty" else "cUserId=ok"
-        throw XiaomiException(
-            "No devices with an auth key on this Xiaomi account [$cuid; ${trace.joinToString(" ")}].",
-        )
+        val detail = buildString {
+            append(cuid)
+            if (hits.isNotEmpty()) append("; lists ").append(hits.joinToString(" "))
+            else if (anyOk) append("; all lists empty")
+            if (errors.isNotEmpty()) append("; ").append(errors.take(4).joinToString(" "))
+        }
+        throw XiaomiException("No devices with an auth key on this Xiaomi account [$detail].")
     }
 
     private class SourceListResult(val devices: List<XiaomiDevice>, val serverError: String?, val listSize: Int)
 
     // One get_source_list attempt against a given region shard. Returns the parsed devices (may be
     // empty) and, if the server reported a non-zero code, its code/description for diagnostics.
-    private fun trySourceList(session: Session, regionTag: String): SourceListResult {
-        // status=1 -> bound wearables, carrying auth_key in their detail.
-        val data = "{\"page_size\":50,\"status\":1}"
+    // One get_source_list attempt against a (host, region_tag, status) combination. Returns null on
+    // a network error (dead host) so the sweep skips it; otherwise the parsed devices (may be empty)
+    // plus diagnostics. The signing path is the URL path, identical on every host.
+    private fun trySourceList(session: Session, host: String, regionTag: String, status: Int): SourceListResult? {
+        val data = "{\"page_size\":50,\"status\":$status}"
         val nonce = XiaomiCrypto.generateNonce()
         val encrypted = XiaomiCrypto.encryptParams("POST", SOURCE_LIST_PATH, mapOf("data" to data), nonce, session.ssecurity)
         val form = encrypted.entries.joinToString("&") { "${enc(it.key)}=${enc(it.value)}" }
 
-        val conn = (URL(URL_SOURCE_LIST).openConnection() as HttpURLConnection).apply {
+        val conn = (URL(host + SOURCE_LIST_PATH).openConnection() as HttpURLConnection).apply {
             requestMethod = "POST"
-            connectTimeout = 20_000
-            readTimeout = 30_000
+            connectTimeout = 10_000
+            readTimeout = 15_000
             doOutput = true
             setRequestProperty("User-Agent", UA_API)
             setRequestProperty("region_tag", regionTag)
@@ -341,6 +358,8 @@ object XiaomiToken {
             conn.outputStream.use { it.write(form.toByteArray(Charsets.UTF_8)) }
             httpCode = conn.responseCode
             body = readBody(conn)
+        } catch (e: Exception) {
+            return null
         } finally {
             conn.disconnect()
         }
