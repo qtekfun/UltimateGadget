@@ -112,16 +112,25 @@ fun WorkoutCard(data: WorkoutData?, onClick: () -> Unit) {
                         drawRect(Brush.linearGradient(listOf(scheme.secondaryContainer, scheme.surfaceContainerHigh)))
                     }
                 }
-                Icon(
-                    Icons.Filled.DirectionsRun, contentDescription = null,
-                    tint = scheme.secondary, modifier = Modifier.size(24.dp).align(Alignment.Center),
-                )
+                if (data.iconRes != null) {
+                    androidx.compose.foundation.Image(
+                        painter = androidx.compose.ui.res.painterResource(data.iconRes), contentDescription = null,
+                        colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(scheme.secondary),
+                        modifier = Modifier.size(24.dp).align(Alignment.Center),
+                    )
+                } else {
+                    Icon(
+                        Icons.Filled.DirectionsRun, contentDescription = null,
+                        tint = scheme.secondary, modifier = Modifier.size(24.dp).align(Alignment.Center),
+                    )
+                }
             }
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
                 Text(data.type, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = scheme.onSurface)
                 Text(
-                    String.format(Locale.getDefault(), "%.1f km · %s · %s",
+                    if (data.line.isNotEmpty()) "${data.line} · ${data.whenLabel}"
+                    else String.format(Locale.getDefault(), "%.1f km · %s · %s",
                         data.distanceKm, duration(data.durationSeconds), data.whenLabel),
                     style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant,
                 )

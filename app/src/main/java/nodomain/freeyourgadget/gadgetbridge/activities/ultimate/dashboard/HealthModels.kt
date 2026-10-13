@@ -44,6 +44,10 @@ data class WorkoutData(
     val avgHeartRate: Int,
     /** Pace/elevation-ish shape for the card sparkline. */
     val trace: List<Float>,
+    /** Sport-aware summary line ("47 min · 393 kcal · 121 bpm"); empty to build it from the fields above. */
+    val line: String = "",
+    /** The activity type icon, or null for the generic one. */
+    val iconRes: Int? = null,
 )
 
 data class HeartData(

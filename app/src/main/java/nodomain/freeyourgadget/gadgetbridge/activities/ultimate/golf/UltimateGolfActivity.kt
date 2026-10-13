@@ -16,6 +16,10 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 package nodomain.freeyourgadget.gadgetbridge.activities.ultimate.golf
 
+import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.workout.EffortCard
+import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.workout.HeartRateCard
+import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.workout.WorkoutDetail
+import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.workout.WorkoutDetailRepository
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -120,9 +124,16 @@ class UltimateGolfActivity : AppCompatActivity() {
                 androidx.compose.runtime.LaunchedEffect(summaryId, device) {
                     track = withContext(Dispatchers.IO) { loadTrack(summaryId, device) }
                 }
+                // Heart rate and effort, from the same per-sport workout detail other sports use.
+                var detail by remember { mutableStateOf<WorkoutDetail?>(null) }
+                androidx.compose.runtime.LaunchedEffect(summaryId, device) {
+                    detail = withContext(Dispatchers.IO) {
+                        WorkoutDetailRepository(this@UltimateGolfActivity).load(summaryId, device)
+                    }
+                }
 
                 GolfScreen(
-                    round = round, loading = loading, track = track,
+                    round = round, loading = loading, track = track, detail = detail,
                     hasBaseMap = hasBaseMap(), onBack = { finish() },
                 )
             }
@@ -231,6 +242,7 @@ private fun GolfScreen(
     round: GolfRound?,
     loading: Boolean,
     track: List<LatLon>?,
+    detail: WorkoutDetail?,
     hasBaseMap: Boolean,
     onBack: () -> Unit,
 ) {
@@ -372,6 +384,9 @@ private fun GolfScreen(
                     }
                 }
             }
+
+            detail?.heart?.let { HeartRateCard(it) }
+            detail?.let { EffortCard(it.effort) }
 
             // Route walked on the course, below the card — the map view the user liked.
             GolfRouteCard(track = track, hasBaseMap = hasBaseMap)

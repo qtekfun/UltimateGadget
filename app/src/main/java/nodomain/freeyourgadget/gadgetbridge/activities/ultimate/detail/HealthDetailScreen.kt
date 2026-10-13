@@ -16,6 +16,7 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 package nodomain.freeyourgadget.gadgetbridge.activities.ultimate.detail
 
+import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.workout.WorkoutMath
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -275,13 +276,13 @@ private fun WorkoutsDetail(workouts: List<WorkoutRow>, onOpenWorkout: (WorkoutRo
                             )
                         }
                         Spacer(Modifier.height(4.dp))
-                        val dur = w.durationSeconds
-                        val durLabel = String.format(
-                            Locale.getDefault(), "%d:%02d:%02d",
-                            dur / 3600, (dur % 3600) / 60, dur % 60,
+                        Text(
+                            w.line.ifEmpty { WorkoutMath.shortDuration(w.durationSeconds) },
+                            color = scheme.onSurface,
+                            style = MaterialTheme.typography.bodyMedium,
                         )
                         Text(
-                            "${w.whenLabel} · $durLabel · ${if (w.isGolf) "ver ronda" else "ver mapa"} ›",
+                            w.whenLabel,
                             color = scheme.onSurfaceVariant,
                             style = MaterialTheme.typography.bodyMedium,
                         )
