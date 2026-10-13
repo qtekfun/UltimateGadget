@@ -2,6 +2,10 @@
 
 <!-- For contributors: do not modify this file - the project maintainers will update it as needed -->
 
+#### 0.115.9
+
+* Xiaomi (Mi Fitness) Bluetooth key: the wearable was found (EU accounts live on the regional `de.hlth.io.mi.com` host) but its key was read from a fixed field name. The key is now located as any 32-hex value anywhere in the device's data (preferring key-like field names), so it is picked up whatever the field is called; the region sweep uses short timeouts so it no longer appears to hang. If it still cannot read a key, the error lists that device's field names and lengths (no values) to pinpoint it
+
 #### 0.115.8
 
 * Xiaomi (Mi Fitness) Bluetooth key: the device list is now swept across every region (incl. `eu`), both the base and the regional `<region>.hlth.io.mi.com` host, and both source statuses, all within a single sign-in — so an EU account whose Mi Band 8 was invisible on the base host is now found. If it still finds nothing, the error names exactly which lists had data

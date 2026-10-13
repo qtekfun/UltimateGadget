@@ -304,6 +304,7 @@ object XiaomiToken {
         val hits = LinkedHashSet<String>()
         val errors = LinkedHashSet<String>()
         var anyOk = false
+        var structure: String? = null
         for (status in listOf(1, 2)) {
             for (region in REGION_TAGS) {
                 for (host in linkedSetOf(base, "https://$region.hlth.io.mi.com")) {
@@ -313,7 +314,12 @@ object XiaomiToken {
                         r.serverError != null -> errors += r.serverError
                         r.listSize >= 0 -> {
                             anyOk = true
-                            if (r.listSize > 0) hits += "s$status/$region/${host.substringAfter("://").substringBefore('.')}=${r.listSize}"
+                            if (r.listSize > 0) {
+                                hits += "s$status/$region/${host.substringAfter("://").substringBefore('.')}=${r.listSize}"
+                                // Capture the field map of a wearable (status 1) source so a failed
+                                // key extraction can be fixed from the on-screen error alone.
+                                if (status == 1 && structure == null) structure = r.structure
+                            }
                         }
                     }
                 }
@@ -325,11 +331,17 @@ object XiaomiToken {
             if (hits.isNotEmpty()) append("; lists ").append(hits.joinToString(" "))
             else if (anyOk) append("; all lists empty")
             if (errors.isNotEmpty()) append("; ").append(errors.take(4).joinToString(" "))
+            if (structure != null) append("; fields ").append(structure)
         }
         throw XiaomiException("No devices with an auth key on this Xiaomi account [$detail].")
     }
 
-    private class SourceListResult(val devices: List<XiaomiDevice>, val serverError: String?, val listSize: Int)
+    private class SourceListResult(
+        val devices: List<XiaomiDevice>,
+        val serverError: String?,
+        val listSize: Int,
+        val structure: String? = null,
+    )
 
     // One get_source_list attempt against a given region shard. Returns the parsed devices (may be
     // empty) and, if the server reported a non-zero code, its code/description for diagnostics.
@@ -344,8 +356,8 @@ object XiaomiToken {
 
         val conn = (URL(host + SOURCE_LIST_PATH).openConnection() as HttpURLConnection).apply {
             requestMethod = "POST"
-            connectTimeout = 10_000
-            readTimeout = 15_000
+            connectTimeout = 4_000
+            readTimeout = 8_000
             doOutput = true
             setRequestProperty("User-Agent", UA_API)
             setRequestProperty("region_tag", regionTag)
@@ -381,22 +393,63 @@ object XiaomiToken {
 
         val list = json.optJSONObject("result")?.optJSONArray("list") ?: JSONArray()
         val out = ArrayList<XiaomiDevice>(list.length())
+        var structure: String? = null
         for (i in 0 until list.length()) {
             val src = list.optJSONObject(i) ?: continue
-            val detailRaw = src.opt("detail")
-            val detail: JSONObject? = when {
-                detailRaw is JSONObject -> detailRaw
-                detailRaw is String -> runCatching { JSONObject(detailRaw) }.getOrNull()
-                else -> null
+            // Collect every string leaf from the source and its (possibly stringified) detail.
+            val leaves = LinkedHashMap<String, String>()
+            collectLeaves("", src, leaves)
+            val authKey = findAuthKey(leaves)
+            if (authKey == null) {
+                // First keyless source: record its field map (names + value lengths, no values) so a
+                // failure is fixable from the error text alone.
+                if (structure == null) structure = leaves.entries.take(24).joinToString(",") { "${it.key}(${it.value.length})" }
+                continue
             }
-            val authKey = detail?.optString("auth_key").orEmpty()
-            if (authKey.isBlank()) continue
-            val mac = detail?.optString("mac").takeUnless { it.isNullOrBlank() }
-                ?: src.optString("mac", "??:??:??:??:??:??")
+            val mac = findMac(leaves)
             val name = src.optString("name").trim().ifBlank { "Xiaomi" }
             out += XiaomiDevice(name = name, mac = mac, authKey = authKey)
         }
-        return SourceListResult(out, null, list.length())
+        return SourceListResult(out, null, list.length(), structure)
+    }
+
+    // Flatten a JSON value into dotted string leaves. A string that is itself JSON (Mi often nests
+    // `detail` as a JSON string) is parsed and flattened too, so keys are found however deep.
+    private fun collectLeaves(prefix: String, value: Any?, out: MutableMap<String, String>) {
+        when (value) {
+            is JSONObject -> for (k in value.keys()) collectLeaves(if (prefix.isEmpty()) k else "$prefix.$k", value.opt(k), out)
+            is JSONArray -> for (i in 0 until value.length()) collectLeaves("$prefix[$i]", value.opt(i), out)
+            is String -> {
+                val t = value.trim()
+                if ((t.startsWith("{") && t.endsWith("}")) || (t.startsWith("[") && t.endsWith("]"))) {
+                    val nested = runCatching { if (t.startsWith("{")) JSONObject(t) else JSONArray(t) }.getOrNull()
+                    if (nested != null) { collectLeaves(prefix, nested, out); return }
+                }
+                out[prefix] = value
+            }
+            null -> {}
+            else -> out[prefix] = value.toString()
+        }
+    }
+
+    private val HEX32 = Regex("^[0-9a-fA-F]{32}$")
+    private val KEY_NAMES = listOf("auth_key", "authkey", "key", "secret", "bt_key", "btkey", "beaconkey", "encrypt_key", "device_key", "token")
+
+    // The auth key is 32 hex chars (16 bytes). Prefer a leaf whose name looks like a key; otherwise
+    // take any 32-hex value, since the field name varies across Mi Fitness device types.
+    private fun findAuthKey(leaves: Map<String, String>): String? {
+        for ((k, v) in leaves) {
+            val leaf = k.substringAfterLast('.').substringBefore('[').lowercase()
+            if (KEY_NAMES.any { leaf == it || leaf.endsWith(it) } && HEX32.matches(v)) return v
+        }
+        return leaves.values.firstOrNull { HEX32.matches(it) }
+    }
+
+    private val MAC_RE = Regex("^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$")
+    private fun findMac(leaves: Map<String, String>): String {
+        leaves.entries.firstOrNull { it.key.substringAfterLast('.').lowercase().contains("mac") && MAC_RE.matches(it.value) }
+            ?.let { return it.value }
+        return leaves.values.firstOrNull { MAC_RE.matches(it) } ?: "??:??:??:??:??:??"
     }
 
     // ---- small helpers ----
