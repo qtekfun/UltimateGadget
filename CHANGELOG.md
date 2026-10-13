@@ -2,6 +2,14 @@
 
 <!-- For contributors: do not modify this file - the project maintainers will update it as needed -->
 
+#### 0.115.10
+
+* Workouts: each sport now opens a detail screen laid out for it instead of a full-screen map. **Gym machines** (elliptical, treadmill, indoor bike, rowing machine…) never show a map and lead with duration, kcal, heart rate with zones, cadence and effort. **Outdoor** sports show distance, pace, ascent, a map card (tap for full screen), pace/elevation curves and km splits. **Swims** show pace per 100 m, laps, SWOLF and the lap table. Empty sections are hidden and a collapsible "More data" lists every other value the watch sent
+* Heart-rate zones use the watch's own time-in-zone, and are computed from the heart-rate curve only when the watch sends none
+* Golf rounds now show heart rate and effort below the scorecard
+* The workout list and the dashboard's last-workout card show a per-sport summary line and icon (an elliptical no longer reads "0.0 km")
+* Huawei: the step rate is used as cadence when a workout has no cadence of its own, so ellipticals get a cadence curve (also in the classic charts and exports)
+
 #### 0.115.9
 
 * Xiaomi (Mi Fitness) Bluetooth key: the wearable was found (EU accounts live on the regional `de.hlth.io.mi.com` host) but its key was read from a fixed field name. The key is now located as any 32-hex value anywhere in the device's data (preferring key-like field names), so it is picked up whatever the field is called; the region sweep uses short timeouts so it no longer appears to hang. If it still cannot read a key, the error lists that device's field names and lengths (no values) to pinpoint it
