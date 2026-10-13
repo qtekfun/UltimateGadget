@@ -27,6 +27,7 @@ import nodomain.freeyourgadget.gadgetbridge.model.ActivitySummaryData
 import nodomain.freeyourgadget.gadgetbridge.model.ActivitySummaryEntries
 import nodomain.freeyourgadget.gadgetbridge.impl.GBDevice
 import nodomain.freeyourgadget.gadgetbridge.model.ActivityKind
+import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.workout.WorkoutDetailRepository
 import nodomain.freeyourgadget.gadgetbridge.model.ActivityUser
 import nodomain.freeyourgadget.gadgetbridge.model.DailyTotals
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.readiness.ReadinessRepository
@@ -192,8 +193,8 @@ class DbHealthRepository(private val app: Application) : HealthRepository {
             val end: Date? = summary.endTime
             val durationSeconds = if (start != null && end != null)
                 ((end.time - start.time) / 1000).coerceAtLeast(0) else 0L
-            val kind = summary.activityKind?.let { runCatching { ActivityKind.fromCode(it) }.getOrNull() }
-            val type = kind?.getLabel(app)
+            val kind = WorkoutDetailRepository.kindOf(summary)
+            val type = kind.takeIf { it != ActivityKind.UNKNOWN }?.getLabel(app)
                 ?: summary.name?.takeIf { it.isNotBlank() }
                 ?: "Workout"
             return WorkoutData(
@@ -203,6 +204,8 @@ class DbHealthRepository(private val app: Application) : HealthRepository {
                 whenLabel = start?.let { DATE_FMT.format(it) } ?: "",
                 avgHeartRate = 0,
                 trace = emptyList(),
+                line = WorkoutDetailRepository.listLine(summary, kind),
+                iconRes = kind.icon,
             )
         }
     }

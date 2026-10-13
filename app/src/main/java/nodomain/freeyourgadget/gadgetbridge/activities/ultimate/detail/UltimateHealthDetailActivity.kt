@@ -38,7 +38,8 @@ import nodomain.freeyourgadget.gadgetbridge.database.DBHelper
 import nodomain.freeyourgadget.gadgetbridge.entities.BaseActivitySummaryDao
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.golf.UltimateGolf
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.golf.UltimateGolfActivity
-import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.workout.UltimateWorkoutMapActivity
+import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.workout.UltimateWorkoutActivity
+import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.workout.WorkoutDetailRepository
 import nodomain.freeyourgadget.gadgetbridge.impl.GBDevice
 import nodomain.freeyourgadget.gadgetbridge.model.ActivityKind
 import java.text.SimpleDateFormat
@@ -84,9 +85,7 @@ class UltimateHealthDetailActivity : AppCompatActivity() {
                                 UltimateGolfActivity.intent(this@UltimateHealthDetailActivity, row.id, dev),
                             )
                         } else {
-                            dev?.let {
-                                startActivity(UltimateWorkoutMapActivity.intent(this@UltimateHealthDetailActivity, row.id, it))
-                            }
+                            startActivity(UltimateWorkoutActivity.intent(this@UltimateHealthDetailActivity, row.id, dev))
                         }
                     },
                 )
@@ -179,6 +178,7 @@ class UltimateHealthDetailActivity : AppCompatActivity() {
                                 iconRes = kind.getIcon(),
                                 whenLabel = start?.let { FMT.format(it) } ?: "",
                                 durationSeconds = dur,
+                                line = WorkoutDetailRepository.listLine(s, kind),
                                 isGolf = isGolf,
                                 deviceId = s.deviceId ?: -1L,
                             )
@@ -203,7 +203,9 @@ data class WorkoutRow(
     val iconRes: Int,
     val whenLabel: String,
     val durationSeconds: Long,
-    /** True when this workout is a golf round (opens the golf scorecard instead of the map). */
+    /** Sport-aware summary: distance first for distance sports, else duration, kcal and heart rate. */
+    val line: String = "",
+    /** True when this workout is a golf round (opens the golf scorecard instead of the workout screen). */
     val isGolf: Boolean = false,
     /** DB id of the device that recorded this workout, to resolve its track/device when opened. */
     val deviceId: Long = -1L,
