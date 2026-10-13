@@ -2,6 +2,10 @@
 
 <!-- For contributors: do not modify this file - the project maintainers will update it as needed -->
 
+#### 0.115.8
+
+* Xiaomi (Mi Fitness) Bluetooth key: the device list is now swept across every region (incl. `eu`), both the base and the regional `<region>.hlth.io.mi.com` host, and both source statuses, all within a single sign-in — so an EU account whose Mi Band 8 was invisible on the base host is now found. If it still finds nothing, the error names exactly which lists had data
+
 #### 0.115.7
 
 * Xiaomi (Mi Fitness) Bluetooth key: when signing in through the browser (passToken), the `cUserId` needed to list the account's devices is now taken from the login redirect cookies if the login response omits it — the likely reason the device list came back empty. If it still finds nothing, the error now carries a privacy-safe trace (cUserId present?, per-region list sizes) to pinpoint the cause
