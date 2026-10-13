@@ -47,6 +47,9 @@ project's privacy-first / 100%-local focus. `[x]` marks done, `[~]` in progress.
 - [ ] Course library from OpenStreetMap (golf=*), scorecard, stroke tracking, distances.
 - [ ] Unlock the Huawei course-file/ephemeris format (requires a sample from a rooted device).
 
+## Ollee Watch One (own watch — extend support)
+- [ ] Flesh out Ollee support (`devices/ollee/`, `service/devices/ollee/`): upstream already has the `AA 55`/CRC16 protocol, alarms, activity records, watchfaces and clock; extend features (notifications, heart-rate pulsometer, more alarms, settings). **Blocked for the "official app" RE path:** the Ollee companion (`app.ollee.ollee_watch.ollee_watch`, Play-only) refuses to run without Play Store / a Google account, so it can't be used on the rooted Pixel 8 (no Google account) to capture/decompile. Revisit with a Play-connected phone, or go clean-room: pair to UltimateGadget and probe the GATT/protocol directly. Watch BT must be woken manually (hold ALARM on the clock face, or tap until LAP/SPLIT blinks).
+
 ## Ambitious / later
 - [x] Home widget (steps/battery/HR) and QS tiles (sync, find watch).
 - [ ] Notification rules (filters by app/schedule).
