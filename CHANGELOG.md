@@ -2,6 +2,11 @@
 
 <!-- For contributors: do not modify this file - the project maintainers will update it as needed -->
 
+#### 0.115.6
+
+* Xiaomi (Mi Fitness) Bluetooth key: the device list is now looked up across every regional Xiaomi data store (de/ru/sg/i2/in/us), so watches/bands on accounts outside the default region are found; when none return a device, the error now shows the server code and region so the failure is diagnosable
+* The whole UltimateGadget-specific interface, changelog and docs are now in English (the app that shipped Spanish strings now shows English)
+
 #### 0.115.5
 
 * Watch Bluetooth key: signing in to **Amazfit / Zepp and Xiaomi** now opens the **vendor's own login page** inside the app, so **two-factor, OTP and captcha** all work (the direct email/password login no longer worked with those accounts). The key is read from the session; no email or password is entered or stored. Not yet validated against a real account with OTP
