@@ -135,8 +135,10 @@ object XiaomiToken {
         } finally {
             conn.disconnect()
         }
-        val serviceToken = getServiceToken(auth)
-        return Session(auth.ssecurity, serviceToken, auth.userId, auth.cUserId)
+        val jar = getServiceToken(auth)
+        // serviceLogin via passToken often omits cUserId; take it from the STS redirect cookies.
+        val cUserId = auth.cUserId.ifBlank { jar["cUserId"].orEmpty() }
+        return Session(auth.ssecurity, jar.getValue("serviceToken"), auth.userId, cUserId)
     }
 
     // ---- Mi Account login (sid=miothealth) ----
@@ -145,8 +147,9 @@ object XiaomiToken {
         val deviceId = "an_" + md5Hex(email, upper = false)
         val page = serviceLogin(email, deviceId)
         val auth = serviceLoginAuth2(email, password, page, deviceId)
-        val serviceToken = getServiceToken(auth)
-        return Session(auth.ssecurity, serviceToken, auth.userId, auth.cUserId)
+        val jar = getServiceToken(auth)
+        val cUserId = auth.cUserId.ifBlank { jar["cUserId"].orEmpty() }
+        return Session(auth.ssecurity, jar.getValue("serviceToken"), auth.userId, cUserId)
     }
 
     private data class LoginPage(val sign: String, val qs: String, val callback: String)
@@ -234,15 +237,19 @@ object XiaomiToken {
         }
     }
 
-    // Step 3: follow the STS location (with clientSign) to collect the serviceToken cookie.
-    private fun getServiceToken(auth: Auth): String {
+    // Step 3: follow the STS location (with clientSign) to collect the serviceToken cookie. Returns
+    // the whole cookie jar: besides serviceToken, the STS hop usually also sets cUserId, which the
+    // passToken re-login does not get from serviceLogin and which get_source_list needs.
+    private fun getServiceToken(auth: Auth): Map<String, String> {
         val clientSign = XiaomiCrypto.base64Encode(
             XiaomiCrypto.sha1("nonce=${auth.nonce}&${auth.ssecurity}".toByteArray(Charsets.UTF_8)),
         )
         val startUrl = auth.location + "&clientSign=" + URLEncoder.encode(clientSign, "UTF-8")
         val jar = getFollowingRedirects(startUrl)
-        return jar["serviceToken"]
-            ?: throw XiaomiException("No serviceToken obtained from Xiaomi (incomplete login).")
+        if (jar["serviceToken"].isNullOrBlank()) {
+            throw XiaomiException("No serviceToken obtained from Xiaomi (incomplete login).")
+        }
+        return jar
     }
 
     /** GET [startUrl] following redirects manually, carrying cookies forward, returning the jar. */
@@ -292,22 +299,22 @@ object XiaomiToken {
     private fun getSourceList(session: Session): List<XiaomiDevice> {
         // The account's region is unknown, so retry across the shards (see REGION_TAGS) until one
         // returns the bound devices. Keep the last server-reported error for a useful message.
-        var lastError: String? = null
+        // Structural trace (no values, privacy-safe) so a failure is diagnosable from the UI: per
+        // region either the server error, or "list=N" (how many sources came back — N>0 with no
+        // device means the items carried no auth_key, N==0 points at the session/cUserId).
+        val trace = ArrayList<String>()
         for (region in REGION_TAGS) {
             val result = trySourceList(session, region)
             if (result.devices.isNotEmpty()) return result.devices
-            if (result.serverError != null) lastError = result.serverError
+            trace += result.serverError ?: "$region:list=${result.listSize}"
         }
+        val cuid = if (session.cUserId.isBlank()) "cUserId=empty" else "cUserId=ok"
         throw XiaomiException(
-            if (lastError != null) {
-                "Xiaomi returned no devices for this account ($lastError)."
-            } else {
-                "No devices with an auth key were found on this Xiaomi account."
-            },
+            "No devices with an auth key on this Xiaomi account [$cuid; ${trace.joinToString(" ")}].",
         )
     }
 
-    private class SourceListResult(val devices: List<XiaomiDevice>, val serverError: String?)
+    private class SourceListResult(val devices: List<XiaomiDevice>, val serverError: String?, val listSize: Int)
 
     // One get_source_list attempt against a given region shard. Returns the parsed devices (may be
     // empty) and, if the server reported a non-zero code, its code/description for diagnostics.
@@ -338,19 +345,19 @@ object XiaomiToken {
             conn.disconnect()
         }
         if (httpCode !in 200..299) {
-            return SourceListResult(emptyList(), "HTTP $httpCode @ $regionTag")
+            return SourceListResult(emptyList(), "HTTP $httpCode @ $regionTag", -1)
         }
 
         // The body is RC4-encrypted base64; fall back to raw JSON for server error messages.
         val json = runCatching { JSONObject(XiaomiCrypto.decryptResponse(body, nonce, session.ssecurity)) }
             .recoverCatching { JSONObject(body) }
-            .getOrNull() ?: return SourceListResult(emptyList(), "unreadable response @ $regionTag")
+            .getOrNull() ?: return SourceListResult(emptyList(), "unreadable response @ $regionTag", -1)
 
         // A non-zero code means this shard refused the request (often the wrong region); keep it.
         val code = json.optInt("code", 0)
         if (code != 0) {
             val desc = json.optString("description").ifBlank { json.optString("message") }
-            return SourceListResult(emptyList(), "code $code${if (desc.isNotBlank()) " $desc" else ""} @ $regionTag")
+            return SourceListResult(emptyList(), "code $code${if (desc.isNotBlank()) " $desc" else ""} @ $regionTag", -1)
         }
 
         val list = json.optJSONObject("result")?.optJSONArray("list") ?: JSONArray()
@@ -370,7 +377,7 @@ object XiaomiToken {
             val name = src.optString("name").trim().ifBlank { "Xiaomi" }
             out += XiaomiDevice(name = name, mac = mac, authKey = authKey)
         }
-        return SourceListResult(out, null)
+        return SourceListResult(out, null, list.length())
     }
 
     // ---- small helpers ----

@@ -2,6 +2,10 @@
 
 <!-- For contributors: do not modify this file - the project maintainers will update it as needed -->
 
+#### 0.115.7
+
+* Xiaomi (Mi Fitness) Bluetooth key: when signing in through the browser (passToken), the `cUserId` needed to list the account's devices is now taken from the login redirect cookies if the login response omits it — the likely reason the device list came back empty. If it still finds nothing, the error now carries a privacy-safe trace (cUserId present?, per-region list sizes) to pinpoint the cause
+
 #### 0.115.6
 
 * Xiaomi (Mi Fitness) Bluetooth key: the device list is now looked up across every regional Xiaomi data store (de/ru/sg/i2/in/us), so watches/bands on accounts outside the default region are found; when none return a device, the error now shows the server code and region so the failure is diagnosable
