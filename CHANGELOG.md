@@ -2,6 +2,11 @@
 
 <!-- For contributors: do not modify this file - the project maintainers will update it as needed -->
 
+#### 0.115.11
+
+* Casio: added support for two more G-SHOCK watches that speak the same modern Casio protocol — the **GBD-800** (module 3464) and the **GD-B500** (module 3552). Both pair, set the time, sync steps/activity, and accept notifications and the user profile, reverse-engineered from a Bluetooth capture of the official Casio app
+* Casio **GD-B500**: the **power-saving** toggle is now exposed in device settings (it maps to the watch's basic-settings bit confirmed in the capture); other Casio models are unaffected
+
 #### 0.115.10
 
 * Workouts: each sport now opens a detail screen laid out for it instead of a full-screen map. **Gym machines** (elliptical, treadmill, indoor bike, rowing machine…) never show a map and lead with duration, kcal, heart rate with zones, cadence and effort. **Outdoor** sports show distance, pace, ascent, a map card (tap for full screen), pace/elevation curves and km splits. **Swims** show pace per 100 m, laps, SWOLF and the lap table. Empty sections are hidden and a collapsible "More data" lists every other value the watch sent
