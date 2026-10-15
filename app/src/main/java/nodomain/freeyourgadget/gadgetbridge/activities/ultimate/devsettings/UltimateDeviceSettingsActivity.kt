@@ -23,7 +23,6 @@ import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import nodomain.freeyourgadget.gadgetbridge.GBApplication
 import nodomain.freeyourgadget.gadgetbridge.R
-import nodomain.freeyourgadget.gadgetbridge.activities.devicesettings.DeviceSettingsActivity
 import nodomain.freeyourgadget.gadgetbridge.activities.devicesettings.DeviceSpecificSettings
 import nodomain.freeyourgadget.gadgetbridge.activities.devicesettings.DeviceSpecificSettingsScreen
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.theme.UltimateTheme
@@ -36,11 +35,13 @@ import nodomain.freeyourgadget.gadgetbridge.impl.GBDevice
  * per-device SharedPreferences and fires the same {@code onSendConfiguration(key)} event, so the
  * watch receives changes exactly as with the legacy screen (see [DeviceSettingsStore]).
  *
- * Scope of the generic renderer (see [DeviceSettingsParser]): switches, single-choice lists, text
- * / numeric inputs and sliders are rendered natively. Everything it does not model — complex custom
- * pickers, action-only preferences, DSL-model devices, and the programmatic Battery / Developer /
- * Auth / Experimental screens — is handed off to the legacy [DeviceSettingsActivity] so nothing is
- * lost or broken.
+ * Scope: both coordinator models are rendered natively — the preference-XML model through
+ * [DeviceSettingsParser] and the settings DSL (rings, earbuds, scales, …) through
+ * [DslSettingsConverter]. Switches, single/multi-choice and sortable lists, text and numeric
+ * inputs, sliders, time and date pickers, file/folder pickers, info and action rows are all
+ * native; the editors that used to be separate classic screens (heart-rate zones, contacts,
+ * calendars, notification app icons, stress calibration, battery history) open their Compose
+ * counterparts. The classic preference screen is no longer used.
  */
 class UltimateDeviceSettingsActivity : AppCompatActivity() {
 
@@ -65,18 +66,15 @@ class UltimateDeviceSettingsActivity : AppCompatActivity() {
         val settings: DeviceSpecificSettings? =
             if (modelSpec == null) runCatching { coordinator?.getDeviceSpecificSettings(device) }.getOrNull() else null
 
-        if (modelSpec == null && settings == null) {
-            openClassic(device)
-            finish()
-            return
-        }
-
-        val nodes: List<PrefNode> = if (modelSpec != null) {
-            val dsl = DslSettingsConverter.convert(this, device, modelSpec)
-            dslActions = dsl.actions
-            appendCommonNodes(device, dsl.nodes.toMutableList())
-        } else {
-            buildNodes(device, settings!!)
+        // A device that exposes neither model still gets the generic connection / battery rows.
+        val nodes: List<PrefNode> = when {
+            modelSpec != null -> {
+                val dsl = DslSettingsConverter.convert(this, device, modelSpec)
+                dslActions = dsl.actions
+                appendCommonNodes(device, dsl.nodes.toMutableList())
+            }
+            settings != null -> buildNodes(device, settings)
+            else -> appendCommonNodes(device, mutableListOf())
         }
 
         setContent {
@@ -87,7 +85,7 @@ class UltimateDeviceSettingsActivity : AppCompatActivity() {
                     store = DeviceSettingsStore(device),
                     hasClassicFallback = false,
                     onBack = { finish() },
-                    onDelegate = { openClassic(device) },
+                    onDelegate = {},
                     onAction = { key -> onAction(key, device) },
                     initialScreenKey = intent.getStringExtra(EXTRA_OPEN_SCREEN),
                 )
@@ -198,18 +196,6 @@ class UltimateDeviceSettingsActivity : AppCompatActivity() {
             // the legacy screen's change-handler would, so the device support handles it.
             else -> runCatching { GBApplication.deviceService(device).onSendConfiguration(key) }
         }
-    }
-
-    private fun openClassic(device: GBDevice) {
-        startActivity(
-            Intent(this, DeviceSettingsActivity::class.java).apply {
-                putExtra(GBDevice.EXTRA_DEVICE, device)
-                putExtra(
-                    DeviceSettingsActivity.MENU_ENTRY_POINT,
-                    DeviceSettingsActivity.MENU_ENTRY_POINTS.DEVICE_SETTINGS,
-                )
-            },
-        )
     }
 
     companion object {

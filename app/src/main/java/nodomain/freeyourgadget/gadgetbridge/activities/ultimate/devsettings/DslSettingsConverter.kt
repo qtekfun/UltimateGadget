@@ -58,7 +58,7 @@ object DslSettingsConverter {
     fun convert(context: Context, device: GBDevice, spec: DeviceSettingsSpec): Result {
         val prefs = Prefs(GBApplication.getDeviceSpecificSharedPrefs(device.address))
         val actions = mutableMapOf<String, (Context, GBDevice?) -> Boolean>()
-        val nodes = convertAll(context, prefs, spec.items, actions)
+        val nodes = convertAll(context, prefs, spec.items, actions, device)
         return Result(nodes, actions)
     }
 
@@ -67,14 +67,20 @@ object DslSettingsConverter {
         prefs: Prefs,
         items: List<DeviceSetting>,
         actions: MutableMap<String, (Context, GBDevice?) -> Boolean>,
+        device: GBDevice,
     ): List<PrefNode> {
         val out = mutableListOf<PrefNode>()
         for (item in items) {
             val visible = runCatching { item.visibleWhen?.invoke(prefs) ?: true }.getOrDefault(true)
             if (!visible) continue
-            out += convertOne(ctx, prefs, item, actions)
+            out += convertOne(ctx, prefs, item, actions, device)
         }
         return out
+    }
+
+    private fun entryLabel(ctx: Context, e: ListEntry): String = when (e) {
+        is ListEntry.Res -> str(ctx, e.label).orEmpty()
+        is ListEntry.Text -> e.label
     }
 
     private fun str(ctx: Context, @androidx.annotation.StringRes id: Int): String? =
@@ -85,9 +91,10 @@ object DslSettingsConverter {
         prefs: Prefs,
         item: DeviceSetting,
         actions: MutableMap<String, (Context, GBDevice?) -> Boolean>,
+        device: GBDevice,
     ): List<PrefNode> = when (item) {
         is ScreenSetting -> {
-            val children = convertAll(ctx, prefs, item.children, actions).toMutableList()
+            val children = convertAll(ctx, prefs, item.children, actions, device).toMutableList()
             item.xmlSubScreens.forEach { children += DeviceSettingsParser.parseResource(ctx.resources, it) }
             listOf(
                 PrefNode.SubScreen(
@@ -112,7 +119,7 @@ object DslSettingsConverter {
 
         is CategorySetting -> {
             val title = item.titleText ?: str(ctx, item.title).orEmpty()
-            listOf<PrefNode>(PrefNode.Category(title)) + convertAll(ctx, prefs, item.children, actions)
+            listOf<PrefNode>(PrefNode.Category(title)) + convertAll(ctx, prefs, item.children, actions, device)
         }
 
         is SwitchSetting -> listOf(
@@ -215,7 +222,57 @@ object DslSettingsConverter {
             listOf(PrefNode.Action(key = item.key, title = title, summary = summary, iconRes = item.icon))
         }
 
-        // Pickers / multi-select / sortable lists / external settings are not modelled natively yet:
+        is MultiSelectSetting -> {
+            val entries = when {
+                item.entries.isNotEmpty() -> item.entries
+                item.entriesProvider != null -> runCatching { item.entriesProvider.invoke(prefs) }.getOrDefault(emptyList())
+                else -> emptyList()
+            }
+            listOf(
+                PrefNode.MultiChoice(
+                    key = item.key, title = str(ctx, item.title).orEmpty(), summary = str(ctx, item.summary),
+                    iconRes = item.icon, default = item.defaultValue,
+                    entries = entries.map { entryLabel(ctx, it) }, values = entries.map { it.value },
+                    dependency = item.dependency,
+                ),
+            )
+        }
+
+        is SortableListSetting -> listOf(
+            PrefNode.Sortable(
+                key = item.key, title = str(ctx, item.title).orEmpty(), summary = str(ctx, item.summary),
+                iconRes = item.icon, default = item.defaultValue,
+                entries = item.entries.map { entryLabel(ctx, it) }, values = item.entries.map { it.value },
+                dependency = item.dependency,
+            ),
+        )
+
+        is DateSetting -> listOf(
+            PrefNode.DatePicker(
+                key = item.key, title = str(ctx, item.title).orEmpty(), summary = str(ctx, item.summary),
+                iconRes = item.icon, default = item.defaultValue, minDate = item.minDate, maxDate = item.maxDate,
+                dependency = item.dependency,
+            ),
+        )
+
+        is FilePickerSetting -> listOf(
+            PrefNode.FilePicker(
+                key = item.key, title = str(ctx, item.title).orEmpty(), summary = str(ctx, item.summary),
+                iconRes = item.icon, mimeTypes = item.mimeTypes,
+                onPicked = { uris -> item.onPicked(ctx, device, uris) }, dependency = item.dependency,
+            ),
+        )
+
+        is FolderPickerSetting -> listOf(
+            PrefNode.FolderPicker(
+                key = item.key, title = str(ctx, item.title).orEmpty(), iconRes = item.icon,
+                persistPermission = item.persistUriPermission,
+                onPicked = item.onPicked?.let { cb -> { uri: android.net.Uri -> cb(ctx, device, uri) } },
+                dependency = item.dependency,
+            ),
+        )
+
+        // Anything else (a node type added upstream later) stays reachable through the hand-off row.
         // keep them reachable through the (rare) hand-off row instead of dropping them silently.
         else -> listOf(
             PrefNode.Delegated(

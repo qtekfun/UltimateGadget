@@ -479,7 +479,7 @@ class UltimateDiscoveryActivity : AppCompatActivity(), BondingInterface, GBScanE
 
     private fun checkAuthKeyAndPair(deviceCandidate: GBDeviceCandidate, coordinator: DeviceCoordinator) {
         if (coordinator.requiresAuthKey()) {
-            authKeyLauncher.launch(AuthKeyActivity.newIntent(this, deviceCandidate))
+            authKeyLauncher.launch(UltimateAuthKeyActivity.newIntent(this, deviceCandidate))
         } else if (coordinator.supportedDeviceSpecificAuthenticationSettings?.isNotEmpty() == true) {
             // Devices not forced through the auth-key screen (e.g. Huawei, which authenticates
             // against a Huawei account) still have authentication settings, and pairing before

@@ -53,10 +53,8 @@ class UltimateDeviceActivity : AppCompatActivity() {
         val dev = agpsDevice
         if (uri != null && dev != null) {
             startActivity(
-                Intent(this, FwAppInstallerActivity::class.java).apply {
-                    setDataAndType(uri, null)
-                    putExtra(GBDevice.EXTRA_DEVICE, dev)
-                },
+                nodomain.freeyourgadget.gadgetbridge.activities.ultimate.install.UltimateInstallActivity
+                    .forUri(this, uri, dev),
             )
         }
     }
