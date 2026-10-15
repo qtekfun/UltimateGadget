@@ -210,6 +210,10 @@ public class HuaweiP2PGolfService extends HuaweiBaseP2PService {
     public static final String ACTION_GOLF_COURSE_LIST = "nodomain.freeyourgadget.gadgetbridge.huawei.GOLF_COURSE_LIST";
     public static final String EXTRA_GOLF_COURSE_IDS = "golf_course_ids";
     public static final String EXTRA_GOLF_COURSE_VERSIONS = "golf_course_versions";
+    /** Broadcast when a course upload to the watch fails; carries the transfer error code. */
+    public static final String ACTION_GOLF_UPLOAD_ERROR = "nodomain.freeyourgadget.gadgetbridge.huawei.GOLF_UPLOAD_ERROR";
+    public static final String EXTRA_GOLF_UPLOAD_ERROR_CODE = "golf_upload_error_code";
+    public static final String EXTRA_GOLF_UPLOAD_COURSE_ID = "golf_upload_course_id";
 
     // Aggregates the watch's course-list reply (delivered across several frames).
     private final java.util.LinkedHashMap<Integer, Integer> listCollector = new java.util.LinkedHashMap<>();
@@ -306,7 +310,13 @@ public class HuaweiP2PGolfService extends HuaweiBaseP2PService {
                 // actually registered on the watch (the upload takes a few seconds).
                 requestCourseListAndBroadcast();
             }
-            @Override public void onError(int code) { LOG.info("Golf course file upload: ERROR {}", code); }
+            @Override public void onError(int code) {
+                LOG.warn("Golf course file upload: ERROR {} for course {}", code, courseId);
+                final Intent err = new Intent(ACTION_GOLF_UPLOAD_ERROR);
+                err.putExtra(EXTRA_GOLF_UPLOAD_ERROR_CODE, code);
+                err.putExtra(EXTRA_GOLF_UPLOAD_COURSE_ID, courseId);
+                LocalBroadcastManager.getInstance(manager.getSupportProvider().getContext()).sendBroadcast(err);
+            }
         });
         final HuaweiUploadManager up = manager.getSupportProvider().getUploadManager();
         up.setFileUploadInfo(fileInfo);

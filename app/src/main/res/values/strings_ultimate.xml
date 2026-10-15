@@ -738,4 +738,12 @@
     <string name="ult_stress_again">Measure again</string>
     <string name="ult_device_info_missing">Device info missing</string>
     <string name="ult_help">Help</string>
+    <string name="ult_golf_search_countries">Search country…</string>
+    <string name="ult_golf_search_country">Search city or course…</string>
+    <string name="ult_golf_search_courses">Search course…</string>
+    <string name="ult_golf_cities">Cities</string>
+    <string name="ult_no_results">No results</string>
+    <string name="ult_golf_upload_failed">Could not send %1$s to the watch (transfer error %2$d)</string>
+    <string name="ult_golf_not_on_watch">%1$s was sent but the watch does not list it (the watch has %2$d course(s)). It may have rejected the file.</string>
+    <string name="ult_golf_done_count">%1$s ✓ · the watch has %2$d course(s)</string>
 </resources>
