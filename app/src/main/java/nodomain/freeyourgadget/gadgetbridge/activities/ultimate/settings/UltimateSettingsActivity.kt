@@ -231,8 +231,8 @@ fun UltimateSettingsScreen(onBack: () -> Unit) {
                 ToggleRow(stringResource(R.string.ult_set_amoled), "pref_key_theme_amoled_black", false)
                 ToggleRow(stringResource(R.string.ult_set_block_screenshots), "block_screenshots", false)
                 ToggleRow(stringResource(R.string.ult_set_swipe_refresh), "pref_refresh_on_swipe", true)
-                ToggleRow("Floating button to add a device", "display_add_device_fab", true)
-                ToggleRow("Bottom navigation bar", "display_bottom_navigation_bar", true)
+                ToggleRow(stringResource(R.string.ult_set_fab), "display_add_device_fab", true)
+                ToggleRow(stringResource(R.string.ult_set_bottom_nav), "display_bottom_navigation_bar", true)
             }
 
             // --- Developer ---

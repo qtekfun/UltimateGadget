@@ -156,11 +156,11 @@ fun ReportsScreen(
             item { PeriodSelector(state.period, onSetPeriod) }
 
             if (data == null || !data.hasDevice) {
-                item { InfoCard("No device", "Connect a watch to see your reports.") }
+                item { InfoCard(stringResource(R.string.ult_rep_no_device), stringResource(R.string.ult_rep_connect)) }
                 return@LazyColumn
             }
             if (summary == null || summary.daysWithData == 0) {
-                item { InfoCard("No data yet", "Sync the watch to start seeing your weekly and monthly reports.") }
+                item { InfoCard(stringResource(R.string.ult_no_data_yet), stringResource(R.string.ult_rep_sync)) }
                 return@LazyColumn
             }
 
@@ -182,8 +182,8 @@ private fun PeriodSelector(period: ReportPeriod, onSetPeriod: (ReportPeriod) -> 
         Modifier.fillMaxWidth().clip(androidx.compose.foundation.shape.RoundedCornerShape(14.dp)),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        PeriodChip("Week", period == ReportPeriod.WEEK, Modifier.weight(1f)) { onSetPeriod(ReportPeriod.WEEK) }
-        PeriodChip("Month", period == ReportPeriod.MONTH, Modifier.weight(1f)) { onSetPeriod(ReportPeriod.MONTH) }
+        PeriodChip(stringResource(R.string.ult_pdf_week), period == ReportPeriod.WEEK, Modifier.weight(1f)) { onSetPeriod(ReportPeriod.WEEK) }
+        PeriodChip(stringResource(R.string.ult_pdf_month), period == ReportPeriod.MONTH, Modifier.weight(1f)) { onSetPeriod(ReportPeriod.MONTH) }
     }
 }
 
@@ -214,15 +214,15 @@ private fun StatGrid(summary: ReportSummary) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             StatTile("Steps / day", "%,d".format(summary.avgSteps), Modifier.weight(1f))
-            StatTile("Distance", distance, Modifier.weight(1f))
+            StatTile(stringResource(R.string.ult_wd_distance), distance, Modifier.weight(1f))
         }
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            StatTile("Average sleep", sleep, Modifier.weight(1f))
-            StatTile("FC reposo", rhr, Modifier.weight(1f))
+            StatTile(stringResource(R.string.ult_pdf_avg_sleep), sleep, Modifier.weight(1f))
+            StatTile(stringResource(R.string.ult_rep_rhr_short), rhr, Modifier.weight(1f))
         }
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            StatTile("Workouts", "${summary.workoutCount}", Modifier.weight(1f))
-            StatTile("Days on goal", "${summary.goalDays}", Modifier.weight(1f))
+            StatTile(stringResource(R.string.ult_pdf_workouts), "${summary.workoutCount}", Modifier.weight(1f))
+            StatTile(stringResource(R.string.ult_pdf_days_goal), "${summary.goalDays}", Modifier.weight(1f))
         }
     }
 }
@@ -270,7 +270,7 @@ private fun SleepChartCard(summary: ReportSummary, barColor: Color, trackColor: 
     val scheme = MaterialTheme.colorScheme
     if (summary.points.none { it.sleepMinutes > 0 }) return
     DashboardCard {
-        SectionLabel("Sleep (hours)")
+        SectionLabel(stringResource(R.string.ult_rep_sleep_hours))
         Spacer(Modifier.height(10.dp))
         LabeledBarChart(
             points = summary.points,
@@ -288,7 +288,7 @@ private fun SleepChartCard(summary: ReportSummary, barColor: Color, trackColor: 
 private fun RestingHrChartCard(summary: ReportSummary, barColor: Color, trackColor: Color, labelColor: Color) {
     val scheme = MaterialTheme.colorScheme
     DashboardCard {
-        SectionLabel("FC en reposo (bpm)")
+        SectionLabel(stringResource(R.string.ult_rep_rhr_bpm))
         Spacer(Modifier.height(10.dp))
         LabeledBarChart(
             points = summary.points,

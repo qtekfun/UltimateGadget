@@ -689,4 +689,32 @@
     <string name="ult_m_100km_d">100 km acumulados en el historial</string>
     <string name="ult_m_1m">Un millón de pasos</string>
     <string name="ult_m_1m_d">1 000 000 de pasos acumulados</string>
+
+    <!-- Teselas de informes, estadísticas de golf, secciones del editor y etiquetas restantes -->
+    <string name="ult_rep_no_device">Sin dispositivo</string>
+    <string name="ult_rep_connect">Conecta un reloj para ver tus informes.</string>
+    <string name="ult_rep_sync">Sincroniza el reloj para empezar a ver tus informes semanales y mensuales.</string>
+    <string name="ult_rep_rhr_short">FC reposo</string>
+    <string name="ult_rep_sleep_hours">Sueño (horas)</string>
+    <string name="ult_rep_rhr_bpm">FC en reposo (ppm)</string>
+    <string name="ult_export_not_found">Entreno no encontrado</string>
+    <string name="ult_export_no_data">Este entreno no tiene datos que exportar</string>
+    <string name="ult_hours">Horas</string>
+    <string name="ult_min_short">Min</string>
+    <string name="ult_sec_short">Seg</string>
+    <string name="ult_time">Hora</string>
+    <string name="ult_set_fab">Botón flotante para añadir un dispositivo</string>
+    <string name="ult_set_bottom_nav">Barra de navegación inferior</string>
+    <string name="ult_golf_distance_walked">Distancia caminada</string>
+    <string name="ult_golf_holes">Hoyos</string>
+    <string name="ult_golf_par">Par</string>
+    <string name="ult_golf_score">Puntuación</string>
+    <string name="ult_golf_putts">Putts</string>
+    <string name="ult_golf_strokes">Golpes</string>
+    <string name="ult_golf_hole">Hoyo</string>
+    <string name="ult_golf_fairways">Calles</string>
+    <string name="ult_golf_penalties">Penalizaciones</string>
+    <string name="ult_dev_paired">Emparejado</string>
+    <string name="ult_dev_unsupported">No compatible</string>
+    <string name="ult_dev_experimental">Experimental</string>
 </resources>

@@ -881,9 +881,9 @@ private fun DeviceCandidateCard(device: DiscoveredDevice, onClick: () -> Unit) {
                     color = palette.onSurfaceVariant,
                 )
                 val badges = buildList {
-                    if (device.bonded) add("Paired")
-                    if (!device.supported) add("No compatible")
-                    if (device.experimental) add("Experimental")
+                    if (device.bonded) add(stringResource(R.string.ult_dev_paired))
+                    if (!device.supported) add(stringResource(R.string.ult_dev_unsupported))
+                    if (device.experimental) add(stringResource(R.string.ult_dev_experimental))
                 }
                 if (badges.isNotEmpty()) {
                     Spacer(Modifier.height(6.dp))
