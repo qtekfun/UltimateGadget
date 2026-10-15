@@ -78,6 +78,16 @@ import kotlin.math.roundToInt
 
 private data class Level(val title: String, val nodes: List<PrefNode>)
 
+private fun findSubScreen(nodes: List<PrefNode>, key: String): PrefNode.SubScreen? {
+    for (n in nodes) {
+        if (n is PrefNode.SubScreen) {
+            if (n.key == key) return n
+            findSubScreen(n.children, key)?.let { return it }
+        }
+    }
+    return null
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UltimateDeviceSettingsScreen(
@@ -88,11 +98,17 @@ fun UltimateDeviceSettingsScreen(
     onBack: () -> Unit,
     onDelegate: (PrefNode.Delegated?) -> Unit,
     onAction: (String?) -> Unit,
+    initialScreenKey: String? = null,
 ) {
     val palette = LocalUltimatePalette.current
 
-    // Navigation stack for nested sub-screens. The first entry is the root.
-    val stack = remember { mutableStateListOf(Level(rootTitle, rootNodes)) }
+    // Navigation stack for nested sub-screens. The first entry is the root; when a deep link key
+    // is given, the matching sub-screen is opened on top of it right away.
+    val stack = remember {
+        mutableStateListOf(Level(rootTitle, rootNodes)).also { s ->
+            initialScreenKey?.let { k -> findSubScreen(rootNodes, k)?.let { s.add(Level(it.title, it.children)) } }
+        }
+    }
     val current = stack.last()
 
     // Shared, reactive snapshot of preference values, so dependencies and summaries recompose.

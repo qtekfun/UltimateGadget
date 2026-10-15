@@ -89,6 +89,7 @@ class UltimateDeviceSettingsActivity : AppCompatActivity() {
                     onBack = { finish() },
                     onDelegate = { openClassic(device) },
                     onAction = { key -> onAction(key, device) },
+                    initialScreenKey = intent.getStringExtra(EXTRA_OPEN_SCREEN),
                 )
             }
         }
@@ -215,10 +216,15 @@ class UltimateDeviceSettingsActivity : AppCompatActivity() {
         /** Synthetic action key for the native battery-history screen (not a persisted preference). */
         private const val ACTION_BATTERY_HISTORY = "ug_battery_history"
 
+        /** Optional: key of a sub-screen to open straight away (e.g. the authentication screen). */
+        const val EXTRA_OPEN_SCREEN = "ug_open_screen"
+
         @JvmStatic
-        fun intent(context: Context, device: GBDevice): Intent =
+        @JvmOverloads
+        fun intent(context: Context, device: GBDevice, openScreenKey: String? = null): Intent =
             Intent(context, UltimateDeviceSettingsActivity::class.java).apply {
                 putExtra(GBDevice.EXTRA_DEVICE, device)
+                openScreenKey?.let { putExtra(EXTRA_OPEN_SCREEN, it) }
             }
     }
 }

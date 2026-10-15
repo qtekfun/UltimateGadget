@@ -141,10 +141,22 @@ sealed interface PrefNode {
  * the running device service on every change — the same two-step the legacy fragment performs
  * (persist, then {@code GBApplication.deviceService(device).onSendConfiguration(key)}).
  */
-class DeviceSettingsStore(private val device: GBDevice) {
+class DeviceSettingsStore private constructor(
+    private val prefs: android.content.SharedPreferences,
+    private val onChanged: (String) -> Unit,
+) {
     // Same file the device service reads from (GBApplication.getDeviceSpecificSharedPrefs), so a
     // value written here is immediately visible to onSendConfiguration's handler.
-    private val prefs = GBApplication.getDeviceSpecificSharedPrefs(device.address)
+    constructor(device: GBDevice) : this(
+        GBApplication.getDeviceSpecificSharedPrefs(device.address),
+        { key -> GBApplication.deviceService(device).onSendConfiguration(key) },
+    )
+
+    companion object {
+        /** A store over app-wide preferences (not tied to a device); [onChanged] runs after a write. */
+        fun forApp(prefs: android.content.SharedPreferences, onChanged: (String) -> Unit = {}) =
+            DeviceSettingsStore(prefs, onChanged)
+    }
 
     fun getBoolean(key: String, def: Boolean): Boolean =
         runCatching { prefs.getBoolean(key, def) }.getOrElse {
@@ -177,7 +189,7 @@ class DeviceSettingsStore(private val device: GBDevice) {
 
     private fun notify(key: String) {
         // Exact same signal the old fragment sends so the watch receives the change.
-        GBApplication.deviceService(device).onSendConfiguration(key)
+        onChanged(key)
     }
 }
 
