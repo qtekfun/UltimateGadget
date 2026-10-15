@@ -38,6 +38,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import nodomain.freeyourgadget.gadgetbridge.R
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -62,7 +64,7 @@ class ManualEntryActivity : AppCompatActivity() {
                     onBack = { finish() },
                     onSave = {
                         store.set(it)
-                        Toast.makeText(this, "Guardado", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, getString(R.string.ult_saved), Toast.LENGTH_SHORT).show()
                         finish()
                     },
                 )
@@ -89,8 +91,8 @@ private fun ManualEntryScreen(
         containerColor = scheme.background,
         topBar = {
             TopAppBar(
-                title = { Text("Registro manual", fontWeight = FontWeight.Bold) },
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back") } },
+                title = { Text(stringResource(R.string.ult_manual_entry), fontWeight = FontWeight.Bold) },
+                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.ult_back)) } },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = scheme.background, titleContentColor = scheme.onSurface,
                     navigationIconContentColor = scheme.onSurface,
@@ -102,26 +104,26 @@ private fun ManualEntryScreen(
             Modifier.fillMaxSize().padding(inner).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            Text("Last night's sleep", style = MaterialTheme.typography.titleMedium, color = scheme.onSurface)
+            Text(stringResource(R.string.ult_last_night_sleep), style = MaterialTheme.typography.titleMedium, color = scheme.onSurface)
             OutlinedTextField(
                 value = sleep, onValueChange = { sleep = it },
-                label = { Text("Horas (p.ej. 7.5)") }, singleLine = true,
+                label = { Text(stringResource(R.string.ult_hours_hint)) }, singleLine = true,
                 keyboardOptions = num, modifier = Modifier.fillMaxWidth(),
             )
             OutlinedTextField(
                 value = quality, onValueChange = { quality = it },
-                label = { Text("Calidad 0-100 (opcional)") }, singleLine = true,
+                label = { Text(stringResource(R.string.ult_quality_hint)) }, singleLine = true,
                 keyboardOptions = num, modifier = Modifier.fillMaxWidth(),
             )
-            Text("Today's workout", style = MaterialTheme.typography.titleMedium, color = scheme.onSurface)
+            Text(stringResource(R.string.ult_today_workout), style = MaterialTheme.typography.titleMedium, color = scheme.onSurface)
             OutlinedTextField(
                 value = minutes, onValueChange = { minutes = it },
-                label = { Text("Minutos") }, singleLine = true,
+                label = { Text(stringResource(R.string.ult_minutes)) }, singleLine = true,
                 keyboardOptions = num, modifier = Modifier.fillMaxWidth(),
             )
             OutlinedTextField(
                 value = rpe, onValueChange = { rpe = it },
-                label = { Text("Intensidad percibida 1-10 (RPE)") }, singleLine = true,
+                label = { Text(stringResource(R.string.ult_rpe_hint)) }, singleLine = true,
                 keyboardOptions = num, modifier = Modifier.fillMaxWidth(),
             )
             Button(
@@ -136,7 +138,7 @@ private fun ManualEntryScreen(
                     )
                 },
                 modifier = Modifier.fillMaxWidth(),
-            ) { Text("Save") }
+            ) { Text(stringResource(R.string.ult_save)) }
         }
     }
 }

@@ -272,4 +272,38 @@
     <string name="ult_hrv_unbalanced">Unbalanced</string>
     <string name="ult_hrv_low">Low</string>
     <string name="ult_hrv_poor">Poor</string>
+
+    <!-- Goals -->
+    <string name="ult_goals">Goals</string>
+    <string name="ult_medals">Medals</string>
+    <string name="ult_daily_step_goal">Daily step goal</string>
+    <string name="ult_edit_goal">Edit goal</string>
+    <string name="ult_today_steps_progress">Today %1$,d of %2$,d steps</string>
+    <string name="ult_current_streak">Current streak</string>
+    <string name="ult_best_streak">Best streak</string>
+    <string name="ult_step_goal">Step goal</string>
+    <string name="ult_set_daily_step_goal">Set your daily step goal.</string>
+    <string name="ult_steps_cap">Steps</string>
+    <string name="ult_save">Save</string>
+    <string name="ult_day">day</string>
+    <string name="ult_days">days</string>
+
+    <!-- Manual entry (readiness) -->
+    <string name="ult_manual_entry">Manual entry</string>
+    <string name="ult_hours_hint">Hours (e.g. 7.5)</string>
+    <string name="ult_quality_hint">Quality 0-100 (optional)</string>
+    <string name="ult_today_workout">Today\'s workout</string>
+    <string name="ult_minutes">Minutes</string>
+    <string name="ult_rpe_hint">Perceived intensity 1-10 (RPE)</string>
+    <string name="ult_saved">Saved</string>
+
+    <!-- Readiness detail -->
+    <string name="ult_not_enough_data">Not enough data</string>
+    <string name="ult_confidence_fmt">Confidence %1$d%%</string>
+    <string name="ult_weight_fmt">Weight %1$d%%</string>
+    <string name="ult_log_by_hand">Log sleep/workout by hand</string>
+    <string name="ult_factor_hrv">Heart-rate variability (HRV)</string>
+    <string name="ult_factor_rhr">Resting heart rate</string>
+    <string name="ult_workout_load">Workout load</string>
+    <string name="ult_manual_log_desc">For days without a watch: enter hours of sleep and the day\'s workout.</string>
 </resources>

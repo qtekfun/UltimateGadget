@@ -272,4 +272,38 @@
     <string name="ult_hrv_unbalanced">Desequilibrado</string>
     <string name="ult_hrv_low">Bajo</string>
     <string name="ult_hrv_poor">Pobre</string>
+
+    <!-- Objetivos -->
+    <string name="ult_goals">Objetivos</string>
+    <string name="ult_medals">Medallas</string>
+    <string name="ult_daily_step_goal">Objetivo de pasos diario</string>
+    <string name="ult_edit_goal">Editar objetivo</string>
+    <string name="ult_today_steps_progress">Hoy %1$,d de %2$,d pasos</string>
+    <string name="ult_current_streak">Racha actual</string>
+    <string name="ult_best_streak">Mejor racha</string>
+    <string name="ult_step_goal">Objetivo de pasos</string>
+    <string name="ult_set_daily_step_goal">Define tu objetivo de pasos diario.</string>
+    <string name="ult_steps_cap">Pasos</string>
+    <string name="ult_save">Guardar</string>
+    <string name="ult_day">día</string>
+    <string name="ult_days">días</string>
+
+    <!-- Registro manual (preparación) -->
+    <string name="ult_manual_entry">Registro manual</string>
+    <string name="ult_hours_hint">Horas (p.ej. 7.5)</string>
+    <string name="ult_quality_hint">Calidad 0-100 (opcional)</string>
+    <string name="ult_today_workout">Entreno de hoy</string>
+    <string name="ult_minutes">Minutos</string>
+    <string name="ult_rpe_hint">Intensidad percibida 1-10 (RPE)</string>
+    <string name="ult_saved">Guardado</string>
+
+    <!-- Detalle de preparación -->
+    <string name="ult_not_enough_data">Sin datos suficientes</string>
+    <string name="ult_confidence_fmt">Confianza %1$d%%</string>
+    <string name="ult_weight_fmt">Peso %1$d%%</string>
+    <string name="ult_log_by_hand">Registrar sueño/entreno a mano</string>
+    <string name="ult_factor_hrv">Variabilidad cardiaca (HRV)</string>
+    <string name="ult_factor_rhr">Frecuencia cardiaca en reposo</string>
+    <string name="ult_workout_load">Carga de entreno</string>
+    <string name="ult_manual_log_desc">Para días sin reloj: introduce las horas de sueño y el entreno del día.</string>
 </resources>
