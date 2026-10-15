@@ -2,6 +2,11 @@
 
 <!-- For contributors: do not modify this file - the project maintainers will update it as needed -->
 
+#### 0.115.17
+
+* Golf: the catalog now has a **search box** at every level (countries, cities, courses). Inside a country it also searches the courses of all its cities, ignoring accents, so a course can be found and downloaded without knowing its city
+* Golf: sending a course to the watch no longer reports a false "sent ✓". Success is only shown when the watch really lists the course; a rejected or failed transfer is reported with its error code
+
 #### 0.115.16
 
 * Old-style screens are gone: everything the new interface used to hand off to the classic preference screens is now native. The **settings of rings and other devices** (Colmi/Yawell rings, earbuds, scales…) open in the new interface instead of the old settings page, with all their options (switches, lists, sliders, times, dates, file and folder pickers)
