@@ -728,4 +728,11 @@
     <string name="ult_calendars">Calendarios</string>
     <string name="ult_calendar_no_permission">Permiso de calendario no concedido. Concédelo en los permisos de la app para elegir calendarios.</string>
     <string name="ult_calendar_none">No se han encontrado calendarios en este teléfono.</string>
+    <string name="ult_contacts">Contactos</string>
+    <string name="ult_add_contact">Añadir contacto</string>
+    <string name="ult_contacts_empty">Aún no hay contactos. Toca + para añadir uno.</string>
+    <string name="ult_contact">Contacto</string>
+    <string name="ult_phone_number">Número de teléfono</string>
+    <string name="ult_delete_contact">Borrar contacto</string>
+    <string name="ult_delete_contact_confirm">¿Borrar \"%1$s\"?</string>
 </resources>
