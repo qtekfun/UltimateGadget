@@ -16,6 +16,8 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 package nodomain.freeyourgadget.gadgetbridge.activities.ultimate.golf
 
+import nodomain.freeyourgadget.gadgetbridge.R
+import androidx.compose.ui.res.stringResource
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -132,7 +134,7 @@ class UltimateGolfCoursesActivity : AppCompatActivity() {
     }
 
     /** Course label: cached friendly name if known, else the numeric id. */
-    private fun labelFor(courseId: Int): String = names[courseId] ?: "Course $courseId"
+    private fun labelFor(courseId: Int): String = names[courseId] ?: getString(R.string.ult_golf_course_fmt, courseId)
 
     private val pickBin = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
         if (uri != null) importAndSend(uri)
@@ -182,8 +184,8 @@ class UltimateGolfCoursesActivity : AppCompatActivity() {
         GBApplication.deviceService(d).onSendConfiguration(
             HuaweiConstants.PREF_HUAWEI_GOLF_DELETE_PREFIX + item.courseId,
         )
-        status = "Borrando ${labelFor(item.courseId)}…"
-        pendingAction = "Deleted 1 course"
+        status = getString(R.string.ult_golf_deleting_one, labelFor(item.courseId))
+        pendingAction = getString(R.string.ult_golf_deleted_one)
         items = items.filterNot { it.courseId == item.courseId }
         // Re-query shortly so the list reflects the watch's authoritative state.
         d.let { requestListDelayed() }
@@ -205,8 +207,8 @@ class UltimateGolfCoursesActivity : AppCompatActivity() {
         GBApplication.deviceService(d).onSendConfiguration(
             HuaweiConstants.PREF_HUAWEI_GOLF_DELETE_PREFIX + ids.joinToString(","),
         )
-        status = "Deleting ${ids.size} course(s)…"
-        pendingAction = "Deleted ${ids.size} course(s)"
+        status = getString(R.string.ult_golf_deleting_n, ids.size)
+        pendingAction = getString(R.string.ult_golf_deleted_n, ids.size)
         items = items.filterNot { it.courseId in selected }
         selected = emptySet()
         selectMode = false
@@ -217,13 +219,13 @@ class UltimateGolfCoursesActivity : AppCompatActivity() {
     private fun importAndSend(uri: Uri) {
         val d = device
         if (d == null || !d.isInitialized) {
-            Toast.makeText(this, "Watch not connected", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.ult_watch_not_connected), Toast.LENGTH_SHORT).show()
             return
         }
         val name = queryDisplayName(uri) ?: "course.bin"
         val courseId = Regex("\\((\\d+)\\)").findAll(name).lastOrNull()?.groupValues?.get(1)?.toIntOrNull()
         if (courseId == null) {
-            Toast.makeText(this, "The file must include the course id, e.g. '(22261)'", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, getString(R.string.ult_golf_file_needs_id), Toast.LENGTH_LONG).show()
             return
         }
         val version = Regex("v(\\d{6,})").find(name)?.groupValues?.get(1)?.toIntOrNull() ?: 0
@@ -237,7 +239,7 @@ class UltimateGolfCoursesActivity : AppCompatActivity() {
             }
             sendCourseFile(d, dest, courseId, version)
         } catch (e: Exception) {
-            Toast.makeText(this, "Error reading the file: ${e.message}", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, getString(R.string.ult_golf_read_error, e.message ?: ""), Toast.LENGTH_LONG).show()
         }
     }
 
@@ -247,19 +249,19 @@ class UltimateGolfCoursesActivity : AppCompatActivity() {
             GBApplication.deviceService(d).onSendConfiguration(
                 HuaweiConstants.PREF_HUAWEI_GOLF_SEND_PREFIX + dest.absolutePath + "|" + courseId + "|" + version,
             )
-            status = "Sending ${labelFor(courseId)} to the watch…"
-            pendingAction = "Enviado ${labelFor(courseId)}"
+            status = getString(R.string.ult_golf_sending_status, labelFor(courseId))
+            pendingAction = getString(R.string.ult_golf_sent, labelFor(courseId))
             // Show it immediately (optimistic); the authoritative refresh reconciles when the upload
             // finishes. Avoids the list looking frozen during the few-second Bluetooth transfer.
             if (items.none { it.courseId == courseId }) {
                 items = (items + CourseItem(courseId, version)).sortedBy { it.courseId }
             }
-            Toast.makeText(this, "Enviando ${labelFor(courseId)}…", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.ult_golf_sending_toast, labelFor(courseId)), Toast.LENGTH_SHORT).show()
             // The service broadcasts the refreshed list when the upload actually completes; this is
             // only a long fallback in case the upload never reports completion.
             requestListDelayed(20000)
         } catch (e: Exception) {
-            Toast.makeText(this, "Error sending the file: ${e.message}", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, getString(R.string.ult_golf_send_error, e.message ?: ""), Toast.LENGTH_LONG).show()
         }
     }
 
@@ -283,7 +285,7 @@ class UltimateGolfCoursesActivity : AppCompatActivity() {
             containerColor = palette.background,
             topBar = {
                 TopAppBar(
-                    title = { Text(if (selectMode) "${selected.size} seleccionados" else "Golf courses", fontWeight = FontWeight.Bold) },
+                    title = { Text(if (selectMode) stringResource(R.string.ult_n_selected, selected.size) else stringResource(R.string.ult_golf_courses), fontWeight = FontWeight.Bold) },
                     navigationIcon = {
                         IconButton(onClick = { if (selectMode) { selectMode = false; selected = emptySet() } else finish() }) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
@@ -292,12 +294,12 @@ class UltimateGolfCoursesActivity : AppCompatActivity() {
                     actions = {
                         if (items.isNotEmpty()) {
                             if (selectMode) {
-                                TextButton(onClick = { selected = items.map { it.courseId }.toSet() }) { Text("Todos") }
+                                TextButton(onClick = { selected = items.map { it.courseId }.toSet() }) { Text(stringResource(R.string.ult_all)) }
                                 TextButton(enabled = selected.isNotEmpty(), onClick = { pendingBulk = true }) {
-                                    Text("Delete (${selected.size})", color = if (selected.isNotEmpty()) palette.error else palette.onSurfaceVariant)
+                                    Text(stringResource(R.string.ult_delete_n, selected.size), color = if (selected.isNotEmpty()) palette.error else palette.onSurfaceVariant)
                                 }
                             } else {
-                                TextButton(onClick = { selectMode = true }) { Text("Seleccionar") }
+                                TextButton(onClick = { selectMode = true }) { Text(stringResource(R.string.ult_select)) }
                             }
                         }
                     },
@@ -320,7 +322,7 @@ class UltimateGolfCoursesActivity : AppCompatActivity() {
                             .padding(vertical = 14.dp),
                         contentAlignment = Alignment.Center,
                     ) {
-                        Text("Import and send a course map", color = palette.onPrimary, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.ult_golf_import_send), color = palette.onPrimary, fontWeight = FontWeight.Bold)
                     }
                     if (InAppNetworkImpl.available) {
                         Box(
@@ -334,11 +336,11 @@ class UltimateGolfCoursesActivity : AppCompatActivity() {
                                 .padding(vertical = 14.dp),
                             contentAlignment = Alignment.Center,
                         ) {
-                            Text("Search and send from the catalog", color = palette.onSurface, fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.ult_golf_catalog_send), color = palette.onSurface, fontWeight = FontWeight.Bold)
                         }
                     }
                     Text(
-                        "Choose a .bin downloaded with the map app (its name carries the course id). The watch shows it in its golf app.",
+                        stringResource(R.string.ult_golf_choose_bin),
                         style = MaterialTheme.typography.bodySmall,
                         color = palette.onSurfaceVariant,
                         modifier = Modifier.padding(vertical = 8.dp),
@@ -357,9 +359,9 @@ class UltimateGolfCoursesActivity : AppCompatActivity() {
                 if (items.isEmpty()) {
                     Box(Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
                         Text(
-                            if (!loaded) "Cargando…"
-                            else if (device?.isInitialized != true) "Watch not connected"
-                            else "No courses on the watch",
+                            if (!loaded) stringResource(R.string.ult_loading)
+                            else if (device?.isInitialized != true) stringResource(R.string.ult_watch_not_connected)
+                            else stringResource(R.string.ult_golf_no_courses),
                             color = palette.onSurfaceVariant,
                         )
                     }
@@ -380,11 +382,11 @@ class UltimateGolfCoursesActivity : AppCompatActivity() {
                                 }
                                 Column(Modifier.weight(1f).padding(start = if (selectMode) 8.dp else 0.dp)) {
                                     Text(labelFor(item.courseId), style = MaterialTheme.typography.titleMedium, color = palette.onSurface)
-                                    Text("id ${item.courseId} · v${item.version}", style = MaterialTheme.typography.bodySmall, color = palette.onSurfaceVariant)
+                                    Text(stringResource(R.string.ult_golf_id_ver, item.courseId, item.version), style = MaterialTheme.typography.bodySmall, color = palette.onSurfaceVariant)
                                 }
                                 if (!selectMode) {
                                     IconButton(onClick = { pendingDelete = item }) {
-                                        Icon(Icons.Filled.Delete, contentDescription = "Delete", tint = palette.error)
+                                        Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.ult_delete), tint = palette.error)
                                     }
                                 }
                             }
@@ -398,11 +400,11 @@ class UltimateGolfCoursesActivity : AppCompatActivity() {
             AlertDialog(
                 onDismissRequest = { pendingDelete = null },
                 containerColor = palette.surfaceContainer,
-                title = { Text("Delete course") },
-                text = { Text("Remove ${labelFor(item.courseId)} from the watch?") },
+                title = { Text(stringResource(R.string.ult_golf_delete_course)) },
+                text = { Text(stringResource(R.string.ult_golf_remove_one, labelFor(item.courseId))) },
                 confirmButton = {
                     TextButton(onClick = { delete(item); pendingDelete = null }) {
-                        Text("Delete", color = palette.error)
+                        Text(stringResource(R.string.ult_delete), color = palette.error)
                     }
                 },
                 dismissButton = {
@@ -415,11 +417,11 @@ class UltimateGolfCoursesActivity : AppCompatActivity() {
             AlertDialog(
                 onDismissRequest = { pendingBulk = false },
                 containerColor = palette.surfaceContainer,
-                title = { Text("Delete courses") },
-                text = { Text("Remove ${selected.size} course(s) from the watch?") },
+                title = { Text(stringResource(R.string.ult_golf_delete_courses)) },
+                text = { Text(stringResource(R.string.ult_golf_remove_n, selected.size)) },
                 confirmButton = {
                     TextButton(onClick = { deleteSelected(); pendingBulk = false }) {
-                        Text("Delete", color = palette.error)
+                        Text(stringResource(R.string.ult_delete), color = palette.error)
                     }
                 },
                 dismissButton = {
