@@ -16,6 +16,7 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 package nodomain.freeyourgadget.gadgetbridge.activities.ultimate.install
 
+import androidx.compose.ui.res.stringResource
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ShortcutManager
@@ -201,15 +202,14 @@ private fun RemoveDeviceScreen(
                     modifier = Modifier.size(40.dp),
                 )
                 Text(
-                    "Olvidar “$name”",
+                    stringResource(R.string.ult_forget_fmt, name),
                     style = MaterialTheme.typography.titleLarge,
                     color = palette.onSurface,
                 )
                 when (state) {
                     is RemoveState.Confirm -> {
                         Text(
-                            "The device will be removed from UltimateGadget, unpaired from Bluetooth and its " +
-                                "synced data will be deleted. This action cannot be undone.",
+                            stringResource(R.string.ult_forget_msg),
                             style = MaterialTheme.typography.bodyMedium,
                             color = palette.onSurfaceVariant,
                         )
@@ -218,7 +218,7 @@ private fun RemoveDeviceScreen(
                             horizontalArrangement = Arrangement.spacedBy(12.dp),
                         ) {
                             OutlinedButton(onClick = onCancel, modifier = Modifier.weight(1f)) {
-                                Text("Cancel")
+                                Text(stringResource(R.string.ult_cancel))
                             }
                             Button(
                                 onClick = onConfirm,
@@ -228,7 +228,7 @@ private fun RemoveDeviceScreen(
                                     contentColor = palette.onErrorContainer,
                                 ),
                             ) {
-                                Text("Olvidar")
+                                Text(stringResource(R.string.ult_forget))
                             }
                         }
                     }
@@ -236,7 +236,7 @@ private fun RemoveDeviceScreen(
                     is RemoveState.Deleting -> {
                         CircularProgressIndicator(color = palette.primary)
                         Text(
-                            "Eliminando…",
+                            stringResource(R.string.ult_deleting),
                             style = MaterialTheme.typography.bodyMedium,
                             color = palette.onSurfaceVariant,
                         )
@@ -245,7 +245,7 @@ private fun RemoveDeviceScreen(
                     is RemoveState.Error -> {
                         Text(state.message, style = MaterialTheme.typography.bodyMedium, color = palette.error)
                         Button(onClick = onClose, modifier = Modifier.fillMaxWidth()) {
-                            Text("Cerrar")
+                            Text(stringResource(R.string.ult_close))
                         }
                     }
                 }
