@@ -2,6 +2,10 @@
 
 <!-- For contributors: do not modify this file - the project maintainers will update it as needed -->
 
+#### 0.115.12
+
+* Casio **GBD-800**: fixed pairing. The watch connected and ran the whole handshake but then never finished initialising, so it never showed up in the device list. A simpler G-SHOCK does not implement every optional feature (world-time cities, basic settings) and rejects those requests; the setup now skips a rejected feature and continues instead of waiting forever. Watches that do have those features are unaffected
+
 #### 0.115.11
 
 * Casio: added support for two more G-SHOCK watches that speak the same modern Casio protocol — the **GBD-800** (module 3464) and the **GD-B500** (module 3552). Both pair, set the time, sync steps/activity, and accept notifications and the user profile, reverse-engineered from a Bluetooth capture of the official Casio app
