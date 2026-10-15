@@ -135,4 +135,56 @@
     <string name="ult_stress_level">Stress: %1$d/100</string>
     <string name="ult_spo2_value">SpO₂ %1$d%%</string>
     <string name="ult_workouts">Workouts</string>
+
+    <!-- World clocks -->
+    <string name="ult_no_free_clock_slots">No free clock slots left (%1$d)</string>
+    <string name="ult_clock_create_error">Error creating the clock</string>
+    <string name="ult_add_clock">Add clock</string>
+    <string name="ult_world_clock_singular">World clock</string>
+    <string name="ult_time_zone">Time zone</string>
+    <string name="ult_code_3_letters">Code (3 letters)</string>
+    <string name="ult_show_clock_on_device">Show this clock on the device</string>
+    <string name="ult_no_world_clocks">No world clocks</string>
+    <string name="ult_add_time_zone_hint">Tap + to add a time zone.</string>
+
+    <!-- Reminders -->
+    <string name="ult_rep_once">Once</string>
+    <string name="ult_rep_daily">Every day</string>
+    <string name="ult_rep_weekly">Every week</string>
+    <string name="ult_rep_monthly">Every month</string>
+    <string name="ult_rep_yearly">Every year</string>
+    <string name="ult_no_free_reminder_slots">No free reminder slots left (%1$d)</string>
+    <string name="ult_reminder_create_error">Error creating the reminder</string>
+    <string name="ult_add_reminder">Add reminder</string>
+    <string name="ult_repeat">Repeat</string>
+    <string name="ult_reminder_text">Reminder text</string>
+    <string name="ult_no_reminders">No reminders</string>
+    <string name="ult_add_reminder_hint">Tap + to create a reminder.</string>
+
+    <!-- Timers -->
+    <string name="ult_timer_finished">Timer finished</string>
+    <string name="ult_timer_default">Timer</string>
+    <string name="ult_add_timer">Add timer</string>
+    <string name="ult_timer_phone_note">Local phone timer. The watch does not support timers, so the countdown runs on the phone and alerts here.</string>
+    <string name="ult_timer_running">Running</string>
+    <string name="ult_timer_paused">Paused</string>
+    <string name="ult_timer_ready">Ready · %1$s</string>
+    <string name="ult_new_timer">New timer</string>
+    <string name="ult_edit_timer">Edit timer</string>
+    <string name="ult_timer_name">Timer name</string>
+    <string name="ult_no_timers">No timers</string>
+    <string name="ult_add_timer_hint">Tap + to create a countdown.</string>
+
+    <!-- Alarms -->
+    <string name="ult_no_free_alarm_slots">No free alarm slots left</string>
+    <string name="ult_add_alarm">Add alarm</string>
+    <string name="ult_no_alarms">No alarms</string>
+    <string name="ult_add_alarm_hint">Tap + to create your first alarm.</string>
+    <string name="ult_new_alarm">New alarm</string>
+    <string name="ult_edit_alarm">Edit alarm</string>
+    <string name="ult_smart_alarm">Smart alarm</string>
+    <string name="ult_mandatory_slot">Mandatory in this slot</string>
+    <string name="ult_wake_light_sleep">Wake during light sleep</string>
+    <string name="ult_allow_snooze">Allow snoozing the alarm</string>
+    <string name="ult_alarm_name">Alarm name</string>
 </resources>

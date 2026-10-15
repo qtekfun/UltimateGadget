@@ -56,6 +56,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.ui.res.stringResource
+import nodomain.freeyourgadget.gadgetbridge.R
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
@@ -107,7 +109,10 @@ class UltimateRemindersActivity : AppCompatActivity() {
     }
 }
 
-private val REPEAT_LABELS = arrayOf("Una vez", "Every day", "Cada semana", "Cada mes", "Every year")
+private val REPEAT_LABEL_RES = intArrayOf(
+    R.string.ult_rep_once, R.string.ult_rep_daily, R.string.ult_rep_weekly,
+    R.string.ult_rep_monthly, R.string.ult_rep_yearly,
+)
 
 private fun loadReminders(device: GBDevice): List<Reminder> = DBHelper.getReminders(device)
 
@@ -178,16 +183,16 @@ private fun RemindersScreen(device: GBDevice, onBack: () -> Unit) {
                     val slots = coordinator.getReminderSlotCount(device) -
                         GBApplication.getDevicePrefs(device).reservedReminderCalendarSlots
                     if (reminders.size >= slots) {
-                        Toast.makeText(context, "No free reminder slots left ($slots)", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, context.getString(R.string.ult_no_free_reminder_slots, slots), Toast.LENGTH_SHORT).show()
                     } else {
                         val r = createReminder(device)
                         if (r != null) editing = r
-                        else Toast.makeText(context, "Error creating the reminder", Toast.LENGTH_SHORT).show()
+                        else Toast.makeText(context, context.getString(R.string.ult_reminder_create_error), Toast.LENGTH_SHORT).show()
                     }
                 },
                 containerColor = palette.primary,
                 contentColor = palette.onPrimary,
-            ) { Icon(Icons.Filled.Add, contentDescription = "Add reminder") }
+            ) { Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.ult_add_reminder)) }
         },
     ) {
         if (reminders.isEmpty()) {
@@ -251,7 +256,7 @@ private fun ReminderCard(
                 )
                 if (reminder.repetition != ReminderModel.ONCE) {
                     Text(
-                        REPEAT_LABELS[reminder.repetition.coerceIn(0, REPEAT_LABELS.size - 1)],
+                        stringResource(REPEAT_LABEL_RES[reminder.repetition.coerceIn(0, REPEAT_LABEL_RES.size - 1)]),
                         style = MaterialTheme.typography.bodySmall,
                         color = palette.secondary,
                     )
@@ -320,13 +325,13 @@ private fun ReminderEditor(
                 value = message,
                 onValueChange = { if (maxLen <= 0 || it.length <= maxLen) message = it },
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("Reminder text") },
+                label = { Text(stringResource(R.string.ult_reminder_text)) },
             )
             PickerRow("Fecha", dateFmt.format(currentDate())) { showDatePicker = true }
             if (hasTime) {
                 PickerRow("Time", formatTime(context, hour, minute)) { showTimePicker = true }
             }
-            PickerRow("Repeat", REPEAT_LABELS[repetition.coerceIn(0, REPEAT_LABELS.size - 1)]) { showRepeat = true }
+            PickerRow(stringResource(R.string.ult_repeat), stringResource(REPEAT_LABEL_RES[repetition.coerceIn(0, REPEAT_LABEL_RES.size - 1)])) { showRepeat = true }
         }
     }
 
@@ -368,12 +373,12 @@ private fun ReminderEditor(
         androidx.compose.material3.AlertDialog(
             onDismissRequest = { showRepeat = false },
             confirmButton = {},
-            title = { Text("Repeat") },
+            title = { Text(stringResource(R.string.ult_repeat)) },
             text = {
                 Column {
-                    REPEAT_LABELS.forEachIndexed { i, label ->
+                    REPEAT_LABEL_RES.forEachIndexed { i, labelRes ->
                         Text(
-                            label,
+                            stringResource(labelRes),
                             style = MaterialTheme.typography.bodyLarge,
                             color = if (i == repetition) palette.primary else palette.onSurface,
                             modifier = Modifier.fillMaxWidth().clickable { repetition = i; showRepeat = false }.padding(vertical = 12.dp),
@@ -395,8 +400,8 @@ private fun ReminderEmpty() {
     ) {
         Icon(Icons.Filled.NotificationsActive, contentDescription = null, tint = palette.onSurfaceVariant, modifier = Modifier.size(48.dp))
         Spacer(Modifier.height(16.dp))
-        Text("Sin recordatorios", style = MaterialTheme.typography.titleLarge, color = palette.onSurface)
+        Text(stringResource(R.string.ult_no_reminders), style = MaterialTheme.typography.titleLarge, color = palette.onSurface)
         Spacer(Modifier.height(6.dp))
-        Text("Tap + to create a reminder.", style = MaterialTheme.typography.bodyMedium, color = palette.onSurfaceVariant)
+        Text(stringResource(R.string.ult_add_reminder_hint), style = MaterialTheme.typography.bodyMedium, color = palette.onSurfaceVariant)
     }
 }

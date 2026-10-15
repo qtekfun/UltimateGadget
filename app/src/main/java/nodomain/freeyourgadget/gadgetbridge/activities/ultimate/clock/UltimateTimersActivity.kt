@@ -61,6 +61,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.ui.res.stringResource
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
@@ -239,12 +240,12 @@ private fun notifyFinished(context: Context, timer: PhoneTimer) {
         ) {
             return
         }
-        val label = timer.label.ifBlank { "Timer" }
+        val label = timer.label.ifBlank { context.getString(R.string.ult_timer_default) }
         val builder = androidx.core.app.NotificationCompat.Builder(
             context, GB.NOTIFICATION_CHANNEL_HIGH_PRIORITY_ID,
         )
             .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle("Timer finished")
+            .setContentTitle(context.getString(R.string.ult_timer_finished))
             .setContentText(label)
             .setPriority(androidx.core.app.NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
@@ -337,7 +338,7 @@ private fun TimersScreen(onBack: () -> Unit) {
                 },
                 containerColor = palette.primary,
                 contentColor = palette.onPrimary,
-            ) { Icon(Icons.Filled.Add, contentDescription = "Add timer") }
+            ) { Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.ult_add_timer)) }
         },
     ) {
         Column(Modifier.fillMaxSize()) {
@@ -393,7 +394,7 @@ private fun TimersScreen(onBack: () -> Unit) {
 private fun LocalTimerNotice() {
     val palette = LocalUltimatePalette.current
     Text(
-        "Local phone timer. The watch does not support timers, so the countdown runs on the phone and alerts here.",
+        stringResource(R.string.ult_timer_phone_note),
         style = MaterialTheme.typography.bodySmall,
         color = palette.onSurfaceVariant,
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
@@ -426,11 +427,11 @@ private fun TimerCard(
                         color = if (active) palette.primary else palette.onSurface,
                         fontWeight = FontWeight.Bold,
                     )
-                    val label = timer.label.ifBlank { "Timer" }
+                    val label = timer.label.ifBlank { stringResource(R.string.ult_timer_default) }
                     val state = when {
-                        timer.isRunning -> "En marcha"
-                        timer.isPaused -> "En pausa"
-                        else -> "Listo · ${formatRemaining(timer.durationMs)}"
+                        timer.isRunning -> stringResource(R.string.ult_timer_running)
+                        timer.isPaused -> stringResource(R.string.ult_timer_paused)
+                        else -> stringResource(R.string.ult_timer_ready, formatRemaining(timer.durationMs))
                     }
                     Text(label, style = MaterialTheme.typography.titleMedium, color = palette.onSurface)
                     Text(state, style = MaterialTheme.typography.bodySmall, color = palette.onSurfaceVariant)
@@ -476,7 +477,7 @@ private fun TimerEditor(
     var label by remember { mutableStateOf(timer.label) }
 
     ClockScaffold(
-        title = if (isNew) "New timer" else "Edit timer",
+        title = if (isNew) stringResource(R.string.ult_new_timer) else stringResource(R.string.ult_edit_timer),
         onBack = onCancel,
         actions = {
             TextButton(onClick = {
@@ -503,7 +504,7 @@ private fun TimerEditor(
                 onValueChange = { if (it.length <= 40) label = it },
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text("Etiqueta") },
-                placeholder = { Text("Timer name") },
+                placeholder = { Text(stringResource(R.string.ult_timer_name)) },
                 singleLine = true,
             )
             Spacer(Modifier.height(24.dp))
@@ -558,8 +559,8 @@ private fun TimersEmpty() {
     ) {
         Icon(Icons.Filled.Timer, contentDescription = null, tint = palette.onSurfaceVariant, modifier = Modifier.size(48.dp))
         Spacer(Modifier.height(16.dp))
-        Text("Sin temporizadores", style = MaterialTheme.typography.titleLarge, color = palette.onSurface)
+        Text(stringResource(R.string.ult_no_timers), style = MaterialTheme.typography.titleLarge, color = palette.onSurface)
         Spacer(Modifier.height(6.dp))
-        Text("Tap + to create a countdown.", style = MaterialTheme.typography.bodyMedium, color = palette.onSurfaceVariant)
+        Text(stringResource(R.string.ult_add_timer_hint), style = MaterialTheme.typography.bodyMedium, color = palette.onSurfaceVariant)
     }
 }

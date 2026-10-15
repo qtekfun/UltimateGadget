@@ -54,6 +54,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.ui.res.stringResource
+import nodomain.freeyourgadget.gadgetbridge.R
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -166,7 +168,7 @@ private fun WorldClocksScreen(device: GBDevice, onBack: () -> Unit) {
     }
 
     ClockScaffold(
-        title = "World clocks",
+        title = stringResource(R.string.ult_world_clocks),
         onBack = onBack,
         floatingActionButton = {
             val palette = LocalUltimatePalette.current
@@ -174,16 +176,16 @@ private fun WorldClocksScreen(device: GBDevice, onBack: () -> Unit) {
                 onClick = {
                     val slots = coordinator.worldClocksSlotCount
                     if (clocks.size >= slots) {
-                        Toast.makeText(context, "No free clock slots left ($slots)", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, context.getString(R.string.ult_no_free_clock_slots, slots), Toast.LENGTH_SHORT).show()
                     } else {
                         val c = createClock(device)
                         if (c != null) editing = c
-                        else Toast.makeText(context, "Error creating the clock", Toast.LENGTH_SHORT).show()
+                        else Toast.makeText(context, context.getString(R.string.ult_clock_create_error), Toast.LENGTH_SHORT).show()
                     }
                 },
                 containerColor = palette.primary,
                 contentColor = palette.onPrimary,
-            ) { Icon(Icons.Filled.Add, contentDescription = "Add clock") }
+            ) { Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.ult_add_clock)) }
         },
     ) {
         if (clocks.isEmpty()) {
@@ -272,7 +274,7 @@ private fun WorldClockEditor(
     var showTzPicker by remember { mutableStateOf(false) }
 
     ClockScaffold(
-        title = "World clock",
+        title = stringResource(R.string.ult_world_clock_singular),
         onBack = onCancel,
         actions = {
             TextButton(onClick = {
@@ -288,7 +290,7 @@ private fun WorldClockEditor(
             Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            PickerRow("Time zone", timeZoneId) { showTzPicker = true }
+            PickerRow(stringResource(R.string.ult_time_zone), timeZoneId) { showTzPicker = true }
             OutlinedTextField(
                 value = label,
                 onValueChange = { if (labelLimit <= 0 || it.length <= labelLimit) label = it },
@@ -300,14 +302,14 @@ private fun WorldClockEditor(
                 value = code,
                 onValueChange = { if (it.length <= 3) code = it },
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("Code (3 letters)") },
+                label = { Text(stringResource(R.string.ult_code_3_letters)) },
                 singleLine = true,
             )
             if (supportsDisabled) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
                         Text("Activado", style = MaterialTheme.typography.titleMedium, color = palette.onSurface)
-                        Text("Show this clock on the device", style = MaterialTheme.typography.bodyMedium, color = palette.onSurfaceVariant)
+                        Text(stringResource(R.string.ult_show_clock_on_device), style = MaterialTheme.typography.bodyMedium, color = palette.onSurfaceVariant)
                     }
                     Switch(checked = enabled, onCheckedChange = { enabled = it })
                 }
@@ -353,7 +355,7 @@ private fun TimezonePickerDialog(
         onDismissRequest = onDismiss,
         confirmButton = {},
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
-        title = { Text("Time zone") },
+        title = { Text(stringResource(R.string.ult_time_zone)) },
         text = {
             Column {
                 OutlinedTextField(
@@ -389,8 +391,8 @@ private fun WorldClockEmpty() {
     ) {
         Icon(Icons.Filled.Public, contentDescription = null, tint = palette.onSurfaceVariant, modifier = Modifier.size(48.dp))
         Spacer(Modifier.height(16.dp))
-        Text("No world clocks", style = MaterialTheme.typography.titleLarge, color = palette.onSurface)
+        Text(stringResource(R.string.ult_no_world_clocks), style = MaterialTheme.typography.titleLarge, color = palette.onSurface)
         Spacer(Modifier.height(6.dp))
-        Text("Tap + to add a time zone.", style = MaterialTheme.typography.bodyMedium, color = palette.onSurfaceVariant)
+        Text(stringResource(R.string.ult_add_time_zone_hint), style = MaterialTheme.typography.bodyMedium, color = palette.onSurfaceVariant)
     }
 }
