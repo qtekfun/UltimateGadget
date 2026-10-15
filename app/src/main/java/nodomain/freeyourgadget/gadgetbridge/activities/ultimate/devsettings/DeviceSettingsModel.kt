@@ -106,6 +106,70 @@ sealed interface PrefNode {
         val iconRes: Int,
     ) : PrefNode
 
+    /** A multi-choice list (MultiSelectListPreference); persisted as a string set. */
+    data class MultiChoice(
+        val key: String,
+        val title: String,
+        val summary: String?,
+        val iconRes: Int,
+        val default: Set<String>,
+        val entries: List<String>,
+        val values: List<String>,
+        val dependency: String?,
+    ) : PrefNode
+
+    /** A reorderable list of options; persisted as the comma-joined value order. */
+    data class Sortable(
+        val key: String,
+        val title: String,
+        val summary: String?,
+        val iconRes: Int,
+        val default: List<String>,
+        val entries: List<String>,
+        val values: List<String>,
+        val dependency: String?,
+    ) : PrefNode
+
+    /** A calendar date picker, persisted as "yyyy-MM-dd". */
+    data class DatePicker(
+        val key: String,
+        val title: String,
+        val summary: String?,
+        val iconRes: Int,
+        val default: String,
+        val minDate: Long,
+        val maxDate: Long,
+        val dependency: String?,
+    ) : PrefNode
+
+    /** Opens the system file picker (several files); nothing is persisted. */
+    data class FilePicker(
+        val key: String,
+        val title: String,
+        val summary: String?,
+        val iconRes: Int,
+        val mimeTypes: List<String>,
+        val onPicked: (List<android.net.Uri>) -> Unit,
+        val dependency: String?,
+    ) : PrefNode
+
+    /** Opens the system folder picker and persists the chosen tree URI. */
+    data class FolderPicker(
+        val key: String,
+        val title: String,
+        val iconRes: Int,
+        val persistPermission: Boolean,
+        val onPicked: ((android.net.Uri) -> Unit)?,
+        val dependency: String?,
+    ) : PrefNode
+
+    /** A read-only information row (title + current value); not interactive and never persisted. */
+    data class Info(
+        val title: String,
+        val summary: String?,
+        val iconRes: Int,
+    ) : PrefNode
+
     /** A nested, navigable screen (androidx nested {@code PreferenceScreen}). */
     data class SubScreen(
         val key: String?,
@@ -134,10 +198,22 @@ sealed interface PrefNode {
  * the running device service on every change — the same two-step the legacy fragment performs
  * (persist, then {@code GBApplication.deviceService(device).onSendConfiguration(key)}).
  */
-class DeviceSettingsStore(private val device: GBDevice) {
+class DeviceSettingsStore private constructor(
+    private val prefs: android.content.SharedPreferences,
+    private val onChanged: (String) -> Unit,
+) {
     // Same file the device service reads from (GBApplication.getDeviceSpecificSharedPrefs), so a
     // value written here is immediately visible to onSendConfiguration's handler.
-    private val prefs = GBApplication.getDeviceSpecificSharedPrefs(device.address)
+    constructor(device: GBDevice) : this(
+        GBApplication.getDeviceSpecificSharedPrefs(device.address),
+        { key -> GBApplication.deviceService(device).onSendConfiguration(key) },
+    )
+
+    companion object {
+        /** A store over app-wide preferences (not tied to a device); [onChanged] runs after a write. */
+        fun forApp(prefs: android.content.SharedPreferences, onChanged: (String) -> Unit = {}) =
+            DeviceSettingsStore(prefs, onChanged)
+    }
 
     fun getBoolean(key: String, def: Boolean): Boolean =
         runCatching { prefs.getBoolean(key, def) }.getOrElse {
@@ -151,6 +227,14 @@ class DeviceSettingsStore(private val device: GBDevice) {
         runCatching { prefs.getInt(key, def) }.getOrElse {
             runCatching { prefs.getString(key, def.toString())!!.toInt() }.getOrDefault(def)
         }
+
+    fun getStringSet(key: String, def: Set<String>): Set<String> =
+        runCatching { prefs.getStringSet(key, null) }.getOrNull() ?: def
+
+    fun putStringSet(key: String, value: Set<String>) {
+        prefs.edit().putStringSet(key, HashSet(value)).apply()
+        notify(key)
+    }
 
     fun putBoolean(key: String, value: Boolean) {
         prefs.edit().putBoolean(key, value).apply()
@@ -170,7 +254,7 @@ class DeviceSettingsStore(private val device: GBDevice) {
 
     private fun notify(key: String) {
         // Exact same signal the old fragment sends so the watch receives the change.
-        GBApplication.deviceService(device).onSendConfiguration(key)
+        onChanged(key)
     }
 }
 

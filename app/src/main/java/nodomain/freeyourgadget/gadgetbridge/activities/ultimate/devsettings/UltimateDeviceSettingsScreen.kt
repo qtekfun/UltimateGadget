@@ -37,6 +37,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material3.AlertDialog
@@ -78,6 +80,16 @@ import kotlin.math.roundToInt
 
 private data class Level(val title: String, val nodes: List<PrefNode>)
 
+private fun findSubScreen(nodes: List<PrefNode>, key: String): PrefNode.SubScreen? {
+    for (n in nodes) {
+        if (n is PrefNode.SubScreen) {
+            if (n.key == key) return n
+            findSubScreen(n.children, key)?.let { return it }
+        }
+    }
+    return null
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UltimateDeviceSettingsScreen(
@@ -88,11 +100,17 @@ fun UltimateDeviceSettingsScreen(
     onBack: () -> Unit,
     onDelegate: (PrefNode.Delegated?) -> Unit,
     onAction: (String?) -> Unit,
+    initialScreenKey: String? = null,
 ) {
     val palette = LocalUltimatePalette.current
 
-    // Navigation stack for nested sub-screens. The first entry is the root.
-    val stack = remember { mutableStateListOf(Level(rootTitle, rootNodes)) }
+    // Navigation stack for nested sub-screens. The first entry is the root; when a deep link key
+    // is given, the matching sub-screen is opened on top of it right away.
+    val stack = remember {
+        mutableStateListOf(Level(rootTitle, rootNodes)).also { s ->
+            initialScreenKey?.let { k -> findSubScreen(rootNodes, k)?.let { s.add(Level(it.title, it.children)) } }
+        }
+    }
     val current = stack.last()
 
     // Shared, reactive snapshot of preference values, so dependencies and summaries recompose.
@@ -331,11 +349,186 @@ private fun PrefRow(
             )
         }
 
+        is PrefNode.MultiChoice -> {
+            val enabled = depEnabled(node.dependency, states, store)
+            @Suppress("UNCHECKED_CAST")
+            val value = (states[node.key] as? Set<String>) ?: node.default
+            var open by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+            val chosen = node.entries.filterIndexed { i, _ -> node.values.getOrNull(i) in value }.joinToString(", ")
+            SimpleRow(
+                title = node.title,
+                summary = node.summary ?: chosen.ifEmpty { null },
+                iconRes = node.iconRes,
+                enabled = enabled,
+                onClick = if (enabled) { { open = true } } else null,
+            )
+            if (open) {
+                var draft by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(value) }
+                AlertDialog(
+                    onDismissRequest = { open = false },
+                    title = { Text(node.title) },
+                    text = {
+                        Column {
+                            node.entries.forEachIndexed { i, label ->
+                                val v = node.values[i]
+                                Row(
+                                    Modifier.fillMaxWidth().clickable { draft = if (v in draft) draft - v else draft + v },
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    androidx.compose.material3.Checkbox(checked = v in draft, onCheckedChange = null)
+                                    Text(label, modifier = Modifier.padding(start = 8.dp))
+                                }
+                            }
+                        }
+                    },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            states[node.key] = draft
+                            store.putStringSet(node.key, draft)
+                            open = false
+                        }) { Text(stringResource(R.string.ult_save)) }
+                    },
+                    dismissButton = { TextButton(onClick = { open = false }) { Text(stringResource(R.string.ult_cancel)) } },
+                )
+            }
+        }
+
+        is PrefNode.Sortable -> {
+            val enabled = depEnabled(node.dependency, states, store)
+            val joined = stringState(node.key, node.default.joinToString(","), states, store)
+            val current = joined.split(",").filter { it.isNotEmpty() }
+            var open by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+            fun labelOf(v: String) = node.entries.getOrNull(node.values.indexOf(v)) ?: v
+            SimpleRow(
+                title = node.title,
+                summary = node.summary ?: current.joinToString(", ") { labelOf(it) }.ifEmpty { null },
+                iconRes = node.iconRes,
+                enabled = enabled,
+                onClick = if (enabled) { { open = true } } else null,
+            )
+            if (open) {
+                val order = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateListOf<String>().also { it.addAll(current) } }
+                AlertDialog(
+                    onDismissRequest = { open = false },
+                    title = { Text(node.title) },
+                    text = {
+                        Column {
+                            order.forEachIndexed { i, v ->
+                                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                                    Text(labelOf(v), modifier = Modifier.weight(1f))
+                                    androidx.compose.material3.IconButton(
+                                        enabled = i > 0,
+                                        onClick = { val x = order.removeAt(i); order.add(i - 1, x) },
+                                    ) { Icon(Icons.Filled.ArrowUpward, contentDescription = null) }
+                                    androidx.compose.material3.IconButton(
+                                        enabled = i < order.lastIndex,
+                                        onClick = { val x = order.removeAt(i); order.add(i + 1, x) },
+                                    ) { Icon(Icons.Filled.ArrowDownward, contentDescription = null) }
+                                }
+                            }
+                        }
+                    },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            val nv = order.joinToString(",")
+                            states[node.key] = nv
+                            store.putString(node.key, nv)
+                            open = false
+                        }) { Text(stringResource(R.string.ult_save)) }
+                    },
+                    dismissButton = { TextButton(onClick = { open = false }) { Text(stringResource(R.string.ult_cancel)) } },
+                )
+            }
+        }
+
+        is PrefNode.DatePicker -> {
+            val context = LocalContext.current
+            val enabled = depEnabled(node.dependency, states, store)
+            val value = stringState(node.key, node.default, states, store)
+            SimpleRow(
+                title = node.title,
+                summary = if (value.isNotEmpty()) value else node.summary,
+                iconRes = node.iconRes,
+                enabled = enabled,
+                onClick = if (enabled) {
+                    {
+                        val cal = java.util.Calendar.getInstance()
+                        runCatching {
+                            java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.ROOT).parse(value)?.let { cal.time = it }
+                        }
+                        val dialog = android.app.DatePickerDialog(
+                            context,
+                            { _, y, m, d ->
+                                val nv = String.format(java.util.Locale.ROOT, "%04d-%02d-%02d", y, m + 1, d)
+                                states[node.key] = nv
+                                store.putString(node.key, nv)
+                            },
+                            cal.get(java.util.Calendar.YEAR), cal.get(java.util.Calendar.MONTH), cal.get(java.util.Calendar.DAY_OF_MONTH),
+                        )
+                        if (node.minDate > 0L) dialog.datePicker.minDate = node.minDate
+                        if (node.maxDate < Long.MAX_VALUE) dialog.datePicker.maxDate = node.maxDate
+                        dialog.show()
+                    }
+                } else null,
+            )
+        }
+
+        is PrefNode.FilePicker -> {
+            val enabled = depEnabled(node.dependency, states, store)
+            val launcher = androidx.activity.compose.rememberLauncherForActivityResult(
+                androidx.activity.result.contract.ActivityResultContracts.OpenMultipleDocuments(),
+            ) { uris -> if (uris.isNotEmpty()) node.onPicked(uris) }
+            SimpleRow(
+                title = node.title,
+                summary = node.summary,
+                iconRes = node.iconRes,
+                enabled = enabled,
+                onClick = if (enabled) { { launcher.launch(node.mimeTypes.toTypedArray()) } } else null,
+            )
+        }
+
+        is PrefNode.FolderPicker -> {
+            val context = LocalContext.current
+            val enabled = depEnabled(node.dependency, states, store)
+            val value = stringState(node.key, "", states, store)
+            val launcher = androidx.activity.compose.rememberLauncherForActivityResult(
+                androidx.activity.result.contract.ActivityResultContracts.OpenDocumentTree(),
+            ) { uri ->
+                if (uri != null) {
+                    if (node.persistPermission) {
+                        runCatching {
+                            context.contentResolver.takePersistableUriPermission(
+                                uri, android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION,
+                            )
+                        }
+                    }
+                    states[node.key] = uri.toString()
+                    store.putString(node.key, uri.toString())
+                    node.onPicked?.invoke(uri)
+                }
+            }
+            SimpleRow(
+                title = node.title,
+                summary = if (value.isNotEmpty()) nodomain.freeyourgadget.gadgetbridge.util.UriUtils.resolveLocationSummary(context, value) else null,
+                iconRes = node.iconRes,
+                enabled = enabled,
+                onClick = if (enabled) { { launcher.launch(null) } } else null,
+            )
+        }
+
+        is PrefNode.Info -> SimpleRow(
+            title = node.title,
+            summary = node.summary,
+            iconRes = node.iconRes,
+            enabled = true,
+            onClick = null,
+        )
+
         is PrefNode.Delegated -> {
             val palette = LocalUltimatePalette.current
             SimpleRow(
                 title = node.title,
-                summary = node.summary ?: "Open in classic settings",
+                summary = node.summary ?: stringResource(R.string.ult_open_classic),
                 iconRes = node.iconRes,
                 onClick = { onDelegate(node) },
                 trailing = { Icon(Icons.Filled.OpenInNew, contentDescription = null, tint = palette.onSurfaceVariant) },
@@ -355,6 +548,10 @@ private fun seedStates(nodes: List<PrefNode>, states: SnapshotStateMap<String, A
             is PrefNode.Text -> states[node.key] = store.getString(node.key, node.default)
             is PrefNode.Slider -> states[node.key] = store.getInt(node.key, node.default)
             is PrefNode.TimePicker -> states[node.key] = store.getString(node.key, node.default)
+            is PrefNode.MultiChoice -> states[node.key] = store.getStringSet(node.key, node.default)
+            is PrefNode.Sortable -> states[node.key] = store.getString(node.key, node.default.joinToString(","))
+            is PrefNode.DatePicker -> states[node.key] = store.getString(node.key, node.default)
+            is PrefNode.FolderPicker -> states[node.key] = store.getString(node.key, "")
             is PrefNode.SubScreen -> seedStates(node.children, states, store)
             else -> {}
         }

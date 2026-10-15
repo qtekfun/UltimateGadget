@@ -172,7 +172,7 @@ fun UltimateAboutScreen(onBack: () -> Unit) {
                     AboutRow(Icons.Filled.Description, stringResource(R.string.ult_about_license), LICENSE_URL) { openUrl(LICENSE_URL) }
                     AboutRow(Icons.Filled.Info, stringResource(R.string.ult_about_based), GADGETBRIDGE_URL) { openUrl(GADGETBRIDGE_URL) }
                     AboutRow(Icons.Filled.Description, stringResource(R.string.ult_about_third), null) {
-                        context.startActivity(Intent(context, LicensesActivity::class.java))
+                        context.startActivity(UltimateLicensesActivity.intent(context))
                     }
                 }
             }

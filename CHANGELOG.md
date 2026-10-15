@@ -2,6 +2,12 @@
 
 <!-- For contributors: do not modify this file - the project maintainers will update it as needed -->
 
+#### 0.115.16
+
+* Old-style screens are gone: everything the new interface used to hand off to the classic preference screens is now native. The **settings of rings and other devices** (Colmi/Yawell rings, earbuds, scales…) open in the new interface instead of the old settings page, with all their options (switches, lists, sliders, times, dates, file and folder pickers)
+* New native screens for **heart-rate zones and high-heart-rate alert**, **contacts**, **calendar selection**, **notification app icons**, **Huawei stress calibration**, the **authentication key** step of pairing, the **pairing preferences**, and the **third-party licenses** list
+* Installing an A-GNSS file now uses the new install screen
+
 #### 0.115.15
 
 * The whole interface is now properly translated. Every screen of the new interface reads its text from resources with an English base and a Spanish translation, so the app no longer mixes English and Spanish on the same screen (home, device, pairing, dashboard, sleep, performance, goals, readiness, clock, music, watchfaces, apps, A-GNSS, golf, maps, notifications, backup, settings, about, reports and PDF export). Other languages fall back to English until they are translated
