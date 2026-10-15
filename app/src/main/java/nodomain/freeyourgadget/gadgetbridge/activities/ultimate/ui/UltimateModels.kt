@@ -126,6 +126,9 @@ data class DeviceCardUi(
     val connecting: Boolean = false, // mid-connection (connecting/initializing), not yet connected
     /** Which Ultimate icon this device is drawn with (replaces the legacy per-model GB drawable). */
     val category: DeviceIconCategory = DeviceIconCategory.GENERIC,
+    /** Whether the device has a heart-rate sensor, so the card can hide the ppm metric when it has
+     * none (e.g. a basic G-SHOCK). Defaults to true so an unknown coordinator keeps the metric. */
+    val supportsHeartRate: Boolean = true,
 )
 
 /**

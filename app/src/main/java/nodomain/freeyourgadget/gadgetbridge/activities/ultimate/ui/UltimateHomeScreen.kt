@@ -290,18 +290,24 @@ fun HeroCard(d: DeviceCardUi, stats: HeroStats?, onClick: () -> Unit) {
                     accent = onHero,
                     muted = onHeroMuted,
                 )
-                HeroMetric(
-                    value = stats?.heartRate?.toString() ?: "--",
-                    label = "ppm",
-                    accent = onHero,
-                    muted = onHeroMuted,
-                )
-                HeroMetric(
-                    value = if (d.batteryLevel in 0..100) "${d.batteryLevel}%" else "--",
-                    label = "battery",
-                    accent = onHero,
-                    muted = onHeroMuted,
-                )
+                // Only devices with a heart-rate sensor show the ppm metric; a basic G-SHOCK has none.
+                if (d.supportsHeartRate) {
+                    HeroMetric(
+                        value = stats?.heartRate?.toString() ?: "--",
+                        label = "ppm",
+                        accent = onHero,
+                        muted = onHeroMuted,
+                    )
+                }
+                // Hide battery entirely when the watch reports none (e.g. Casio, which GB does not read).
+                if (d.batteryLevel in 0..100) {
+                    HeroMetric(
+                        value = "${d.batteryLevel}%",
+                        label = "battery",
+                        accent = onHero,
+                        muted = onHeroMuted,
+                    )
+                }
             }
         }
     }

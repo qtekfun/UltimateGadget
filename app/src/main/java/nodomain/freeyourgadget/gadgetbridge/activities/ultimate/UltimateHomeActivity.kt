@@ -392,5 +392,7 @@ fun GBDevice.toCardUi(context: Context): DeviceCardUi {
         iconRes = iconRes,
         accentSeed = address.hashCode(),
         category = category,
+        supportsHeartRate = runCatching { coordinator?.supportsHeartRateMeasurement(this) }
+            .getOrNull() ?: false,
     )
 }
