@@ -189,7 +189,7 @@ class UltimateDeviceSettingsActivity : AppCompatActivity() {
             "pref_perform_heart_rate_settings" ->
                 startActivity(nodomain.freeyourgadget.gadgetbridge.activities.ultimate.heartrate.UltimateHeartRateZonesActivity.intent(this, device))
             "pref_upload_notifications_app_icon" ->
-                open(nodomain.freeyourgadget.gadgetbridge.activities.NotificationsAppIconUploadActivity::class.java)
+                startActivity(nodomain.freeyourgadget.gadgetbridge.activities.ultimate.appicons.UltimateAppIconUploadActivity.intent(this, device))
             "calendar_blacklist" ->
                 startActivity(nodomain.freeyourgadget.gadgetbridge.activities.ultimate.calendar.UltimateCalendarSelectionActivity.intent(this, device))
             "pref_huawei_stress_perform_calibrate" ->
