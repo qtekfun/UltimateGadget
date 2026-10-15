@@ -329,7 +329,7 @@ private fun ReminderEditor(
             )
             PickerRow("Fecha", dateFmt.format(currentDate())) { showDatePicker = true }
             if (hasTime) {
-                PickerRow("Time", formatTime(context, hour, minute)) { showTimePicker = true }
+                PickerRow(stringResource(R.string.ult_time), formatTime(context, hour, minute)) { showTimePicker = true }
             }
             PickerRow(stringResource(R.string.ult_repeat), stringResource(REPEAT_LABEL_RES[repetition.coerceIn(0, REPEAT_LABEL_RES.size - 1)])) { showRepeat = true }
         }
@@ -349,7 +349,7 @@ private fun ReminderEditor(
                         year = c.get(Calendar.YEAR); month = c.get(Calendar.MONTH); day = c.get(Calendar.DAY_OF_MONTH)
                     }
                     showDatePicker = false
-                }) { Text("OK") }
+                }) { Text(stringResource(R.string.ult_ok)) }
             },
             dismissButton = { TextButton(onClick = { showDatePicker = false }) { Text(stringResource(R.string.ult_cancel)) } },
         ) { DatePicker(state = dpState) }
@@ -361,7 +361,7 @@ private fun ReminderEditor(
             onDismissRequest = { showTimePicker = false },
             confirmButton = {
                 TextButton(onClick = { hour = tpState.hour; minute = tpState.minute; showTimePicker = false }) {
-                    Text("OK")
+                    Text(stringResource(R.string.ult_ok))
                 }
             },
             dismissButton = { TextButton(onClick = { showTimePicker = false }) { Text(stringResource(R.string.ult_cancel)) } },

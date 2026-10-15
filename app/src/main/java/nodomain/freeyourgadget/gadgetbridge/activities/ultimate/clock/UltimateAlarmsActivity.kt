@@ -323,7 +323,7 @@ private fun AlarmEditor(
                 TimePicker(state = timeState)
             }
 
-            EditorSection("Repeat") {
+            EditorSection(stringResource(R.string.ult_repeat)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     WEEKDAY_LABELS.forEachIndexed { i, label ->
                         val on = days[i]
@@ -366,7 +366,7 @@ private fun AlarmEditor(
                 )
             }
             if (supportsTitle) {
-                EditorSection("Etiqueta") {
+                EditorSection(stringResource(R.string.ult_label)) {
                     OutlinedTextField(
                         value = title,
                         onValueChange = { if (titleLimit <= 0 || it.length <= titleLimit) title = it },

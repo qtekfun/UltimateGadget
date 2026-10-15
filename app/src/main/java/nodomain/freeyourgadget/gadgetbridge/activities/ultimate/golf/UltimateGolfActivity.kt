@@ -320,19 +320,20 @@ private fun GolfScreen(
             }
 
             // Hero duration.
+            val durationLabel = stringResource(R.string.ult_wd_duration)
             GolfCard {
                 Text(stringResource(R.string.ult_golf_round_time), style = MaterialTheme.typography.labelLarge,
                     color = scheme.onSurfaceVariant)
                 Spacer(Modifier.height(6.dp))
                 Text(
-                    round.stats.firstOrNull { it.label == "Duration" }?.value
+                    round.stats.firstOrNull { it.label == durationLabel }?.value
                         ?: formatDurationFallback(round.durationSeconds),
                     style = MetricValueStyle, color = scheme.onSurface,
                 )
             }
 
             // Real stats grid (everything but the duration, already shown as hero).
-            val gridStats = round.stats.filterNot { it.label == "Duration" }
+            val gridStats = round.stats.filterNot { it.label == durationLabel }
             if (gridStats.isNotEmpty()) {
                 GolfCard {
                     Text(stringResource(R.string.ult_golf_round_data), style = MaterialTheme.typography.labelLarge,
@@ -467,7 +468,7 @@ private fun GolfScorecardCard(card: GolfScorecard) {
 
         // Header.
         ScoreRow(
-            cells = listOf("Hole", "Par", "Golpes", "+/-", "Putts"),
+            cells = listOf(stringResource(R.string.ult_golf_hole), stringResource(R.string.ult_golf_par), stringResource(R.string.ult_golf_strokes), "+/-", stringResource(R.string.ult_golf_putts)),
             color = scheme.onSurfaceVariant,
             weight = FontWeight.SemiBold,
         )
@@ -509,9 +510,9 @@ private fun GolfScorecardCard(card: GolfScorecard) {
         // Secondary totals as chips.
         val extras = buildList {
             card.fairwayTracked?.let { tracked ->
-                add("Fairways" to "${card.fairwayHit ?: 0}/$tracked")
+                add(stringResource(R.string.ult_golf_fairways) to "${card.fairwayHit ?: 0}/$tracked")
             }
-            card.totalPenalty?.let { add("Penalizaciones" to it.toString()) }
+            card.totalPenalty?.let { add(stringResource(R.string.ult_golf_penalties) to it.toString()) }
         }
         if (extras.isNotEmpty()) {
             Spacer(Modifier.height(12.dp))

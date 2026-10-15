@@ -112,7 +112,7 @@ class UltimateWorkoutExportActivity : AppCompatActivity() {
 
         val s = summary
         if (s == null) {
-            toast("Workout not found")
+            toast(getString(R.string.ult_export_not_found))
             finish()
             return
         }
@@ -138,7 +138,7 @@ class UltimateWorkoutExportActivity : AppCompatActivity() {
                             val file = withContext(Dispatchers.IO) { WorkoutExport.buildFile(applicationContext, s, format, device) }
                             busy = false
                             if (file == null) {
-                                toast("This workout has no data to export")
+                                toast(getString(R.string.ult_export_no_data))
                             } else {
                                 WorkoutExport.shareFile(this@UltimateWorkoutExportActivity, file, format, "Compartir entreno")
                                 finish()
@@ -151,7 +151,7 @@ class UltimateWorkoutExportActivity : AppCompatActivity() {
                             val file = withContext(Dispatchers.IO) { WorkoutExport.buildFile(applicationContext, s, format, device) }
                             busy = false
                             if (file == null) {
-                                toast("This workout has no data to export")
+                                toast(getString(R.string.ult_export_no_data))
                             } else {
                                 pendingSaveFile = file
                                 createDocument.launch(WorkoutExport.suggestedName(applicationContext, s, format))

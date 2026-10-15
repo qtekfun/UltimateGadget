@@ -535,7 +535,7 @@ private fun TextDialog(
                 ),
             )
         },
-        confirmButton = { TextButton(onClick = { onConfirm(text) }) { Text("OK") } },
+        confirmButton = { TextButton(onClick = { onConfirm(text) }) { Text(stringResource(R.string.ult_ok)) } },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.ult_cancel)) } },
     )
 }

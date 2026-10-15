@@ -495,9 +495,9 @@ private fun TimerEditor(
                 Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                DurationStepper("Hours", hours, 0, 23, Modifier.weight(1f)) { hours = it }
-                DurationStepper("Min", minutes, 0, 59, Modifier.weight(1f)) { minutes = it }
-                DurationStepper("Seg", seconds, 0, 59, Modifier.weight(1f)) { seconds = it }
+                DurationStepper(stringResource(R.string.ult_hours), hours, 0, 23, Modifier.weight(1f)) { hours = it }
+                DurationStepper(stringResource(R.string.ult_min_short), minutes, 0, 59, Modifier.weight(1f)) { minutes = it }
+                DurationStepper(stringResource(R.string.ult_sec_short), seconds, 0, 59, Modifier.weight(1f)) { seconds = it }
             }
             OutlinedTextField(
                 value = label,

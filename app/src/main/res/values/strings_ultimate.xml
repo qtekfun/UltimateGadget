@@ -689,4 +689,32 @@
     <string name="ult_m_100km_d">100 km accumulated in history</string>
     <string name="ult_m_1m">A million steps</string>
     <string name="ult_m_1m_d">1,000,000 steps accumulated</string>
+
+    <!-- Reports tiles, golf stats, editor sections and remaining labels -->
+    <string name="ult_rep_no_device">No device</string>
+    <string name="ult_rep_connect">Connect a watch to see your reports.</string>
+    <string name="ult_rep_sync">Sync the watch to start seeing your weekly and monthly reports.</string>
+    <string name="ult_rep_rhr_short">Resting HR</string>
+    <string name="ult_rep_sleep_hours">Sleep (hours)</string>
+    <string name="ult_rep_rhr_bpm">Resting HR (bpm)</string>
+    <string name="ult_export_not_found">Workout not found</string>
+    <string name="ult_export_no_data">This workout has no data to export</string>
+    <string name="ult_hours">Hours</string>
+    <string name="ult_min_short">Min</string>
+    <string name="ult_sec_short">Sec</string>
+    <string name="ult_time">Time</string>
+    <string name="ult_set_fab">Floating button to add a device</string>
+    <string name="ult_set_bottom_nav">Bottom navigation bar</string>
+    <string name="ult_golf_distance_walked">Distance walked</string>
+    <string name="ult_golf_holes">Holes</string>
+    <string name="ult_golf_par">Par</string>
+    <string name="ult_golf_score">Score</string>
+    <string name="ult_golf_putts">Putts</string>
+    <string name="ult_golf_strokes">Strokes</string>
+    <string name="ult_golf_hole">Hole</string>
+    <string name="ult_golf_fairways">Fairways</string>
+    <string name="ult_golf_penalties">Penalties</string>
+    <string name="ult_dev_paired">Paired</string>
+    <string name="ult_dev_unsupported">Not compatible</string>
+    <string name="ult_dev_experimental">Experimental</string>
 </resources>
