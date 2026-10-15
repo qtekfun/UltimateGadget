@@ -16,6 +16,7 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 package nodomain.freeyourgadget.gadgetbridge.activities.ultimate.readiness
 
+import nodomain.freeyourgadget.gadgetbridge.R
 import kotlin.math.ln
 import kotlin.math.max
 import kotlin.math.min
@@ -89,7 +90,7 @@ object ReadinessEngine {
         val sd = i.hrvSd?.takeIf { it > 0.0 } ?: return null
         val z = (ln(today) - ln(mean)) / (sd / mean)   // ~ln-space deviation
         val s = zToScore(z, higherIsBetter = true)
-        return s to "rMSSD ${today.toInt()} ms vs media 7d ${mean.toInt()} ms"
+        return s to nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_rd_hrv, today.toInt(), mean.toInt())
     }
 
     private fun rhrScore(i: ReadinessInputs): Pair<Int, String>? {
@@ -98,7 +99,7 @@ object ReadinessEngine {
         val sd = i.rhrSd?.takeIf { it > 0.0 } ?: return null
         val z = (today - mean) / sd
         val s = zToScore(z, higherIsBetter = false)
-        return s to "FC reposo ${today.toInt()} vs media 7d ${mean.toInt()}"
+        return s to nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_rd_rhr, today.toInt(), mean.toInt())
     }
 
     private fun sleepScore(i: ReadinessInputs): Pair<Int, String>? {
@@ -107,15 +108,15 @@ object ReadinessEngine {
         val ratio = hours / need
         var s = (ratio * 100).toInt()
         i.sleepQuality?.let { q -> s = (s * (0.75 + 0.25 * (q / 100.0))).toInt() } // optional quality 0..100
-        val src = if (i.sleepManual) " (manual)" else ""
-        return s.coerceIn(0, 100) to "%.1f h of %.0f h target%s".format(hours, need, src)
+        val src = if (i.sleepManual) nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_rd_manual) else ""
+        return s.coerceIn(0, 100) to nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_rd_sleep, hours, need, src)
     }
 
     private fun loadScore(i: ReadinessInputs): Pair<Int, String>? {
         val acute = i.acuteLoad ?: return null
         val chronicWeek = i.chronicWeeklyLoad?.takeIf { it > 0.0 } ?: run {
             // No chronic history yet: neutral-ish based only on whether there was any load.
-            return 70 to "Recent load ${acute.toInt()} (no history)"
+            return 70 to nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_rd_recent_load, acute.toInt())
         }
         val acwr = acute / chronicWeek
         // Sweet spot 0.8..1.3 -> 100; outside drops; big spikes penalised.
@@ -125,16 +126,16 @@ object ReadinessEngine {
             acwr <= 1.5 -> (100 - (acwr - 1.3) * 150).toInt()      // slight spike
             else -> max(20.0, 70 - (acwr - 1.5) * 80).toInt()      // strong spike
         }
-        val manual = if (i.loadManual) " (incluye manual)" else ""
-        return s.coerceIn(0, 100) to "ACWR %.2f (acute/%.0f chronic)%s".format(acwr, chronicWeek, manual)
+        val manual = if (i.loadManual) nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_rd_incl_manual) else ""
+        return s.coerceIn(0, 100) to nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_rd_acwr, acwr, chronicWeek, manual)
     }
 
     /** Label for a 0..100 score. */
     fun label(score: Int): String = when {
-        score >= 75 -> "Alta"
-        score >= 55 -> "Media"
-        score >= 35 -> "Baja"
-        else -> "Muy baja"
+        score >= 75 -> nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_rd_high)
+        score >= 55 -> nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_rd_medium)
+        score >= 35 -> nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_rd_low)
+        else -> nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_rd_very_low)
     }
 
     /** min/max exported for tests. */

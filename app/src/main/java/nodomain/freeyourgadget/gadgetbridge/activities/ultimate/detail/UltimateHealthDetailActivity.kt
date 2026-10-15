@@ -16,6 +16,7 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 package nodomain.freeyourgadget.gadgetbridge.activities.ultimate.detail
 
+import nodomain.freeyourgadget.gadgetbridge.R
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -172,7 +173,7 @@ class UltimateHealthDetailActivity : AppCompatActivity() {
                             WorkoutRow(
                                 id = s.id ?: -1L,
                                 title = s.name?.takeIf { it.isNotBlank() }
-                                    ?: typeLabel.ifEmpty { "Workout" },
+                                    ?: typeLabel.ifEmpty { nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_workout) },
                                 activityKindCode = kind.code,
                                 typeLabel = typeLabel,
                                 iconRes = kind.getIcon(),

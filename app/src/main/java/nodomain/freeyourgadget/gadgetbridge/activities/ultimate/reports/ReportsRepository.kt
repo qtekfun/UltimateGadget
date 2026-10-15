@@ -16,6 +16,7 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 package nodomain.freeyourgadget.gadgetbridge.activities.ultimate.reports
 
+import nodomain.freeyourgadget.gadgetbridge.R
 import android.app.Application
 import nodomain.freeyourgadget.gadgetbridge.GBApplication
 import nodomain.freeyourgadget.gadgetbridge.database.DBHandler
@@ -246,14 +247,14 @@ class ReportsRepository(private val app: Application) {
         val streakBest = maxOf(currentStreak, bestStreak)
 
         return listOf(
-            Medal("first_goal", "Primer objetivo", "Reach your step goal in a day", anyGoalDay),
-            Medal("step_15k", "15 000 pasos", "15,000 steps in a single day", bestDay >= 15_000),
-            Medal("streak_3", "3-day streak", "3 days in a row meeting the goal", streakBest >= 3),
-            Medal("streak_7", "Perfect week", "7 days in a row meeting the goal", streakBest >= 7),
-            Medal("streak_30", "Month on fire", "30 days in a row meeting the goal", streakBest >= 30),
-            Medal("week_70k", "70k in 7 days", "70,000 steps in a week", bestWeekSteps >= 70_000),
-            Medal("dist_100k", "100 km", "100 km accumulated in history", totalDistance >= 100.0),
-            Medal("steps_1m", "A million steps", "1,000,000 steps accumulated", totalSteps >= 1_000_000L),
+            Medal("first_goal", nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_m_first), nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_m_first_d), anyGoalDay),
+            Medal("step_15k", nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_m_15k), nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_m_15k_d), bestDay >= 15_000),
+            Medal("streak_3", nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_m_s3), nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_m_s3_d), streakBest >= 3),
+            Medal("streak_7", nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_m_s7), nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_m_s7_d), streakBest >= 7),
+            Medal("streak_30", nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_m_s30), nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_m_s30_d), streakBest >= 30),
+            Medal("week_70k", nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_m_70k), nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_m_70k_d), bestWeekSteps >= 70_000),
+            Medal("dist_100k", nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_m_100km), nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_m_100km_d), totalDistance >= 100.0),
+            Medal("steps_1m", nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_m_1m), nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_m_1m_d), totalSteps >= 1_000_000L),
         )
     }
 

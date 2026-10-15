@@ -255,12 +255,13 @@ fun ReadinessCard(
     }
 }
 
-private fun factorShort(id: nodomain.freeyourgadget.gadgetbridge.activities.ultimate.readiness.ReadinessFactorId) = when (id) {
-    nodomain.freeyourgadget.gadgetbridge.activities.ultimate.readiness.ReadinessFactorId.HRV -> "HRV"
-    nodomain.freeyourgadget.gadgetbridge.activities.ultimate.readiness.ReadinessFactorId.RHR -> "FC"
-    nodomain.freeyourgadget.gadgetbridge.activities.ultimate.readiness.ReadinessFactorId.SLEEP -> "Sleep"
-    nodomain.freeyourgadget.gadgetbridge.activities.ultimate.readiness.ReadinessFactorId.LOAD -> "Carga"
-}
+@Composable
+private fun factorShort(id: nodomain.freeyourgadget.gadgetbridge.activities.ultimate.readiness.ReadinessFactorId) = stringResource(when (id) {
+    nodomain.freeyourgadget.gadgetbridge.activities.ultimate.readiness.ReadinessFactorId.HRV -> R.string.ult_fs_hrv
+    nodomain.freeyourgadget.gadgetbridge.activities.ultimate.readiness.ReadinessFactorId.RHR -> R.string.ult_fs_rhr
+    nodomain.freeyourgadget.gadgetbridge.activities.ultimate.readiness.ReadinessFactorId.SLEEP -> R.string.ult_fs_sleep
+    nodomain.freeyourgadget.gadgetbridge.activities.ultimate.readiness.ReadinessFactorId.LOAD -> R.string.ult_fs_load
+})
 
 // --- small formatting helpers ---
 
@@ -272,8 +273,9 @@ private fun duration(sec: Long): String {
     else String.format(Locale.getDefault(), "%d:%02d", m, s)
 }
 private fun hoursMinutes(min: Int) = String.format(Locale.getDefault(), "%dh %02dm", min / 60, min % 60)
-private fun stressLabel(level: Int) = when {
-    level < 30 -> "Relaxed"; level < 60 -> "Normal"; level < 80 -> "Medium"; else -> "High"
-}
+@Composable
+private fun stressLabel(level: Int) = stringResource(when {
+    level < 30 -> R.string.ult_stress_relaxed; level < 60 -> R.string.ult_stress_normal; level < 80 -> R.string.ult_stress_medium; else -> R.string.ult_stress_high
+})
 private fun stressColor(level: Int, low: androidx.compose.ui.graphics.Color, mid: androidx.compose.ui.graphics.Color, high: androidx.compose.ui.graphics.Color) =
     when { level < 30 -> low; level < 80 -> mid; else -> high }
