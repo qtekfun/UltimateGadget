@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Traducción al español de las cadenas propias de UltimateGadget. -->
+<resources>
+    <!-- Pantalla de detalle de dispositivo: cabeceras -->
+    <string name="ult_section_connection">Conexión</string>
+    <string name="ult_section_watch">Reloj</string>
+    <string name="ult_section_nav">Mapas y navegación</string>
+    <string name="ult_section_device">Dispositivo</string>
+
+    <!-- Pantalla de detalle de dispositivo: opciones -->
+    <string name="ult_disconnect">Desconectar</string>
+    <string name="ult_disconnect_sub">Cortar la conexión</string>
+    <string name="ult_sync">Sincronizar actividad</string>
+    <string name="ult_sync_sub">Descargar datos nuevos</string>
+    <string name="ult_cancel_connection">Cancelar conexión</string>
+    <string name="ult_cancel_connection_sub">Detener el intento de conexión</string>
+    <string name="ult_connect">Conectar</string>
+    <string name="ult_connect_sub">Conectar con el dispositivo</string>
+    <string name="ult_device_settings">Ajustes del dispositivo</string>
+    <string name="ult_device_settings_sub">Notificaciones, pantalla, gestos…</string>
+    <string name="ult_alarms">Alarmas</string>
+    <string name="ult_alarms_sub">Alarmas del reloj</string>
+    <string name="ult_reminders">Recordatorios</string>
+    <string name="ult_reminders_sub">Recordatorios de fecha y hora</string>
+    <string name="ult_world_clocks">Relojes mundiales</string>
+    <string name="ult_world_clocks_sub">Otras zonas horarias</string>
+    <string name="ult_timers">Temporizadores</string>
+    <string name="ult_timers_sub">Cuenta atrás en el teléfono</string>
+    <string name="ult_watchfaces">Esferas</string>
+    <string name="ult_watchfaces_sub">Ver, activar y borrar esferas</string>
+    <string name="ult_music">Música</string>
+    <string name="ult_music_sub">Ver, subir y borrar música del reloj</string>
+    <string name="ult_apps">Apps</string>
+    <string name="ult_apps_sub">Ver, borrar e instalar apps del reloj</string>
+    <string name="ult_maps_offline">Mapas sin conexión</string>
+    <string name="ult_maps_offline_sub">Instalar y borrar mapas del reloj</string>
+    <string name="ult_routes">Rutas</string>
+    <string name="ult_routes_sub">Planificar y enviar rutas</string>
+    <string name="ult_golf_courses">Campos de golf</string>
+    <string name="ult_golf_courses_sub">Enviar y borrar mapas de campos en el reloj</string>
+    <string name="ult_agnss">Actualizar GPS (A-GNSS)</string>
+    <string name="ult_agnss_sub">Datos de satélite para fijar más rápido</string>
+    <string name="ult_agps_sub">Instalar datos de satélite para fijar más rápido</string>
+    <string name="ult_find_device">Encontrar dispositivo</string>
+    <string name="ult_find_device_sub">Hacer sonar el dispositivo</string>
+    <string name="ult_power_off">Apagar</string>
+    <string name="ult_power_off_sub">Apagar el dispositivo</string>
+    <string name="ult_remove_device">Quitar dispositivo</string>
+    <string name="ult_remove_device_sub">Desvincular de UltimateGadget</string>
+
+    <!-- Pantalla de detalle de dispositivo: diálogos y avisos -->
+    <string name="ult_syncing_toast">Sincronizando…</string>
+    <string name="ult_choose_agnss_file">Elige el archivo A-GNSS descargado</string>
+    <string name="ult_find_dialog_msg">El reloj está sonando/vibrando. Pulsa Parar cuando lo encuentres.</string>
+    <string name="ult_stop">Parar</string>
+    <string name="ult_power_off_dialog_title">Apagar dispositivo</string>
+    <string name="ult_power_off_dialog_msg">¿Apagar el dispositivo? Tendrás que encenderlo manualmente para volver a conectar.</string>
+    <string name="ult_powering_off_toast">Apagando…</string>
+    <string name="ult_cancel">Cancelar</string>
+
+    <!-- Pantalla de inicio -->
+    <string name="ult_search">Buscar</string>
+    <string name="ult_add_device">Añadir dispositivo</string>
+    <string name="ult_your_devices">Tus dispositivos</string>
+    <string name="ult_more">Más</string>
+    <string name="ult_menu_sort_cards">Ordenar tarjetas</string>
+    <string name="ult_menu_export_import">Exportar / Importar</string>
+    <string name="ult_menu_phone_maps">Mapas del teléfono</string>
+    <string name="ult_menu_notifications">Notificaciones</string>
+    <string name="ult_menu_reports">Informes y objetivos</string>
+    <string name="ult_menu_performance">Rendimiento</string>
+    <string name="ult_menu_settings">Ajustes</string>
+    <string name="ult_menu_exit">Salir (detener la app)</string>
+    <string name="ult_tab_home">Inicio</string>
+    <string name="ult_tab_devices">Dispositivos</string>
+    <string name="ult_state_connected">Conectado</string>
+    <string name="ult_state_syncing">Sincronizando</string>
+    <string name="ult_metric_ppm">ppm</string>
+    <string name="ult_metric_battery">batería</string>
+    <string name="ult_metric_steps">pasos</string>
+    <string name="ult_steps_with_goal">pasos · %s</string>
+    <string name="ult_no_devices">Aún no hay dispositivos</string>
+    <string name="ult_no_devices_sub">Añade tu primer reloj o pulsera para empezar.</string>
+</resources>
