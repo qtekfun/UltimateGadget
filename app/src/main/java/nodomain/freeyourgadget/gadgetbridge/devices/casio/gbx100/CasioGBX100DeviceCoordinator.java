@@ -84,6 +84,14 @@ public class CasioGBX100DeviceCoordinator extends Casio2C2DDeviceCoordinator {
     }
 
     @Override
+    public boolean getAlwaysScanReconnect() {
+        // These Casio watches only accept a connection during the short advertising window they
+        // open when the user presses the watch's CONNECT button, and power the radio off in
+        // between. Direct reconnect attempts miss that window, so always reconnect them by scan.
+        return true;
+    }
+
+    @Override
     public boolean supportsAlarmSnoozing(@NonNull GBDevice device) {
         return true;
     }

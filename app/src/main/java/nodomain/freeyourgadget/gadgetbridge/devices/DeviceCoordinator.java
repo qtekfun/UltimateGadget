@@ -193,6 +193,20 @@ public interface DeviceCoordinator {
     boolean isConnectable();
 
     /**
+     * Whether this device must always be reconnected by keeping a BLE scan running and connecting
+     * the moment it advertises, rather than by repeated direct-connect attempts. On-demand watches
+     * (e.g. Casio G-SHOCK) only accept a connection during a brief advertising window they open when
+     * the user presses a button, and turn their radio off in between, so a direct reconnect almost
+     * always misses the window. Returning true makes the service run the reconnect scan for this
+     * device regardless of the global "reconnect by scan" preference.
+     *
+     * @return true to force scan-based reconnection for this device.
+     */
+    default boolean getAlwaysScanReconnect() {
+        return false;
+    }
+
+    /**
      * Checks whether this coordinator handles the given candidate.
      *
      * @param candidate
