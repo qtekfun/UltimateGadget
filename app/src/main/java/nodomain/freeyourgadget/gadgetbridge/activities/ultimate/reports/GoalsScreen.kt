@@ -51,6 +51,8 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import nodomain.freeyourgadget.gadgetbridge.R
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -82,10 +84,10 @@ fun GoalsScreen(
         containerColor = scheme.background,
         topBar = {
             TopAppBar(
-                title = { Text("Goals", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.ult_goals), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.ult_back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -111,7 +113,7 @@ fun GoalsScreen(
             item { StepGoalCard(g) { editing = true } }
             item { StreakCard(g) }
             item {
-                SectionLabel("Medals")
+                SectionLabel(stringResource(R.string.ult_medals))
                 Spacer(Modifier.height(8.dp))
                 MedalGrid(g.medals)
             }
@@ -135,12 +137,12 @@ private fun StepGoalCard(goals: GoalsData, onEdit: () -> Unit) {
     DashboardCard {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
-                SectionLabel("Daily step goal")
+                SectionLabel(stringResource(R.string.ult_daily_step_goal))
                 Spacer(Modifier.height(6.dp))
                 Text("%,d".format(goals.stepGoal), style = MetricValueStyle, color = scheme.onSurface)
             }
             IconButton(onClick = onEdit) {
-                Icon(Icons.Filled.Edit, contentDescription = "Editar objetivo", tint = scheme.primary)
+                Icon(Icons.Filled.Edit, contentDescription = stringResource(R.string.ult_edit_goal), tint = scheme.primary)
             }
         }
         Spacer(Modifier.height(10.dp))
@@ -151,7 +153,7 @@ private fun StepGoalCard(goals: GoalsData, onEdit: () -> Unit) {
             trackColor = scheme.surfaceContainerHighest,
         )
         Spacer(Modifier.height(8.dp))
-        Text("Today ${"%,d".format(goals.todaySteps)} of ${"%,d".format(goals.stepGoal)} steps",
+        Text(stringResource(R.string.ult_today_steps_progress, goals.todaySteps, goals.stepGoal),
             color = scheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
     }
 }
@@ -165,19 +167,19 @@ private fun StreakCard(goals: GoalsData) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Filled.LocalFireDepartment, contentDescription = null, tint = scheme.tertiary, modifier = Modifier.size(20.dp))
                     Spacer(Modifier.width(6.dp))
-                    SectionLabel("Current streak")
+                    SectionLabel(stringResource(R.string.ult_current_streak))
                 }
                 Spacer(Modifier.height(6.dp))
                 Text("${goals.currentStreak}", style = MetricValueStyle, color = scheme.onSurface)
-                Text(if (goals.currentStreak == 1) "day" else "days", color = scheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
+                Text(if (goals.currentStreak == 1) stringResource(R.string.ult_day) else stringResource(R.string.ult_days), color = scheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
             }
         }
         Surface(Modifier.weight(1f), shape = RoundedCornerShape(20.dp), color = scheme.surfaceContainer) {
             Column(Modifier.padding(16.dp)) {
-                SectionLabel("Mejor racha")
+                SectionLabel(stringResource(R.string.ult_best_streak))
                 Spacer(Modifier.height(6.dp))
                 Text("${goals.bestStreak}", style = MetricValueStyle, color = scheme.onSurface)
-                Text(if (goals.bestStreak == 1) "day" else "days", color = scheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
+                Text(if (goals.bestStreak == 1) stringResource(R.string.ult_day) else stringResource(R.string.ult_days), color = scheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
             }
         }
     }
@@ -234,26 +236,26 @@ private fun StepGoalDialog(current: Int, onDismiss: () -> Unit, onConfirm: (Int)
     var text by remember { mutableStateOf(current.toString()) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Step goal") },
+        title = { Text(stringResource(R.string.ult_step_goal)) },
         text = {
             Column {
-                Text("Set your daily step goal.", style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
+                Text(stringResource(R.string.ult_set_daily_step_goal), style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
                 Spacer(Modifier.height(12.dp))
                 OutlinedTextField(
                     value = text,
                     onValueChange = { new -> text = new.filter { it.isDigit() }.take(6) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    label = { Text("Steps") },
+                    label = { Text(stringResource(R.string.ult_steps_cap)) },
                 )
             }
         },
         confirmButton = {
             TextButton(onClick = { onConfirm(text.toIntOrNull()?.coerceIn(1, 100000) ?: current) }) {
-                Text("Save")
+                Text(stringResource(R.string.ult_save))
             }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.ult_cancel)) } },
     )
 }
 

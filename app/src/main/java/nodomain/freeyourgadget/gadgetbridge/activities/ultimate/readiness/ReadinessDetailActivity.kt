@@ -46,6 +46,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import nodomain.freeyourgadget.gadgetbridge.R
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -91,9 +93,9 @@ private fun ReadinessDetailScreen(data: ReadinessData, onBack: () -> Unit, onEdi
         containerColor = scheme.background,
         topBar = {
             TopAppBar(
-                title = { Text("Readiness", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.ult_readiness), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
-                    IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back") }
+                    IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.ult_back)) }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = scheme.background, titleContentColor = scheme.onSurface,
@@ -111,12 +113,12 @@ private fun ReadinessDetailScreen(data: ReadinessData, onBack: () -> Unit, onEdi
                 Text(score?.toString() ?: "—", style = MetricValueStyle, color = scoreColor(score, scheme))
                 Spacer(Modifier.height(0.dp))
                 Text(
-                    "  " + (score?.let { ReadinessEngine.label(it) } ?: "Sin datos suficientes"),
+                    "  " + (score?.let { ReadinessEngine.label(it) } ?: stringResource(R.string.ult_not_enough_data)),
                     style = MaterialTheme.typography.titleMedium, color = scheme.onSurface,
                     modifier = Modifier.padding(bottom = 6.dp),
                 )
             }
-            Text("Confianza ${data.confidence}%", style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
+            Text(stringResource(R.string.ult_confidence_fmt, data.confidence), style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
 
             data.factors.forEach { f ->
                 Card(
@@ -131,7 +133,7 @@ private fun ReadinessDetailScreen(data: ReadinessData, onBack: () -> Unit, onEdi
                         }
                         Spacer(Modifier.height(4.dp))
                         Text(f.detail, style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
-                        Text("Peso ${(f.weight * 100).toInt()}%", style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
+                        Text(stringResource(R.string.ult_weight_fmt, (f.weight * 100).toInt()), style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
                     }
                 }
             }
@@ -142,9 +144,9 @@ private fun ReadinessDetailScreen(data: ReadinessData, onBack: () -> Unit, onEdi
                 modifier = Modifier.fillMaxWidth().clickable(onClick = onEditManual),
             ) {
                 Column(Modifier.padding(14.dp)) {
-                    Text("Log sleep/workout by hand", style = MaterialTheme.typography.titleMedium, color = scheme.onSurface)
+                    Text(stringResource(R.string.ult_log_by_hand), style = MaterialTheme.typography.titleMedium, color = scheme.onSurface)
                     Text(
-                        "For days without a watch: enter hours of sleep and the day's workout.",
+                        stringResource(R.string.ult_manual_log_desc),
                         style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant,
                     )
                 }
@@ -160,12 +162,13 @@ private fun ReadinessDetailScreen(data: ReadinessData, onBack: () -> Unit, onEdi
     }
 }
 
-private fun factorName(id: ReadinessFactorId) = when (id) {
-    ReadinessFactorId.HRV -> "Variabilidad cardiaca (HRV)"
-    ReadinessFactorId.RHR -> "Frecuencia cardiaca en reposo"
-    ReadinessFactorId.SLEEP -> "Sleep"
-    ReadinessFactorId.LOAD -> "Workout load"
-}
+@Composable
+private fun factorName(id: ReadinessFactorId) = stringResource(when (id) {
+    ReadinessFactorId.HRV -> R.string.ult_factor_hrv
+    ReadinessFactorId.RHR -> R.string.ult_factor_rhr
+    ReadinessFactorId.SLEEP -> R.string.ult_sleep
+    ReadinessFactorId.LOAD -> R.string.ult_workout_load
+})
 
 private fun scoreColor(score: Int?, scheme: androidx.compose.material3.ColorScheme) = when {
     score == null -> scheme.onSurfaceVariant
