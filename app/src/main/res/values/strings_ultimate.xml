@@ -190,6 +190,50 @@
 
     <!-- Common -->
     <string name="ult_back">Back</string>
+    <string name="ult_delete">Delete</string>
+    <string name="ult_refresh">Refresh</string>
+    <string name="ult_active">Active</string>
+    <string name="ult_activate">Activate</string>
+    <string name="ult_builtin">Built-in</string>
+
+    <!-- Battery -->
+    <string name="ult_battery">Battery</string>
+    <string name="ult_no_battery_data">No battery data in this period</string>
+    <string name="ult_current">Current</string>
+    <string name="ult_minimum">Minimum</string>
+    <string name="ult_maximum">Maximum</string>
+    <string name="ult_battery_level_pct">Battery level (%)</string>
+
+    <!-- A-GNSS -->
+    <string name="ult_install_map_app_agnss">Install the UltimateGadget map app to download A-GNSS</string>
+    <string name="ult_downloading_ephemeris">Downloading ephemeris…</string>
+    <string name="ult_agnss_explain">Downloads satellite data (public ephemeris) through the map app and prepares it so the watch gets a GPS fix in seconds. The watch picks it up on connect; nothing is forced onto it.</string>
+    <string name="ult_package_ready">Package ready</string>
+    <string name="ult_updated_at">Updated: %1$s</string>
+    <string name="ult_expired_update">Expired — update before you head out</string>
+    <string name="ult_valid_until">Valid until: %1$s</string>
+    <string name="ult_source_fmt">Source: %1$s</string>
+    <string name="ult_tap_update_now">Tap \"Update now\" to download.</string>
+    <string name="ult_updating">Updating…</string>
+    <string name="ult_update_now">Update now</string>
+    <string name="ult_update_on_connect">Update when the watch connects</string>
+    <string name="ult_download_wifi_only">Download over Wi-Fi only</string>
+
+    <!-- Watch apps -->
+    <string name="ult_watch_apps">Watch apps</string>
+    <string name="ult_apps_explain">Apps installed on the watch (not watchfaces). Delete them or install one from a file. There is no online store: only the watch and your files. The watch does not allow opening apps remotely, so open them from the watch itself.</string>
+    <string name="ult_install_app_btn">"  Install app"</string>
+    <string name="ult_no_apps">No apps. Connect the watch and tap refresh, or install one.</string>
+    <string name="ult_installed">Installed</string>
+    <string name="ult_delete_app">Delete app</string>
+    <string name="ult_delete_confirm">Delete \"%1$s\" from the watch?</string>
+
+    <!-- Watchfaces -->
+    <string name="ult_watchfaces_explain">Watchfaces installed on the watch. Activate or delete them, or import one from a file (.watchface/.bin). There is no online gallery: only the watch and your files.</string>
+    <string name="ult_import_watchface_btn">"  Import watchface"</string>
+    <string name="ult_no_watchfaces">No watchfaces. Connect the watch and tap refresh, or import one.</string>
+    <string name="ult_watchface_activated">Watchface activated</string>
+    <string name="ult_delete_watchface">Delete watchface</string>
 
     <!-- Sleep -->
     <string name="ult_sleep">Sleep</string>

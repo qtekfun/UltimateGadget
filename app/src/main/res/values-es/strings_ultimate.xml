@@ -190,6 +190,50 @@
 
     <!-- Común -->
     <string name="ult_back">Atrás</string>
+    <string name="ult_delete">Borrar</string>
+    <string name="ult_refresh">Actualizar</string>
+    <string name="ult_active">Activa</string>
+    <string name="ult_activate">Activar</string>
+    <string name="ult_builtin">Integrada</string>
+
+    <!-- Batería -->
+    <string name="ult_battery">Batería</string>
+    <string name="ult_no_battery_data">Sin datos de batería en este periodo</string>
+    <string name="ult_current">Actual</string>
+    <string name="ult_minimum">Mínimo</string>
+    <string name="ult_maximum">Máximo</string>
+    <string name="ult_battery_level_pct">Nivel de batería (%)</string>
+
+    <!-- A-GNSS -->
+    <string name="ult_install_map_app_agnss">Instala la app de mapas de UltimateGadget para descargar A-GNSS</string>
+    <string name="ult_downloading_ephemeris">Descargando efemérides…</string>
+    <string name="ult_agnss_explain">Descarga datos de satélite (efemérides públicas) a través de la app de mapas y los prepara para que el reloj consiga la posición GPS en segundos. El reloj los recoge al conectar; no se le fuerza nada.</string>
+    <string name="ult_package_ready">Paquete listo</string>
+    <string name="ult_updated_at">Actualizado: %1$s</string>
+    <string name="ult_expired_update">Caducado — actualiza antes de salir</string>
+    <string name="ult_valid_until">Válido hasta: %1$s</string>
+    <string name="ult_source_fmt">Fuente: %1$s</string>
+    <string name="ult_tap_update_now">Toca \"Actualizar ahora\" para descargar.</string>
+    <string name="ult_updating">Actualizando…</string>
+    <string name="ult_update_now">Actualizar ahora</string>
+    <string name="ult_update_on_connect">Actualizar cuando el reloj conecte</string>
+    <string name="ult_download_wifi_only">Descargar solo por Wi-Fi</string>
+
+    <!-- Apps del reloj -->
+    <string name="ult_watch_apps">Apps del reloj</string>
+    <string name="ult_apps_explain">Apps instaladas en el reloj (no esferas). Bórralas o instala una desde un archivo. No hay tienda en línea: solo el reloj y tus archivos. El reloj no permite abrir apps en remoto, así que ábrelas desde el propio reloj.</string>
+    <string name="ult_install_app_btn">"  Instalar app"</string>
+    <string name="ult_no_apps">No hay apps. Conecta el reloj y toca actualizar, o instala una.</string>
+    <string name="ult_installed">Instaladas</string>
+    <string name="ult_delete_app">Borrar app</string>
+    <string name="ult_delete_confirm">¿Borrar \"%1$s\" del reloj?</string>
+
+    <!-- Esferas -->
+    <string name="ult_watchfaces_explain">Esferas instaladas en el reloj. Actívalas o bórralas, o importa una desde un archivo (.watchface/.bin). No hay galería en línea: solo el reloj y tus archivos.</string>
+    <string name="ult_import_watchface_btn">"  Importar esfera"</string>
+    <string name="ult_no_watchfaces">No hay esferas. Conecta el reloj y toca actualizar, o importa una.</string>
+    <string name="ult_watchface_activated">Esfera activada</string>
+    <string name="ult_delete_watchface">Borrar esfera</string>
 
     <!-- Sueño -->
     <string name="ult_sleep">Sueño</string>

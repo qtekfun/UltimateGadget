@@ -58,6 +58,8 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import nodomain.freeyourgadget.gadgetbridge.R
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -167,15 +169,15 @@ private fun WatchAppsScreen(device: GBDevice, onBack: () -> Unit) {
         containerColor = palette.background,
         topBar = {
             TopAppBar(
-                title = { Text("Watch apps") },
+                title = { Text(stringResource(R.string.ult_watch_apps)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.ult_back))
                     }
                 },
                 actions = {
                     IconButton(onClick = { requestList() }) {
-                        Icon(Icons.Filled.Refresh, contentDescription = "Actualizar")
+                        Icon(Icons.Filled.Refresh, contentDescription = stringResource(R.string.ult_refresh))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -192,26 +194,24 @@ private fun WatchAppsScreen(device: GBDevice, onBack: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             Text(
-                "Apps installed on the watch (not watchfaces). Delete them or install one from a file. " +
-                    "There is no online store: only the watch and your files. The watch does not allow opening " +
-                    "apps remotely, so open them from the watch itself.",
+                stringResource(R.string.ult_apps_explain),
                 style = MaterialTheme.typography.bodyMedium,
                 color = palette.onSurfaceVariant,
             )
             Button(onClick = { importPicker.launch(arrayOf("*/*")) }) {
                 Icon(Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(18.dp))
-                Text("  Install app")
+                Text(stringResource(R.string.ult_install_app_btn))
             }
 
             Text(
-                "INSTALADAS",
+                stringResource(R.string.ult_installed).uppercase(),
                 style = SectionLabelStyle,
                 color = palette.onSurfaceVariant,
             )
 
             if (apps.isEmpty()) {
                 Text(
-                    "No apps. Connect the watch and tap refresh, or install one.",
+                    stringResource(R.string.ult_no_apps),
                     style = MaterialTheme.typography.bodyMedium,
                     color = palette.onSurfaceVariant,
                 )
@@ -233,10 +233,10 @@ private fun WatchAppsScreen(device: GBDevice, onBack: () -> Unit) {
         AlertDialog(
             containerColor = palette.surfaceContainer,
             onDismissRequest = { pendingDelete = null },
-            title = { Text("Delete app", color = palette.onSurface) },
+            title = { Text(stringResource(R.string.ult_delete_app), color = palette.onSurface) },
             text = {
                 Text(
-                    "Delete \"${toDelete.name}\" from the watch?",
+                    stringResource(R.string.ult_delete_confirm, toDelete.name),
                     color = palette.onSurfaceVariant,
                 )
             },
@@ -245,11 +245,11 @@ private fun WatchAppsScreen(device: GBDevice, onBack: () -> Unit) {
                     GBApplication.deviceService(device).onAppDelete(toDelete.uuid)
                     pendingDelete = null
                     requestList()
-                }) { Text("Delete", color = palette.error) }
+                }) { Text(stringResource(R.string.ult_delete), color = palette.error) }
             },
             dismissButton = {
                 TextButton(onClick = { pendingDelete = null }) {
-                    Text("Cancel", color = palette.onSurfaceVariant)
+                    Text(stringResource(R.string.ult_cancel), color = palette.onSurfaceVariant)
                 }
             },
         )
@@ -292,6 +292,7 @@ private fun AppCard(
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
+                val builtinLabel = stringResource(R.string.ult_builtin)
                 val subtitle = buildString {
                     if (app.creator.isNotBlank()) append(app.creator)
                     if (app.version.isNotBlank()) {
@@ -300,7 +301,7 @@ private fun AppCard(
                     }
                     if (isSystem) {
                         if (isNotEmpty()) append(" · ")
-                        append("Built-in")
+                        append(builtinLabel)
                     }
                 }
                 if (subtitle.isNotBlank()) {
@@ -316,7 +317,7 @@ private fun AppCard(
             // Factory/system apps cannot be removed from the device.
             if (!isSystem) {
                 IconButton(onClick = onDelete) {
-                    Icon(Icons.Filled.Delete, contentDescription = "Delete", tint = palette.error)
+                    Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.ult_delete), tint = palette.error)
                 }
             } else {
                 Box(Modifier.size(48.dp))
