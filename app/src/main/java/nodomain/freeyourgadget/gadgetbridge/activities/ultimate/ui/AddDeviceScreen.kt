@@ -95,7 +95,7 @@ fun AddDeviceScreen(
             )
             Spacer(Modifier.height(8.dp))
             Text(
-                "Pair your watch or band",
+                stringResource(R.string.ult_pair_title),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 color = palette.onSurface,
@@ -103,8 +103,7 @@ fun AddDeviceScreen(
             )
             Spacer(Modifier.height(12.dp))
             Text(
-                "Put the device in pairing mode and keep it close. " +
-                    "We will scan for nearby Bluetooth devices.",
+                stringResource(R.string.ult_pair_desc),
                 style = MaterialTheme.typography.bodyMedium,
                 color = palette.onSurfaceVariant,
                 textAlign = TextAlign.Center,

@@ -16,6 +16,7 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 package nodomain.freeyourgadget.gadgetbridge.activities.ultimate.dashboard
 
+import nodomain.freeyourgadget.gadgetbridge.R
 import android.app.Application
 import android.content.Context
 import nodomain.freeyourgadget.gadgetbridge.GBApplication
@@ -207,7 +208,7 @@ class DbHealthRepository(private val app: Application) : HealthRepository {
             val kind = WorkoutDetailRepository.kindOf(summary)
             val type = kind.takeIf { it != ActivityKind.UNKNOWN }?.getLabel(app)
                 ?: summary.name?.takeIf { it.isNotBlank() }
-                ?: "Workout"
+                ?: app.getString(R.string.ult_workout)
             return WorkoutData(
                 type = type,
                 distanceKm = workoutDistanceKm(device, summary),

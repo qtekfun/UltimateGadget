@@ -100,7 +100,7 @@ internal fun PickerRow(label: String, value: String, onClick: () -> Unit) {
     }
 }
 
-/** Weekday bit masks in Monday-first order, with short Spanish labels. */
+/** Weekday bit masks in Monday-first order, with short localized labels. */
 internal val WEEKDAY_BITS = intArrayOf(
     AlarmModel.ALARM_MON.toInt(),
     AlarmModel.ALARM_TUE.toInt(),
@@ -110,12 +110,15 @@ internal val WEEKDAY_BITS = intArrayOf(
     AlarmModel.ALARM_SAT.toInt(),
     AlarmModel.ALARM_SUN.toInt(),
 )
-internal val WEEKDAY_LABELS = arrayOf("L", "M", "X", "J", "V", "S", "D")
+internal val WEEKDAY_LABELS: List<String>
+    get() = java.time.DayOfWeek.values().map {
+        it.getDisplayName(java.time.format.TextStyle.NARROW, java.util.Locale.getDefault())
+    }
 
 /** Human-readable repetition summary from an alarm repetition bit mask. */
 internal fun repetitionSummary(mask: Int): String {
-    if (mask == 0) return "Una vez"
-    if (mask and AlarmModel.ALARM_DAILY.toInt() == AlarmModel.ALARM_DAILY.toInt()) return "Every day"
+    if (mask == 0) return nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_rep_once)
+    if (mask and AlarmModel.ALARM_DAILY.toInt() == AlarmModel.ALARM_DAILY.toInt()) return nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_rep_daily)
     val days = WEEKDAY_BITS.indices.filter { (mask and WEEKDAY_BITS[it]) != 0 }.map { WEEKDAY_LABELS[it] }
     return days.joinToString(" ")
 }

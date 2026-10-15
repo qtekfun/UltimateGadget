@@ -243,7 +243,7 @@ fun HeartRateCard(heart: HeartSection) {
     val colors = zoneColors()
     val hrColor = colorResource(R.color.hr_zone_maximum_color)
     DashboardCard {
-        SectionLabel("Heart rate (bpm)")
+        SectionLabel(stringResource(R.string.ult_wd_hr_bpm))
         Spacer(Modifier.height(10.dp))
         StatsRow(heart.stats)
 
@@ -294,7 +294,7 @@ fun HeartRateCard(heart: HeartSection) {
 fun EffortCard(effort: List<WorkoutMetric>) {
     if (effort.isEmpty()) return
     DashboardCard {
-        SectionLabel("Effort")
+        SectionLabel(stringResource(R.string.ult_wd_effort))
         Spacer(Modifier.height(10.dp))
         MetricChips(effort)
     }
@@ -338,7 +338,7 @@ fun MoreDataCard(more: List<WorkoutMetric>) {
     var open by rememberSaveable { mutableStateOf(false) }
     DashboardCard(onClick = { open = !open }) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            SectionLabel("More data", Modifier.weight(1f))
+            SectionLabel(stringResource(R.string.ult_more_data), Modifier.weight(1f))
             Icon(if (open) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore, contentDescription = null, tint = scheme.onSurfaceVariant)
         }
         AnimatedVisibility(open) {
@@ -364,7 +364,7 @@ fun RouteMapCard(track: List<LatLon>, tilesDir: File, hasBaseMap: Boolean, onOpe
     val scheme = MaterialTheme.colorScheme
     DashboardCard {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            SectionLabel("Route", Modifier.weight(1f))
+            SectionLabel(stringResource(R.string.ult_route), Modifier.weight(1f))
             if (hasBaseMap) Icon(Icons.Filled.OpenInFull, contentDescription = stringResource(R.string.ult_full_screen), tint = scheme.onSurfaceVariant,
                 modifier = Modifier.size(18.dp).clickable { onOpen() })
         }
