@@ -194,7 +194,11 @@ class UltimateDiscoveryActivity : AppCompatActivity(), BondingInterface, GBScanE
                     onRequestPermissions = { permissionLauncher.launch(requiredPermissions()) },
                     onDeviceClick = { onCandidateClicked(it) },
                     onOpenPairingPrefs = {
-                        startActivity(Intent(this, DiscoveryPairingPreferenceActivity::class.java))
+                        startActivity(
+                            nodomain.freeyourgadget.gadgetbridge.activities.ultimate.devsettings.UltimateXmlPrefsActivity.intent(
+                                this, R.xml.discovery_pairing_preferences, R.string.activity_prefs_discovery_pairing,
+                            ),
+                        )
                     },
                 )
             }
@@ -502,13 +506,13 @@ class UltimateDiscoveryActivity : AppCompatActivity(), BondingInterface, GBScanE
             .setMessage(R.string.ult_configure_auth_msg)
             .setIcon(R.drawable.ic_vpn_key)
             .setPositiveButton(R.string.ult_configure) { _, _ ->
-                val startIntent = Intent(this, DeviceSettingsActivity::class.java)
-                startIntent.putExtra(GBDevice.EXTRA_DEVICE, device)
-                startIntent.putExtra(
-                    DeviceSettingsActivity.MENU_ENTRY_POINT,
-                    DeviceSettingsActivity.MENU_ENTRY_POINTS.AUTH_SETTINGS,
+                // Open the native authentication settings (not the classic preference screen).
+                startActivity(
+                    nodomain.freeyourgadget.gadgetbridge.activities.ultimate.devsettings.UltimateDeviceSettingsActivity.intent(
+                        this, device,
+                        nodomain.freeyourgadget.gadgetbridge.activities.devicesettings.DeviceSpecificSettingsScreen.AUTHENTICATION.key,
+                    ),
                 )
-                startActivity(startIntent)
             }
             .setNegativeButton(pairLabel) { _, _ -> startPair(deviceCandidate, coordinator) }
             .setNeutralButton(R.string.ult_cancel, null)
