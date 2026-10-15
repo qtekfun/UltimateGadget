@@ -41,6 +41,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -118,6 +122,34 @@ private fun CatalogScreen(
     var loading by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf<String?>(null) }
 
+    // Search: filters the current level and, inside a country, looks for courses across all of its
+    // cities (their course lists are fetched once and cached for the life of the screen).
+    var query by remember { mutableStateOf("") }
+    val courseCache = remember { mutableStateMapOf<String, List<GolfCourseInfo>>() }
+    var searching by remember { mutableStateOf(false) }
+    var matches by remember { mutableStateOf<List<Pair<GolfCity, GolfCourseInfo>>>(emptyList()) }
+    val q = remember(query) { normalizeForSearch(query.trim()) }
+
+    LaunchedEffect(country, city, q, cities) {
+        val c = country
+        if (c == null || city != null || q.length < 2 || cities.isEmpty()) {
+            matches = emptyList(); searching = false
+            return@LaunchedEffect
+        }
+        kotlinx.coroutines.delay(350) // debounce typing
+        searching = true
+        for (ci in cities) {
+            if (ci.id !in courseCache) {
+                val list = runCatching { withContext(Dispatchers.IO) { InAppNetworkImpl.golfCourses(c, ci) } }.getOrNull()
+                if (list != null) courseCache[ci.id] = list
+            }
+            matches = cities.flatMap { cc ->
+                courseCache[cc.id].orEmpty().filter { normalizeForSearch(it.name).contains(q) }.map { cc to it }
+            }
+        }
+        searching = false
+    }
+
     fun <T> load(block: suspend () -> T, ok: (T) -> Unit) {
         loading = true; error = null
         scope.launch {
@@ -133,8 +165,8 @@ private fun CatalogScreen(
     // Back steps up one level before leaving the screen.
     val goBack = {
         when {
-            city != null -> { city = null; courses = emptyList() }
-            country != null -> { country = null; cities = emptyList() }
+            city != null -> { city = null; courses = emptyList(); query = "" }
+            country != null -> { country = null; cities = emptyList(); query = ""; courseCache.clear(); matches = emptyList() }
             else -> onBack()
         }
     }
@@ -156,31 +188,95 @@ private fun CatalogScreen(
         },
     ) { inner ->
         Column(Modifier.fillMaxSize().padding(inner).padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            if (loading) LinearProgressIndicator(Modifier.fillMaxWidth())
+            OutlinedTextField(
+                value = query,
+                onValueChange = { query = it },
+                singleLine = true,
+                leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
+                trailingIcon = {
+                    if (query.isNotEmpty()) {
+                        IconButton(onClick = { query = "" }) {
+                            Icon(Icons.Filled.Clear, contentDescription = stringResource(R.string.ult_clear))
+                        }
+                    }
+                },
+                placeholder = {
+                    Text(
+                        stringResource(
+                            when {
+                                city != null -> R.string.ult_golf_search_courses
+                                country != null -> R.string.ult_golf_search_country
+                                else -> R.string.ult_golf_search_countries
+                            },
+                        ),
+                    )
+                },
+                modifier = Modifier.fillMaxWidth(),
+            )
+            if (loading || searching) LinearProgressIndicator(Modifier.fillMaxWidth())
             error?.let { Text(it, color = palette.error, style = MaterialTheme.typography.bodySmall) }
             LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 when {
-                    country == null -> items(countries, key = { it.id }) { c ->
-                        CatalogRow(c.name, null) {
-                            country = c
-                            load({ InAppNetworkImpl.golfCities(c) }) { cities = it }
+                    country == null -> {
+                        val shown = countries.filter { q.isEmpty() || normalizeForSearch(it.name).contains(q) }
+                        items(shown, key = { it.id }) { c ->
+                            CatalogRow(c.name, null) {
+                                country = c
+                                query = ""
+                                load({ InAppNetworkImpl.golfCities(c) }) { cities = it }
+                            }
                         }
+                        if (shown.isEmpty() && !loading) item { NoResults() }
                     }
-                    city == null -> items(cities, key = { it.id }) { ci ->
-                        CatalogRow(ci.name, ci.province.ifBlank { null }) {
-                            city = ci
-                            load({ InAppNetworkImpl.golfCourses(country!!, ci) }) { courses = it }
+                    city == null -> {
+                        if (matches.isNotEmpty()) {
+                            item { SearchHeader(stringResource(R.string.ult_golf_courses)) }
+                            items(matches, key = { "m-" + it.second.id }) { (ci, co) ->
+                                CatalogRow(co.name, "${ci.name} · ${co.totalLength} m") {
+                                    if (!loading) load({ InAppNetworkImpl.downloadGolfCourse(context, country!!, co) }) { onPicked(it) }
+                                }
+                            }
+                            item { SearchHeader(stringResource(R.string.ult_golf_cities)) }
                         }
+                        val shown = cities.filter { q.isEmpty() || normalizeForSearch(it.name).contains(q) }
+                        items(shown, key = { it.id }) { ci ->
+                            CatalogRow(ci.name, ci.province.ifBlank { null }) {
+                                city = ci
+                                query = ""
+                                load({ InAppNetworkImpl.golfCourses(country!!, ci) }) { courses = it }
+                            }
+                        }
+                        if (shown.isEmpty() && matches.isEmpty() && !loading && !searching) item { NoResults() }
                     }
-                    else -> items(courses, key = { it.id }) { co ->
-                        CatalogRow(co.name, "${co.totalLength} m") {
-                            if (!loading) load({ InAppNetworkImpl.downloadGolfCourse(context, country!!, co) }) { onPicked(it) }
+                    else -> {
+                        val shown = courses.filter { q.isEmpty() || normalizeForSearch(it.name).contains(q) }
+                        items(shown, key = { it.id }) { co ->
+                            CatalogRow(co.name, "${co.totalLength} m") {
+                                if (!loading) load({ InAppNetworkImpl.downloadGolfCourse(context, country!!, co) }) { onPicked(it) }
+                            }
                         }
+                        if (shown.isEmpty() && !loading) item { NoResults() }
                     }
                 }
             }
         }
     }
+}
+
+/** Lower-cases and strips accents so "Málaga" matches "malaga". */
+private fun normalizeForSearch(s: String): String =
+    java.text.Normalizer.normalize(s.lowercase(), java.text.Normalizer.Form.NFD).replace(Regex("\\p{M}+"), "")
+
+@Composable
+private fun SearchHeader(text: String) {
+    val palette = LocalUltimatePalette.current
+    Text(text.uppercase(), style = MaterialTheme.typography.labelMedium, color = palette.primary)
+}
+
+@Composable
+private fun NoResults() {
+    val palette = LocalUltimatePalette.current
+    Text(stringResource(R.string.ult_no_results), color = palette.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
 }
 
 @Composable
