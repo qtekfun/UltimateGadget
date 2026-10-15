@@ -45,6 +45,7 @@ import nodomain.freeyourgadget.gadgetbridge.devices.cardo.Ls24xDeviceCoordinator
 import nodomain.freeyourgadget.gadgetbridge.devices.casio.ecbs100.CasioECBS100DeviceCoordinator;
 import nodomain.freeyourgadget.gadgetbridge.devices.casio.gb6900.CasioGB6900DeviceCoordinator;
 import nodomain.freeyourgadget.gadgetbridge.devices.casio.gbd200.CasioGBD200DeviceCoordinator;
+import nodomain.freeyourgadget.gadgetbridge.devices.casio.gbd800.CasioGBD800DeviceCoordinator;
 import nodomain.freeyourgadget.gadgetbridge.devices.casio.gbx100.CasioGBX100DeviceCoordinator;
 import nodomain.freeyourgadget.gadgetbridge.devices.casio.gwb5600.CasioGMWB5000DeviceCoordinator;
 import nodomain.freeyourgadget.gadgetbridge.devices.casio.gwb5600.CasioGWB5600DeviceCoordinator;
@@ -794,6 +795,7 @@ public enum DeviceType {
     CASIOGB6900(CasioGB6900DeviceCoordinator.class),
     CASIOGBX100(CasioGBX100DeviceCoordinator.class),
     CASIOGBD200(CasioGBD200DeviceCoordinator.class),
+    CASIOGBD800(CasioGBD800DeviceCoordinator.class),
     CASIOGWB5600(CasioGWB5600DeviceCoordinator.class),
     CASIOGMWB5000(CasioGMWB5000DeviceCoordinator.class),
     MISMARTSCALE(MiSmartScaleCoordinator.class),
