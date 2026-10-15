@@ -401,9 +401,7 @@ public class InitOperation extends AbstractBTLEOperation<CasioGBD200DeviceSuppor
                 if (feat == Casio2C2DSupport.FEATURE_SERVICE_DISCOVERY_MANAGER
                         && data.length > 1 && data[1] == 0x01) {
                     LOG.info("Init[INITIALIZED] 47 01 received → post-init reads");
-                    mSupport.setInitialized();
-                    mState = S_POST_COND_1;
-                    req(Casio2C2DSupport.FEATURE_WATCH_CONDITION);
+                    finalizeInit();
                 } else if (feat == Casio2C2DSupport.FEATURE_SERVICE_DISCOVERY_MANAGER
                         && data.length > 1 && data[1] == 0x02) {
                     // First-time pairing bonding request
@@ -471,10 +469,22 @@ public class InitOperation extends AbstractBTLEOperation<CasioGBD200DeviceSuppor
     }
 
     /**
+     * Mark the device initialised and start the post-init reads. Reached either on the 47 01 event
+     * (full watches like the GBD-200) or, for a reduced watch that never sends it, right after the
+     * time write. Moving the state out of {@code S_WAIT_INIT} makes this idempotent, so a late 47 01
+     * arriving after a timeout-free finalise is simply ignored.
+     */
+    private void finalizeInit() {
+        mSupport.setInitialized();
+        mState = S_POST_COND_1;
+        req(Casio2C2DSupport.FEATURE_WATCH_CONDITION);
+    }
+
+    /**
      * Advance the linear init past a step whose feature the watch does not implement (it answered
      * with an FF error frame). Each optional step hands off to the next request, so a watch that
-     * lacks several of them still reaches the final time write, the 47 01 "initialized" event and
-     * the post-init reads.
+     * lacks several of them still reaches the final time write, initialisation and the post-init
+     * reads.
      */
     private void skipUnsupportedFeature() {
         switch (mState) {
@@ -496,9 +506,11 @@ public class InitOperation extends AbstractBTLEOperation<CasioGBD200DeviceSuppor
                 req(Casio2C2DSupport.FEATURE_SETTING_FOR_USER_PROFILE);
                 break;
             case S_USER_PROF:
-                // No user-profile slot: write the time and wait for the init event.
+                // A watch this reduced (e.g. the GBD-800) does not send the 47 01 "initialized"
+                // event at all — the official app just writes the time and moves on. Waiting for
+                // 47 01 would hang forever, so write the time and finalise right away.
                 writeCurrentTime();
-                mState = S_WAIT_INIT;
+                finalizeInit();
                 break;
             case S_POST_BASIC:
                 // The GBD-800 does not expose SETTING_FOR_BASIC (0x13): skip the post-init read.

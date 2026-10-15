@@ -495,17 +495,12 @@ class UltimateDiscoveryActivity : AppCompatActivity(), BondingInterface, GBScanE
         // If the authentication value is already configured for this device, pairing is safe, so
         // the pairing button is a plain "Pair" rather than the "…de todas formas" warning.
         val alreadyConfigured = hasAuthConfigured(deviceCandidate.macAddress)
-        val pairLabel = if (alreadyConfigured) "Pair" else "Pair anyway"
+        val pairLabel = if (alreadyConfigured) getString(R.string.ult_pair) else getString(R.string.ult_pair_anyway)
         MaterialAlertDialogBuilder(this)
-            .setTitle("Configure authentication?")
-            .setMessage(
-                "This device may require you to configure authentication (for example, a " +
-                    "Huawei account) before pairing. Pairing without it can make the watch " +
-                    "unlink and factory-reset itself.\n\nConfigure it now and tap the device " +
-                    "again to pair — or pair anyway.",
-            )
+            .setTitle(R.string.ult_configure_auth_title)
+            .setMessage(R.string.ult_configure_auth_msg)
             .setIcon(R.drawable.ic_vpn_key)
-            .setPositiveButton("Configurar") { _, _ ->
+            .setPositiveButton(R.string.ult_configure) { _, _ ->
                 val startIntent = Intent(this, DeviceSettingsActivity::class.java)
                 startIntent.putExtra(GBDevice.EXTRA_DEVICE, device)
                 startIntent.putExtra(
@@ -515,7 +510,7 @@ class UltimateDiscoveryActivity : AppCompatActivity(), BondingInterface, GBScanE
                 startActivity(startIntent)
             }
             .setNegativeButton(pairLabel) { _, _ -> startPair(deviceCandidate, coordinator) }
-            .setNeutralButton("Cancel", null)
+            .setNeutralButton(R.string.ult_cancel, null)
             .show()
     }
 
@@ -563,7 +558,7 @@ class UltimateDiscoveryActivity : AppCompatActivity(), BondingInterface, GBScanE
         }
         val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         clipboard.setPrimaryClip(ClipData.newPlainText(deviceCandidate.name, details.joinToString(", ")))
-        GB.toast(this, "Device details copied to clipboard", Toast.LENGTH_SHORT, GB.INFO)
+        GB.toast(this, getString(R.string.ult_device_details_copied), Toast.LENGTH_SHORT, GB.INFO)
     }
 
     // endregion
