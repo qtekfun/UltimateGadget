@@ -54,6 +54,55 @@ public class HuaweiP2PGolfService extends HuaweiBaseP2PService {
 
     private String currentPackage = PACKAGE_SPORT_WATCH;
 
+    // Golf runs under a different package on sport watches (GT family) and on HarmonyOS-family
+    // watches. The right one is learned: start from the remembered one (default sport), and if the
+    // watch does not answer, or accepts a course upload but never lists it, try the other once.
+    private static final String PREF_GOLF_PACKAGE = "huawei_golf_package";
+    private static final String PKG_PREF_SPORT = "sport";
+    private static final String PKG_PREF_HARMONY = "harmony";
+    private String activePackage = PACKAGE_SPORT_WATCH;
+    private boolean packageFallbackTried = false;
+    private final android.os.Handler handler = new android.os.Handler(android.os.Looper.getMainLooper());
+
+    private void loadActivePackage() {
+        try {
+            final String saved = nodomain.freeyourgadget.gadgetbridge.GBApplication
+                    .getDeviceSpecificSharedPrefs(manager.getSupportProvider().getDeviceMac())
+                    .getString(PREF_GOLF_PACKAGE, PKG_PREF_SPORT);
+            activePackage = PKG_PREF_HARMONY.equals(saved) ? PACKAGE_HARMONY_WATCH : PACKAGE_SPORT_WATCH;
+        } catch (Exception e) {
+            activePackage = PACKAGE_SPORT_WATCH;
+        }
+        currentPackage = activePackage;
+    }
+
+    private void rememberActivePackage() {
+        try {
+            nodomain.freeyourgadget.gadgetbridge.GBApplication
+                    .getDeviceSpecificSharedPrefs(manager.getSupportProvider().getDeviceMac())
+                    .edit()
+                    .putString(PREF_GOLF_PACKAGE, PACKAGE_HARMONY_WATCH.equals(activePackage) ? PKG_PREF_HARMONY : PKG_PREF_SPORT)
+                    .apply();
+        } catch (Exception e) {
+            LOG.warn("Golf: could not store the golf package", e);
+        }
+    }
+
+    /** Switches to the other golf package once; returns false if that was already tried. */
+    private boolean switchPackageOnce() {
+        if (packageFallbackTried) return false;
+        packageFallbackTried = true;
+        activePackage = PACKAGE_SPORT_WATCH.equals(activePackage) ? PACKAGE_HARMONY_WATCH : PACKAGE_SPORT_WATCH;
+        currentPackage = activePackage;
+        LOG.info("Golf: switching to package {}", activePackage);
+        return true;
+    }
+
+    // Last course send in flight, so it can be retried under the other package.
+    private int pendingSendId = -1;
+    private int pendingSendVersion;
+    private byte[] pendingSendData;
+
     public HuaweiP2PGolfService(HuaweiP2PManager manager) {
         super(manager);
     }
@@ -76,7 +125,7 @@ public class HuaweiP2PGolfService extends HuaweiBaseP2PService {
     @Override
     public void registered() {
         LOG.info("HuaweiP2PGolfService registered");
-        currentPackage = PACKAGE_SPORT_WATCH;
+        loadActivePackage();
     }
 
     // Golf business messages: 36 byte header (7 little-endian ints + 8 reserved bytes) + payload.
@@ -99,7 +148,7 @@ public class HuaweiP2PGolfService extends HuaweiBaseP2PService {
 
     /** Read-only: asks the watch which courses it has downloaded. */
     private void requestLocalCourseList(final Runnable next) {
-        currentPackage = PACKAGE_SPORT_WATCH;
+        currentPackage = activePackage;
         final byte[] msg = buildMessage(TYPE_LOCAL_COURSE_LIST, 1, new byte[]{1, 0, 0, 0});
         LOG.info("Golf probe: sending local course list request ({} bytes)", msg.length);
         sendCommand(msg, (code, data) -> {
@@ -147,6 +196,8 @@ public class HuaweiP2PGolfService extends HuaweiBaseP2PService {
         LOG.info("HuaweiP2PGolfService payload: {}", StringUtils.bytesToHex(java.util.Arrays.copyOfRange(data, HEADER_SIZE, Math.min(data.length, HEADER_SIZE + 64))));
 
         if (type == TYPE_LOCAL_COURSE_LIST && data.length >= HEADER_SIZE + 4) {
+            // The watch answered under the current package: remember it.
+            rememberActivePackage();
             final int courseCount = ByteBuffer.wrap(data, HEADER_SIZE, 4).order(ByteOrder.LITTLE_ENDIAN).getInt();
             // Each record is 20 bytes: courseId(4 LE) + version(4) + flag(4) + 8 reserved.
             final StringBuilder ids = new StringBuilder();
@@ -193,7 +244,7 @@ public class HuaweiP2PGolfService extends HuaweiBaseP2PService {
 
     /** Delete courses from the watch (type 15): count header + N x courseId (LE). */
     public void deleteCourses(int[] courseIds) {
-        currentPackage = PACKAGE_SPORT_WATCH;
+        currentPackage = activePackage;
         final ByteBuffer payload = ByteBuffer.allocate(4 + courseIds.length * 4).order(ByteOrder.LITTLE_ENDIAN);
         payload.putInt(courseIds.length); // GolfNumberHeader
         for (int id : courseIds) payload.putInt(id);
@@ -221,12 +272,18 @@ public class HuaweiP2PGolfService extends HuaweiBaseP2PService {
 
     /** Ask the watch for its downloaded courses; the aggregated list is sent via ACTION_GOLF_COURSE_LIST. */
     public void requestCourseListAndBroadcast() {
-        currentPackage = PACKAGE_SPORT_WATCH;
+        currentPackage = activePackage;
         listCollector.clear();
         collectingList = true;
         final byte[] msg = buildMessage(TYPE_LOCAL_COURSE_LIST, 1, new byte[]{1, 0, 0, 0});
-        LOG.info("Golf: requesting course list for UI");
+        LOG.info("Golf: requesting course list for UI (package {})", activePackage);
         sendCommand(msg, (code, data) -> LOG.info("Golf: course list request ack {}", code));
+        // No reply in time under this package: try the other one once.
+        handler.postDelayed(() -> {
+            if (collectingList && listCollector.isEmpty() && switchPackageOnce()) {
+                requestCourseListAndBroadcast();
+            }
+        }, 6000);
     }
 
     /** Read a course .bin from a local file and send it to the watch (shake + wrapped type-11 file). */
@@ -243,6 +300,20 @@ public class HuaweiP2PGolfService extends HuaweiBaseP2PService {
     }
 
     private void broadcastCourseList() {
+        if (pendingSendId >= 0 && pendingSendData != null) {
+            if (listCollector.containsKey(pendingSendId)) {
+                pendingSendId = -1;
+                pendingSendData = null;
+            } else if (switchPackageOnce()) {
+                // Uploaded but not listed: the watch may expect the other golf package. Retry once.
+                final int id = pendingSendId;
+                final int version = pendingSendVersion;
+                final byte[] data = pendingSendData;
+                LOG.info("Golf: course {} not listed after upload; retrying under {}", id, activePackage);
+                sendCourseMap(id, version, data);
+                return;
+            }
+        }
         final int[] ids = new int[listCollector.size()];
         final int[] versions = new int[listCollector.size()];
         int i = 0;
@@ -266,12 +337,15 @@ public class HuaweiP2PGolfService extends HuaweiBaseP2PService {
      * (no separate type-12). Vector maps need no key.
      */
     private void sendCourseMap(int courseId, int version, byte[] data) {
+        pendingSendId = courseId;
+        pendingSendVersion = version;
+        pendingSendData = data;
         sendPushShake(courseId, PUSH_MSG_ID, () -> uploadCourseFile(courseId, version, data));
     }
 
     /** Announce the incoming course: type 14, payload = courseId + the upcoming file's msgId. */
     private void sendPushShake(int courseId, int fileMsgId, Runnable next) {
-        currentPackage = PACKAGE_SPORT_WATCH;
+        currentPackage = activePackage;
         final ByteBuffer payload = ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN);
         payload.putInt(courseId);
         payload.putInt(fileMsgId);
@@ -285,7 +359,7 @@ public class HuaweiP2PGolfService extends HuaweiBaseP2PService {
 
     /** Upload the wrapped type-11 course file as "<courseId>.bin". */
     private void uploadCourseFile(int courseId, int version, byte[] data) {
-        currentPackage = PACKAGE_SPORT_WATCH;
+        currentPackage = activePackage;
         // business head = courseId(4) + version(4); payload = businessHead + raw map bytes
         final ByteBuffer payload = ByteBuffer.allocate(8 + data.length).order(ByteOrder.LITTLE_ENDIAN);
         payload.putInt(courseId);
