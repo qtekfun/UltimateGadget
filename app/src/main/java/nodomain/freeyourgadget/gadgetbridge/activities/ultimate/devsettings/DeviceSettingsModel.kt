@@ -106,6 +106,13 @@ sealed interface PrefNode {
         val iconRes: Int,
     ) : PrefNode
 
+    /** A read-only information row (title + current value); not interactive and never persisted. */
+    data class Info(
+        val title: String,
+        val summary: String?,
+        val iconRes: Int,
+    ) : PrefNode
+
     /** A nested, navigable screen (androidx nested {@code PreferenceScreen}). */
     data class SubScreen(
         val key: String?,
