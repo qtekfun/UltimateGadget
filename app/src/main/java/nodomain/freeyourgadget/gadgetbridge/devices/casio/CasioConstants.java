@@ -140,6 +140,7 @@ public final class CasioConstants {
         OPTION_TIMEFORMAT,
         OPTION_KEY_VIBRATION,
         OPTION_OPERATING_SOUNDS,
+        OPTION_POWER_SAVING,
         OPTION_ALL
     }
 

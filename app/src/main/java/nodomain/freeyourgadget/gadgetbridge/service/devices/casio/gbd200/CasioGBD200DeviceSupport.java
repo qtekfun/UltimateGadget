@@ -85,6 +85,7 @@ import static nodomain.freeyourgadget.gadgetbridge.activities.devicesettings.Dev
 import static nodomain.freeyourgadget.gadgetbridge.activities.devicesettings.DeviceSettingsPreferenceConst.PREF_FIND_PHONE_DURATION;
 import static nodomain.freeyourgadget.gadgetbridge.activities.devicesettings.DeviceSettingsPreferenceConst.PREF_KEY_VIBRATION;
 import static nodomain.freeyourgadget.gadgetbridge.activities.devicesettings.DeviceSettingsPreferenceConst.PREF_OPERATING_SOUNDS;
+import static nodomain.freeyourgadget.gadgetbridge.activities.devicesettings.DeviceSettingsPreferenceConst.PREF_POWER_SAVING;
 import static nodomain.freeyourgadget.gadgetbridge.activities.devicesettings.DeviceSettingsPreferenceConst.PREF_PREVIEW_MESSAGE_IN_TITLE;
 import static nodomain.freeyourgadget.gadgetbridge.activities.devicesettings.DeviceSettingsPreferenceConst.PREF_TIMEFORMAT;
 import static nodomain.freeyourgadget.gadgetbridge.model.ActivityUser.PREF_USER_ACTIVETIME_MINUTES;
@@ -791,6 +792,9 @@ public class CasioGBD200DeviceSupport extends Casio2C2DSupport
                 case PREF_OPERATING_SOUNDS:
                     new nodomain.freeyourgadget.gadgetbridge.service.devices.casio.gbx100
                             .SetConfigurationOperation(this, CasioConstants.ConfigurationOption.OPTION_OPERATING_SOUNDS).perform(); break;
+                case PREF_POWER_SAVING:
+                    new nodomain.freeyourgadget.gadgetbridge.service.devices.casio.gbx100
+                            .SetConfigurationOperation(this, CasioConstants.ConfigurationOption.OPTION_POWER_SAVING).perform(); break;
                 default:
                     break;
             }
