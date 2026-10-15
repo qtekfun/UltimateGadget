@@ -375,4 +375,43 @@
     <string name="ult_edit_fmt">Editar \"%1$s\"</string>
     <string name="ult_no_tracks_uploaded">No hay pistas subidas al reloj. Añade música desde la pestaña Pistas primero.</string>
     <string name="ult_untitled">(sin título)</string>
+
+    <!-- Copia de seguridad / importar-exportar -->
+    <string name="ult_dio_backup_created">Copia completa cifrada creada correctamente. Incluye la base de datos (entrenos, actividad, sueño, pulso), los ajustes de la app y de cada dispositivo y las rutas guardadas. Guárdala y recuerda la contraseña: sin ella no se puede restaurar.</string>
+    <string name="ult_dio_export_failed">Error al exportar: %1$s</string>
+    <string name="ult_dio_restored">Copia restaurada: base de datos + %1$d archivos de ajustes</string>
+    <string name="ult_dio_restored_routes">" + %1$d rutas"</string>
+    <string name="ult_dio_restored_tail">. Reinicia la app para aplicar los cambios. Nota: el emparejado Bluetooth no se puede restaurar (pertenece a Android); reconecta el reloj desde la app.</string>
+    <string name="ult_dio_import_failed">Error al importar: %1$s</string>
+    <string name="ult_dio_db_exported">Base de datos exportada (sin cifrar, solo la BD).</string>
+    <string name="ult_backup">Copia de seguridad</string>
+    <string name="ult_dio_enc_title">Copia completa cifrada</string>
+    <string name="ult_dio_enc_body">Crea un único archivo .ugbak que puedes llevar a otro teléfono. Incluye la base de datos (entrenos, actividad, sueño, pulso), todos los ajustes (app y de cada dispositivo) y las rutas guardadas. Se cifra con tu contraseña (AES-256). Sin la contraseña no se puede restaurar, así que no la olvides.</string>
+    <string name="ult_dio_enc_btn">Crear copia cifrada…</string>
+    <string name="ult_dio_restore_title">Restaurar copia completa</string>
+    <string name="ult_dio_restore_body">Elige un archivo .ugbak y escribe su contraseña. SOBRESCRIBE la base de datos y los ajustes actuales con los de la copia. Después debes reiniciar la app para que los cambios surtan efecto.</string>
+    <string name="ult_dio_choose_btn">Elegir copia…</string>
+    <string name="ult_dio_move_title">Al cambiar de teléfono</string>
+    <string name="ult_dio_move_body">El emparejado Bluetooth (las claves de vínculo del reloj) lo guarda Android, NO la app, así que no se puede exportar. En el teléfono nuevo, tras restaurar la copia tendrás que reconectar/emparejar el reloj desde la app. Los entrenos, ajustes y el dispositivo guardado SÍ se restauran.</string>
+    <string name="ult_dio_restart_app">Reiniciar app</string>
+    <string name="ult_dio_restart_ready">Restauración lista. Reinicia la app para aplicar los cambios y ver los datos restaurados. Al volver, tu reloj se reconecta automáticamente.</string>
+    <string name="ult_dio_restart_hint">Cierra y reabre la app limpiamente. Útil tras restaurar una copia.</string>
+    <string name="ult_dio_dbonly_title">Exportar solo la base de datos (sin cifrar)</string>
+    <string name="ult_dio_dbonly_body">Opción heredada: guarda solo el archivo de la base de datos, sin ajustes ni cifrado. Útil para interoperar con copias de Gadgetbridge.</string>
+    <string name="ult_dio_dbonly_btn">Exportar solo BD…</string>
+    <string name="ult_working">Trabajando…</string>
+    <string name="ult_dio_restart_title">Reiniciar la app</string>
+    <string name="ult_dio_restart_confirm">La app se cerrará y reiniciará para aplicar la restauración. ¿Continuar?</string>
+    <string name="ult_dio_restart">Reiniciar</string>
+    <string name="ult_dio_pw_short">La contraseña debe tener al menos 6 caracteres.</string>
+    <string name="ult_dio_pw_mismatch">Las contraseñas no coinciden.</string>
+    <string name="ult_dio_pw_title">Contraseña de la copia</string>
+    <string name="ult_dio_pw_choose">Elige una contraseña para cifrar la copia. La necesitarás para restaurarla; no se puede recuperar si la pierdes.</string>
+    <string name="ult_password">Contraseña</string>
+    <string name="ult_dio_pw_repeat">Repite la contraseña</string>
+    <string name="ult_hide">Ocultar</string>
+    <string name="ult_show">Mostrar</string>
+    <string name="ult_dio_encrypt_save">Cifrar y guardar</string>
+    <string name="ult_dio_pw_type">Escribe la contraseña con la que se cifró esta copia para restaurarla.</string>
+    <string name="ult_restore">Restaurar</string>
 </resources>
