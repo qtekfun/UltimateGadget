@@ -2,6 +2,10 @@
 
 <!-- For contributors: do not modify this file - the project maintainers will update it as needed -->
 
+#### 0.115.15
+
+* The whole interface is now properly translated. Every screen of the new interface reads its text from resources with an English base and a Spanish translation, so the app no longer mixes English and Spanish on the same screen (home, device, pairing, dashboard, sleep, performance, goals, readiness, clock, music, watchfaces, apps, A-GNSS, golf, maps, notifications, backup, settings, about, reports and PDF export). Other languages fall back to English until they are translated
+
 #### 0.115.14
 
 * Home: the heart rate on the main screen no longer reads 0 when there is nothing from the last few hours. A device that measures periodically or has not synced recently (such as a ring) now shows its most recent reading instead of 0
