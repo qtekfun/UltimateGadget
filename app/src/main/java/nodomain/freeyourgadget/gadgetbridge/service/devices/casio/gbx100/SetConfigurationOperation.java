@@ -41,6 +41,7 @@ import nodomain.freeyourgadget.gadgetbridge.util.BcdUtil;
 import static nodomain.freeyourgadget.gadgetbridge.activities.devicesettings.DeviceSettingsPreferenceConst.PREF_AUTOLIGHT;
 import static nodomain.freeyourgadget.gadgetbridge.activities.devicesettings.DeviceSettingsPreferenceConst.PREF_KEY_VIBRATION;
 import static nodomain.freeyourgadget.gadgetbridge.activities.devicesettings.DeviceSettingsPreferenceConst.PREF_OPERATING_SOUNDS;
+import static nodomain.freeyourgadget.gadgetbridge.activities.devicesettings.DeviceSettingsPreferenceConst.PREF_POWER_SAVING;
 import static nodomain.freeyourgadget.gadgetbridge.activities.devicesettings.DeviceSettingsPreferenceConst.PREF_WEARLOCATION;
 import static nodomain.freeyourgadget.gadgetbridge.model.ActivityUser.GENDER_MALE;
 
@@ -228,6 +229,17 @@ public class SetConfigurationOperation extends AbstractBTLEOperation<Casio2C2DSu
                     data[1] &= ~0x02;
                 } else {
                     data[1] |= 0x02;
+                }
+
+                // Power saving (index 1, bit 0x10). Only touched when the device actually exposes
+                // the setting (e.g. Casio GD-B500), so models that don't (GBX-100 / GBD-200) keep
+                // whatever the watch currently has. Verified by HCI snoop on a GD-B500: ON -> bit set.
+                if (sharedPreferences.contains(PREF_POWER_SAVING)) {
+                    if (sharedPreferences.getBoolean(PREF_POWER_SAVING, false)) {
+                        data[1] |= 0x10;
+                    } else {
+                        data[1] &= ~0x10;
+                    }
                 }
 
                 if(Arrays.equals(oldData, data)) {

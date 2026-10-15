@@ -16,10 +16,12 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 package nodomain.freeyourgadget.gadgetbridge.devices.casio.gdb500;
 
+import java.util.Arrays;
 import java.util.regex.Pattern;
 
 import nodomain.freeyourgadget.gadgetbridge.R;
 import nodomain.freeyourgadget.gadgetbridge.devices.casio.gbd200.CasioGBD200DeviceCoordinator;
+import nodomain.freeyourgadget.gadgetbridge.impl.GBDevice;
 
 /**
  * Casio G-SHOCK GD-B500 (module 3552). Reverse-engineered via a BT HCI snoop of the CASIO WATCHES
@@ -39,5 +41,15 @@ public class CasioGDB500DeviceCoordinator extends CasioGBD200DeviceCoordinator {
     @Override
     public int getDeviceNameResource() {
         return R.string.devicetype_casiogdb500;
+    }
+
+    @Override
+    public int[] getSupportedDeviceSpecificSettings(final GBDevice device) {
+        // Same as the GBD-200, plus the power-saving toggle, which the GD-B500 exposes (feature
+        // 0x13 SETTING_FOR_BASIC, bit 0x10 — confirmed by HCI snoop).
+        final int[] base = super.getSupportedDeviceSpecificSettings(device);
+        final int[] out = Arrays.copyOf(base, base.length + 1);
+        out[base.length] = R.xml.devicesettings_power_saving;
+        return out;
     }
 }
