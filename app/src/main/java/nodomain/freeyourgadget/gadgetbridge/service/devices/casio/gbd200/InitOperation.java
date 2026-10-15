@@ -245,6 +245,20 @@ public class InitOperation extends AbstractBTLEOperation<CasioGBD200DeviceSuppor
 
         byte feat = data[0];
 
+        // Simpler watches on this protocol (e.g. the GBD-800) do not implement every optional
+        // feature and answer an unsupported request with an error frame (FF <code> <feature>)
+        // instead of that feature's own reply. The linear init must never block forever waiting
+        // for a reply that will never come, so treat the error as "feature absent" and advance to
+        // the next step. The step to skip is chosen from the current state, not the frame, so a
+        // watch that lacks several of them still reaches the final time write and the 47 01 event.
+        if (feat == (byte) 0xff) {
+            final byte failed = data.length >= 3 ? data[2] : (byte) 0x00;
+            LOG.warn("Init: watch rejected feature 0x{} in state {} — skipping it",
+                    String.format("%02x", failed), mState);
+            skipUnsupportedFeature();
+            return true;
+        }
+
         switch (mState) {
             case S_APP_INFO:
                 if (feat == Casio2C2DSupport.FEATURE_APP_INFORMATION) {
@@ -454,6 +468,47 @@ public class InitOperation extends AbstractBTLEOperation<CasioGBD200DeviceSuppor
         }
 
         return true;
+    }
+
+    /**
+     * Advance the linear init past a step whose feature the watch does not implement (it answered
+     * with an FF error frame). Each optional step hands off to the next request, so a watch that
+     * lacks several of them still reaches the final time write, the 47 01 "initialized" event and
+     * the post-init reads.
+     */
+    private void skipUnsupportedFeature() {
+        switch (mState) {
+            case S_DST_WATCH:
+            case S_DST_SETTING_0:
+            case S_DST_SETTING_1:
+                // No DST tables on this watch: go straight to the world-city probe.
+                mState = S_WORLD_CITY_0;
+                req(Casio2C2DSupport.FEATURE_WORLD_CITY, (byte) 0x00);
+                break;
+            case S_WORLD_CITY_0:
+            case S_WORLD_CITY_1:
+                // No world-time cities (e.g. GBD-800): move on to FEAT_2F.
+                mState = S_FEAT_2F;
+                req(Casio2C2DSupport.FEATURE_FEAT_2F);
+                break;
+            case S_FEAT_2F:
+                mState = S_USER_PROF;
+                req(Casio2C2DSupport.FEATURE_SETTING_FOR_USER_PROFILE);
+                break;
+            case S_USER_PROF:
+                // No user-profile slot: write the time and wait for the init event.
+                writeCurrentTime();
+                mState = S_WAIT_INIT;
+                break;
+            case S_POST_BASIC:
+                // The GBD-800 does not expose SETTING_FOR_BASIC (0x13): skip the post-init read.
+                mState = S_POST_VER_INFO;
+                req(Casio2C2DSupport.FEATURE_VERSION_INFORMATION);
+                break;
+            default:
+                LOG.warn("Init: no skip path for state {}, init may stall", mState);
+                break;
+        }
     }
 
     @Override
