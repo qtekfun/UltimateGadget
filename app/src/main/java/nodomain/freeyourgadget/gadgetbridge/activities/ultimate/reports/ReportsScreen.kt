@@ -16,6 +16,8 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 package nodomain.freeyourgadget.gadgetbridge.activities.ultimate.reports
 
+import nodomain.freeyourgadget.gadgetbridge.R
+import androidx.compose.ui.res.stringResource
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
@@ -102,10 +104,10 @@ fun ReportsScreen(
         containerColor = scheme.background,
         topBar = {
             TopAppBar(
-                title = { Text("Reports", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.ult_reports), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.ult_back))
                     }
                 },
                 actions = {
@@ -119,16 +121,16 @@ fun ReportsScreen(
                                 if (file != null) ReportPdfExporter.shareFile(context, file)
                             }
                         }) {
-                            Icon(Icons.Filled.Share, contentDescription = "Compartir informe en PDF")
+                            Icon(Icons.Filled.Share, contentDescription = stringResource(R.string.ult_share_pdf))
                         }
                         IconButton(onClick = {
                             runCatching { saveLauncher.launch(ReportPdfExporter.suggestedName(s)) }
                         }) {
-                            Icon(Icons.Filled.SaveAlt, contentDescription = "Guardar informe en PDF")
+                            Icon(Icons.Filled.SaveAlt, contentDescription = stringResource(R.string.ult_save_pdf))
                         }
                     }
                     IconButton(onClick = onOpenGoals) {
-                        Icon(Icons.Filled.EmojiEvents, contentDescription = "Goals and medals")
+                        Icon(Icons.Filled.EmojiEvents, contentDescription = stringResource(R.string.ult_goals_medals))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -258,7 +260,7 @@ private fun StepsChartCard(summary: ReportSummary, barColor: Color, trackColor: 
             labelColor = labelColor,
         )
         Spacer(Modifier.height(8.dp))
-        Text("Total ${"%,d".format(summary.totalSteps)} pasos",
+        Text(stringResource(R.string.ult_total_steps, summary.totalSteps),
             color = scheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
     }
 }

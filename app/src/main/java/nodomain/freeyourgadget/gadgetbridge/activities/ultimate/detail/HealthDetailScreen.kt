@@ -89,7 +89,7 @@ fun HealthDetailScreen(
                 title = { Text(titleFor(card), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.ult_back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -218,7 +218,7 @@ private fun WorkoutsDetail(workouts: List<WorkoutRow>, onOpenWorkout: (WorkoutRo
             FilterChip(
                 selected = selected == null,
                 onClick = { selected = null },
-                label = { Text("Todos") },
+                label = { Text(stringResource(R.string.ult_all)) },
             )
             types.forEach { t ->
                 FilterChip(

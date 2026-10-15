@@ -16,6 +16,8 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 package nodomain.freeyourgadget.gadgetbridge.activities.ultimate.phonemaps
 
+import nodomain.freeyourgadget.gadgetbridge.R
+import androidx.compose.ui.res.stringResource
 import android.os.Bundle
 import android.text.format.Formatter
 import androidx.activity.compose.setContent
@@ -99,7 +101,7 @@ private fun PhoneMapsScreen(onBack: () -> Unit) {
         containerColor = palette.background,
         topBar = {
             TopAppBar(
-                title = { Text("Phone maps") },
+                title = { Text(stringResource(R.string.ult_menu_phone_maps)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Filled.ArrowBack, contentDescription = null)
@@ -118,15 +120,14 @@ private fun PhoneMapsScreen(onBack: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text(
-                "Base maps for the viewer (planner and workouts). Download a .pmtiles from the releases of " +
-                    "UltimateGadget-maps / ultimate-maps-data (or with UltimateMaps) and import it here." +
-                    if (InAppNetworkImpl.available) " You can also download them from the catalog." else "",
+                stringResource(R.string.ult_pmaps_explain) +
+                    if (InAppNetworkImpl.available) stringResource(R.string.ult_pmaps_explain_catalog) else "",
                 style = MaterialTheme.typography.bodyMedium,
                 color = palette.onSurfaceVariant,
             )
             Button(onClick = { picker.launch(arrayOf("*/*")) }) {
                 Icon(Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(18.dp))
-                Text("  Import map (.pmtiles)")
+                Text(stringResource(R.string.ult_pmaps_import))
             }
             if (InAppNetworkImpl.available) {
                 OutlinedButton(
@@ -136,18 +137,18 @@ private fun PhoneMapsScreen(onBack: () -> Unit) {
                         scope.launch(Dispatchers.IO) {
                             runCatching { InAppNetworkImpl.fetchMapCatalog() }
                                 .onSuccess { catalog = it }
-                                .onFailure { catalogError = it.message ?: "Network error" }
+                                .onFailure { catalogError = it.message ?: context.getString(R.string.ult_network_error) }
                             loadingCatalog = false
                         }
                     },
-                ) { Text(if (loadingCatalog) "Loading catalog…" else "Download from the catalog") }
+                ) { Text(if (loadingCatalog) stringResource(R.string.ult_pmaps_loading) else stringResource(R.string.ult_pmaps_download)) }
                 catalogError?.let { Text(it, color = palette.error, style = MaterialTheme.typography.bodySmall) }
             }
             LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 val remote = catalog
                 if (remote != null) {
                     item(key = "catalog-header") {
-                        Text("Catalog", style = MaterialTheme.typography.titleSmall, color = palette.onSurfaceVariant)
+                        Text(stringResource(R.string.ult_catalog), style = MaterialTheme.typography.titleSmall, color = palette.onSurfaceVariant)
                     }
                     items(remote, key = { "remote-" + it.id }) { r ->
                         val busy = downloadingId == r.id
@@ -175,24 +176,24 @@ private fun PhoneMapsScreen(onBack: () -> Unit) {
                                                     InAppNetworkImpl.downloadMap(context, r.id) { done, total ->
                                                         progress = if (total > 0) (done.toFloat() / total).coerceIn(0f, 1f) else 0f
                                                     }
-                                                }.onFailure { catalogError = it.message ?: "Download error" }
+                                                }.onFailure { catalogError = it.message ?: context.getString(R.string.ult_download_error) }
                                                 maps = PhoneMapStore.installed(context)
                                                 downloadingId = null
                                             }
                                         },
-                                    ) { Icon(Icons.Filled.Download, contentDescription = "Download", tint = palette.secondary) }
+                                    ) { Icon(Icons.Filled.Download, contentDescription = stringResource(R.string.ult_download), tint = palette.secondary) }
                                 }
                                 if (busy) LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth())
                             }
                         }
                     }
                     item(key = "installed-header") {
-                        Text("Instalados", style = MaterialTheme.typography.titleSmall, color = palette.onSurfaceVariant)
+                        Text(stringResource(R.string.ult_pmaps_installed), style = MaterialTheme.typography.titleSmall, color = palette.onSurfaceVariant)
                     }
                 }
                 if (maps.isEmpty()) {
                     item(key = "none") {
-                        Text("No maps installed.", style = MaterialTheme.typography.bodyMedium, color = palette.onSurfaceVariant)
+                        Text(stringResource(R.string.ult_pmaps_none), style = MaterialTheme.typography.bodyMedium, color = palette.onSurfaceVariant)
                     }
                 }
                 items(maps, key = { it.name }) { m ->
@@ -219,7 +220,7 @@ private fun PhoneMapsScreen(onBack: () -> Unit) {
                                 PhoneMapStore.delete(context, m.name)
                                 maps = PhoneMapStore.installed(context)
                             }) {
-                                Icon(Icons.Filled.Delete, contentDescription = "Delete", tint = palette.error)
+                                Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.ult_delete), tint = palette.error)
                             }
                         }
                     }

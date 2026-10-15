@@ -141,7 +141,7 @@ private fun AlarmsScreen(device: GBDevice, onBack: () -> Unit) {
         .sortedWith(compareBy({ it.hour }, { it.minute }))
 
     ClockScaffold(
-        title = "Alarms",
+        title = stringResource(R.string.ult_alarms),
         onBack = onBack,
         floatingActionButton = {
             val palette = LocalUltimatePalette.current
@@ -234,7 +234,7 @@ private fun AlarmCard(
                     }
                 }
                 IconButton(onClick = onDelete) {
-                    Icon(Icons.Filled.Delete, contentDescription = "Eliminar", tint = palette.error)
+                    Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.ult_delete), tint = palette.error)
                 }
             }
         }
@@ -312,7 +312,7 @@ private fun AlarmEditor(
                 alarm.smartWakeup = supportsSmart && (smartWakeup || forcedSmart)
                 if (supportsTitle) alarm.title = title
                 onSave()
-            }) { Text("Save", color = palette.primary, fontWeight = FontWeight.Bold) }
+            }) { Text(stringResource(R.string.ult_save), color = palette.primary, fontWeight = FontWeight.Bold) }
         },
     ) {
         Column(
@@ -359,7 +359,7 @@ private fun AlarmEditor(
             }
             if (supportsSnooze) {
                 ToggleRow(
-                    title = "Posponer",
+                    title = stringResource(R.string.ult_snooze),
                     subtitle = stringResource(R.string.ult_allow_snooze),
                     checked = snooze,
                     onChange = { snooze = it },

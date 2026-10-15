@@ -16,6 +16,8 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 package nodomain.freeyourgadget.gadgetbridge.activities.ultimate.export
 
+import nodomain.freeyourgadget.gadgetbridge.R
+import androidx.compose.ui.res.stringResource
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -212,7 +214,7 @@ private fun ExportSheet(
                     .background(palette.outlineVariant),
             )
 
-            Text("EXPORTAR ENTRENO", style = SectionLabelStyle, color = palette.onSurfaceVariant)
+            Text(stringResource(R.string.ult_export_workout).uppercase(), style = SectionLabelStyle, color = palette.onSurfaceVariant)
             Text(title, style = MaterialTheme.typography.titleLarge, color = palette.onSurface)
             if (subtitle.isNotBlank()) {
                 Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = palette.onSurfaceVariant)
@@ -229,7 +231,7 @@ private fun ExportSheet(
                 ) {
                     CircularProgressIndicator(Modifier.size(20.dp), color = palette.primary, strokeWidth = 2.dp)
                     Spacer(Modifier.width(12.dp))
-                    Text("Preparando archivo…", style = MaterialTheme.typography.bodyMedium, color = palette.onSurfaceVariant)
+                    Text(stringResource(R.string.ult_preparing_file), style = MaterialTheme.typography.bodyMedium, color = palette.onSurfaceVariant)
                 }
             }
 

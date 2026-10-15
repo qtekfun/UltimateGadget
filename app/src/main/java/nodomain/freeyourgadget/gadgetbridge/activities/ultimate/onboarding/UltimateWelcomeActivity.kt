@@ -16,6 +16,8 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 package nodomain.freeyourgadget.gadgetbridge.activities.ultimate.onboarding
 
+import nodomain.freeyourgadget.gadgetbridge.R
+import androidx.compose.ui.res.stringResource
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -153,18 +155,18 @@ private fun WelcomeScreen(onStart: () -> Unit) {
 
             FeatureRow(
                 icon = Icons.Filled.Lock,
-                title = "Private by design",
-                summary = "Your health and activity data stay on your phone.",
+                title = stringResource(R.string.ult_wel_private),
+                summary = stringResource(R.string.ult_wel_private_sub),
             )
             FeatureRow(
                 icon = Icons.Filled.CloudOff,
-                title = "No cloud services",
-                summary = "Works locally; nothing is sent to third-party servers.",
+                title = stringResource(R.string.ult_wel_nocloud),
+                summary = stringResource(R.string.ult_wel_nocloud_sub),
             )
             FeatureRow(
                 icon = Icons.Filled.Watch,
-                title = "Made for your watch",
-                summary = "Golf, maps and sync designed for Huawei and more.",
+                title = stringResource(R.string.ult_wel_watch),
+                summary = stringResource(R.string.ult_wel_watch_sub),
             )
 
             Spacer(Modifier.height(8.dp))
@@ -177,7 +179,7 @@ private fun WelcomeScreen(onStart: () -> Unit) {
                     contentColor = palette.onPrimary,
                 ),
             ) {
-                Text("Empezar", style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(R.string.ult_get_started), style = MaterialTheme.typography.titleMedium)
                 Spacer(Modifier.size(8.dp))
                 Icon(Icons.Filled.ArrowForward, contentDescription = null, modifier = Modifier.size(20.dp))
             }

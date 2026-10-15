@@ -324,7 +324,7 @@ private fun TimersScreen(onBack: () -> Unit) {
     }
 
     ClockScaffold(
-        title = "Timers",
+        title = stringResource(R.string.ult_timers),
         onBack = onBack,
         floatingActionButton = {
             val palette = LocalUltimatePalette.current
@@ -437,7 +437,7 @@ private fun TimerCard(
                     Text(state, style = MaterialTheme.typography.bodySmall, color = palette.onSurfaceVariant)
                 }
                 IconButton(onClick = onDelete) {
-                    Icon(Icons.Filled.Delete, contentDescription = "Eliminar", tint = palette.error)
+                    Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.ult_delete), tint = palette.error)
                 }
             }
             Spacer(Modifier.height(12.dp))
@@ -448,13 +448,13 @@ private fun TimerCard(
             ) {
                 FilledIconButton(onClick = onStartPause) {
                     if (active) {
-                        Icon(Icons.Filled.Pause, contentDescription = "Pausar")
+                        Icon(Icons.Filled.Pause, contentDescription = stringResource(R.string.ult_pause))
                     } else {
-                        Icon(Icons.Filled.PlayArrow, contentDescription = "Iniciar")
+                        Icon(Icons.Filled.PlayArrow, contentDescription = stringResource(R.string.ult_start))
                     }
                 }
                 IconButton(onClick = onReset) {
-                    Icon(Icons.Filled.Refresh, contentDescription = "Reiniciar", tint = palette.onSurfaceVariant)
+                    Icon(Icons.Filled.Refresh, contentDescription = stringResource(R.string.ult_reset), tint = palette.onSurfaceVariant)
                 }
             }
         }
@@ -483,14 +483,14 @@ private fun TimerEditor(
             TextButton(onClick = {
                 val durationMs = ((hours * 3600 + minutes * 60 + seconds).coerceAtLeast(1)).toLong() * 1000L
                 onSave(label.trim(), durationMs)
-            }) { Text("Save", color = palette.primary, fontWeight = FontWeight.Bold) }
+            }) { Text(stringResource(R.string.ult_save), color = palette.primary, fontWeight = FontWeight.Bold) }
         },
     ) {
         Column(
             Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp),
         ) {
-            Text("DURATION", style = MaterialTheme.typography.labelMedium, color = palette.onSurfaceVariant)
+            Text(stringResource(R.string.ult_duration).uppercase(), style = MaterialTheme.typography.labelMedium, color = palette.onSurfaceVariant)
             Row(
                 Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -503,7 +503,7 @@ private fun TimerEditor(
                 value = label,
                 onValueChange = { if (it.length <= 40) label = it },
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("Etiqueta") },
+                label = { Text(stringResource(R.string.ult_label)) },
                 placeholder = { Text(stringResource(R.string.ult_timer_name)) },
                 singleLine = true,
             )
@@ -534,7 +534,7 @@ private fun DurationStepper(
         ) {
             Text(label.uppercase(), style = MaterialTheme.typography.labelSmall, color = palette.onSurfaceVariant)
             IconButton(onClick = { onChange(if (value >= max) min else value + 1) }) {
-                Icon(Icons.Filled.Add, contentDescription = "More", tint = palette.primary)
+                Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.ult_more), tint = palette.primary)
             }
             Text(
                 String.format(Locale.getDefault(), "%02d", value),
@@ -543,7 +543,7 @@ private fun DurationStepper(
                 fontWeight = FontWeight.Bold,
             )
             IconButton(onClick = { onChange(if (value <= min) max else value - 1) }) {
-                Icon(Icons.Filled.Remove, contentDescription = "Menos", tint = palette.primary)
+                Icon(Icons.Filled.Remove, contentDescription = stringResource(R.string.ult_less), tint = palette.primary)
             }
         }
     }

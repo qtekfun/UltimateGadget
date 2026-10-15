@@ -88,13 +88,13 @@ fun DashboardScreen(
                         IconButton(onClick = onToggleEditing) {
                             Icon(
                                 Icons.Filled.Check,
-                                contentDescription = "Done",
+                                contentDescription = stringResource(R.string.ult_done),
                                 tint = scheme.primary,
                             )
                         }
                     } else {
                         IconButton(onClick = { }) {
-                            Icon(Icons.Filled.Search, contentDescription = "Search")
+                            Icon(Icons.Filled.Search, contentDescription = stringResource(R.string.ult_search))
                         }
                         UltimateOverflowMenu(
                             onSortCards = onSortCards,
