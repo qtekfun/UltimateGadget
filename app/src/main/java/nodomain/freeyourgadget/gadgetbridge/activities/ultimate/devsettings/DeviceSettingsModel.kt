@@ -106,6 +106,63 @@ sealed interface PrefNode {
         val iconRes: Int,
     ) : PrefNode
 
+    /** A multi-choice list (MultiSelectListPreference); persisted as a string set. */
+    data class MultiChoice(
+        val key: String,
+        val title: String,
+        val summary: String?,
+        val iconRes: Int,
+        val default: Set<String>,
+        val entries: List<String>,
+        val values: List<String>,
+        val dependency: String?,
+    ) : PrefNode
+
+    /** A reorderable list of options; persisted as the comma-joined value order. */
+    data class Sortable(
+        val key: String,
+        val title: String,
+        val summary: String?,
+        val iconRes: Int,
+        val default: List<String>,
+        val entries: List<String>,
+        val values: List<String>,
+        val dependency: String?,
+    ) : PrefNode
+
+    /** A calendar date picker, persisted as "yyyy-MM-dd". */
+    data class DatePicker(
+        val key: String,
+        val title: String,
+        val summary: String?,
+        val iconRes: Int,
+        val default: String,
+        val minDate: Long,
+        val maxDate: Long,
+        val dependency: String?,
+    ) : PrefNode
+
+    /** Opens the system file picker (several files); nothing is persisted. */
+    data class FilePicker(
+        val key: String,
+        val title: String,
+        val summary: String?,
+        val iconRes: Int,
+        val mimeTypes: List<String>,
+        val onPicked: (List<android.net.Uri>) -> Unit,
+        val dependency: String?,
+    ) : PrefNode
+
+    /** Opens the system folder picker and persists the chosen tree URI. */
+    data class FolderPicker(
+        val key: String,
+        val title: String,
+        val iconRes: Int,
+        val persistPermission: Boolean,
+        val onPicked: ((android.net.Uri) -> Unit)?,
+        val dependency: String?,
+    ) : PrefNode
+
     /** A read-only information row (title + current value); not interactive and never persisted. */
     data class Info(
         val title: String,
@@ -170,6 +227,14 @@ class DeviceSettingsStore private constructor(
         runCatching { prefs.getInt(key, def) }.getOrElse {
             runCatching { prefs.getString(key, def.toString())!!.toInt() }.getOrDefault(def)
         }
+
+    fun getStringSet(key: String, def: Set<String>): Set<String> =
+        runCatching { prefs.getStringSet(key, null) }.getOrNull() ?: def
+
+    fun putStringSet(key: String, value: Set<String>) {
+        prefs.edit().putStringSet(key, HashSet(value)).apply()
+        notify(key)
+    }
 
     fun putBoolean(key: String, value: Boolean) {
         prefs.edit().putBoolean(key, value).apply()

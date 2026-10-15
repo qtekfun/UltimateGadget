@@ -721,7 +721,7 @@
     <!-- Last leftovers -->
     <string name="ult_date">Date</string>
     <string name="ult_rep_steps_day">Steps / day</string>
-    <string name="ult_open_classic">Open in classic settings</string>
+    <string name="ult_open_classic">Not available on this screen yet</string>
     <string name="ult_confirm_yes">Yes</string>
     <string name="ult_hr_zone_n">Zone %1$d</string>
     <string name="ult_hr_zone_max">Maximum</string>
@@ -736,4 +736,6 @@
     <string name="ult_delete_contact">Delete contact</string>
     <string name="ult_delete_contact_confirm">Delete \"%1$s\"?</string>
     <string name="ult_stress_again">Measure again</string>
+    <string name="ult_device_info_missing">Device info missing</string>
+    <string name="ult_help">Help</string>
 </resources>
