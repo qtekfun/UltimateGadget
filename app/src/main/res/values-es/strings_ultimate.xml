@@ -81,4 +81,12 @@
     <string name="ult_steps_with_goal">pasos · %s</string>
     <string name="ult_no_devices">Aún no hay dispositivos</string>
     <string name="ult_no_devices_sub">Añade tu primer reloj o pulsera para empezar.</string>
+
+    <!-- Emparejado / descubrimiento -->
+    <string name="ult_pair">Emparejar</string>
+    <string name="ult_pair_anyway">Emparejar de todas formas</string>
+    <string name="ult_configure">Configurar</string>
+    <string name="ult_configure_auth_title">¿Configurar autenticación?</string>
+    <string name="ult_configure_auth_msg">Este dispositivo puede requerir que configures la autenticación (por ejemplo, una cuenta Huawei) antes de emparejar. Emparejar sin ella puede hacer que el reloj se desvincule y se restablezca de fábrica.\n\nConfigúrala ahora y toca el dispositivo de nuevo para emparejar — o empareja de todas formas.</string>
+    <string name="ult_device_details_copied">Detalles del dispositivo copiados al portapapeles</string>
 </resources>

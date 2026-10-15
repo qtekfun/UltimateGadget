@@ -81,4 +81,12 @@
     <string name="ult_steps_with_goal">steps · %s</string>
     <string name="ult_no_devices">No devices yet</string>
     <string name="ult_no_devices_sub">Add your first watch or band to get started.</string>
+
+    <!-- Pairing / discovery -->
+    <string name="ult_pair">Pair</string>
+    <string name="ult_pair_anyway">Pair anyway</string>
+    <string name="ult_configure">Configure</string>
+    <string name="ult_configure_auth_title">Configure authentication?</string>
+    <string name="ult_configure_auth_msg">This device may require you to configure authentication (for example, a Huawei account) before pairing. Pairing without it can make the watch unlink and factory-reset itself.\n\nConfigure it now and tap the device again to pair — or pair anyway.</string>
+    <string name="ult_device_details_copied">Device details copied to clipboard</string>
 </resources>
