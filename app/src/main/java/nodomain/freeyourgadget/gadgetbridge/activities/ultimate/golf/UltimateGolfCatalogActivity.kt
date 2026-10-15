@@ -16,6 +16,8 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 package nodomain.freeyourgadget.gadgetbridge.activities.ultimate.golf
 
+import nodomain.freeyourgadget.gadgetbridge.R
+import androidx.compose.ui.res.stringResource
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
@@ -121,7 +123,7 @@ private fun CatalogScreen(
         scope.launch {
             runCatching { withContext(Dispatchers.IO) { block() } }
                 .onSuccess(ok)
-                .onFailure { error = it.message ?: "Network error" }
+                .onFailure { error = it.message ?: context.getString(R.string.ult_network_error) }
             loading = false
         }
     }
@@ -141,7 +143,7 @@ private fun CatalogScreen(
         containerColor = palette.background,
         topBar = {
             TopAppBar(
-                title = { Text(city?.name ?: country?.name ?: "Golf courses") },
+                title = { Text(city?.name ?: country?.name ?: stringResource(R.string.ult_golf_courses)) },
                 navigationIcon = {
                     IconButton(onClick = { goBack() }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null) }
                 },

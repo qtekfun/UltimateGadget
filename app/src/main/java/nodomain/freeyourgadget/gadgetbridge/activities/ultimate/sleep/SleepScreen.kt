@@ -47,6 +47,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import nodomain.freeyourgadget.gadgetbridge.R
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
@@ -73,10 +75,10 @@ fun SleepScreen(
         containerColor = scheme.background,
         topBar = {
             TopAppBar(
-                title = { Text("Sleep", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.ult_sleep), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.ult_back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -117,16 +119,16 @@ private fun DaySelector(state: SleepUiState, onPrev: () -> Unit, onNext: () -> U
     DashboardCard {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onPrev) {
-                Icon(Icons.Filled.ChevronLeft, contentDescription = "Previous day", tint = scheme.onSurface)
+                Icon(Icons.Filled.ChevronLeft, contentDescription = stringResource(R.string.ult_prev_day), tint = scheme.onSurface)
             }
             Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-                SectionLabel(if (state.isToday) "Hoy" else "Noche de")
+                SectionLabel(if (state.isToday) stringResource(R.string.ult_today) else stringResource(R.string.ult_night_of))
                 Spacer(Modifier.height(2.dp))
                 Text(state.dayLabel, style = MaterialTheme.typography.titleMedium, color = scheme.onSurface, fontWeight = FontWeight.SemiBold)
             }
             IconButton(onClick = onNext, enabled = !state.isToday) {
                 Icon(
-                    Icons.Filled.ChevronRight, contentDescription = "Next day",
+                    Icons.Filled.ChevronRight, contentDescription = stringResource(R.string.ult_next_day),
                     tint = if (state.isToday) scheme.onSurfaceVariant.copy(alpha = 0.3f) else scheme.onSurface,
                 )
             }
@@ -144,9 +146,9 @@ private fun ScoreCard(d: SleepDayData) {
     }
     DashboardCard {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            SectionLabel("Sleep score")
+            SectionLabel(stringResource(R.string.ult_sleep_score))
             Text(
-                if (d.scoreNative) "from the device" else "estimada",
+                if (d.scoreNative) stringResource(R.string.ult_from_device) else stringResource(R.string.ult_sleep_estimated),
                 style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant,
             )
         }
@@ -160,7 +162,7 @@ private fun ScoreCard(d: SleepDayData) {
         Row(verticalAlignment = Alignment.Bottom) {
             Text(hoursMinutes(d.totalMin), style = MaterialTheme.typography.headlineSmall, color = scheme.onSurface, fontWeight = FontWeight.Bold)
             Spacer(Modifier.width(8.dp))
-            Text("dormido · ${d.sleepStartLabel}–${d.sleepEndLabel}", style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 2.dp))
+            Text(stringResource(R.string.ult_slept_range, d.sleepStartLabel, d.sleepEndLabel), style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 2.dp))
         }
     }
 }
@@ -170,10 +172,10 @@ private fun HypnogramCard(d: SleepDayData) {
     val scheme = MaterialTheme.colorScheme
     val colors = phaseColors(scheme)
     DashboardCard {
-        SectionLabel("Sleep stages")
+        SectionLabel(stringResource(R.string.ult_sleep_stages))
         Spacer(Modifier.height(10.dp))
         if (d.segments.isEmpty()) {
-            Text("No stage detail", style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
+            Text(stringResource(R.string.ult_no_stage_detail), style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
         } else {
             val totalMin = ((d.sessionEndMillis - d.sessionStartMillis) / 60000L).toInt().coerceAtLeast(1)
             Hypnogram(d.segments, totalMin, colors, scheme.surfaceContainerHighest)
@@ -223,10 +225,10 @@ private fun Hypnogram(segments: List<SleepSegment>, totalMin: Int, colors: Map<S
 @Composable
 private fun PhaseLegend(d: SleepDayData, colors: Map<SleepPhase, Color>) {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        LegendRow(colors[SleepPhase.DEEP]!!, "Deep", d.deepMin, d.totalMin)
-        LegendRow(colors[SleepPhase.REM]!!, "REM", d.remMin, d.totalMin)
-        LegendRow(colors[SleepPhase.LIGHT]!!, "Light", d.lightMin, d.totalMin)
-        LegendRow(colors[SleepPhase.AWAKE]!!, "Awake", d.awakeMin, d.totalMin)
+        LegendRow(colors[SleepPhase.DEEP]!!, stringResource(R.string.ult_deep), d.deepMin, d.totalMin)
+        LegendRow(colors[SleepPhase.REM]!!, stringResource(R.string.ult_rem), d.remMin, d.totalMin)
+        LegendRow(colors[SleepPhase.LIGHT]!!, stringResource(R.string.ult_light), d.lightMin, d.totalMin)
+        LegendRow(colors[SleepPhase.AWAKE]!!, stringResource(R.string.ult_awake), d.awakeMin, d.totalMin)
     }
 }
 
@@ -246,18 +248,18 @@ private fun LegendRow(color: Color, label: String, minutes: Int, totalMin: Int) 
 private fun SummaryCard(d: SleepDayData) {
     val scheme = MaterialTheme.colorScheme
     DashboardCard {
-        SectionLabel("Resumen")
+        SectionLabel(stringResource(R.string.ult_summary))
         Spacer(Modifier.height(10.dp))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Stat("Total", hoursMinutes(d.totalMin), scheme.onSurface)
-            Stat("Deep", hoursMinutes(d.deepMin), scheme.onSurface)
-            Stat("REM", hoursMinutes(d.remMin), scheme.onSurface)
+            Stat(stringResource(R.string.ult_total), hoursMinutes(d.totalMin), scheme.onSurface)
+            Stat(stringResource(R.string.ult_deep), hoursMinutes(d.deepMin), scheme.onSurface)
+            Stat(stringResource(R.string.ult_rem), hoursMinutes(d.remMin), scheme.onSurface)
         }
         Spacer(Modifier.height(12.dp))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Stat("Light", hoursMinutes(d.lightMin), scheme.onSurface)
-            Stat("Awake", hoursMinutes(d.awakeMin), scheme.onSurface)
-            Stat("Despertares", "${d.awakenings}", scheme.onSurface)
+            Stat(stringResource(R.string.ult_light), hoursMinutes(d.lightMin), scheme.onSurface)
+            Stat(stringResource(R.string.ult_awake), hoursMinutes(d.awakeMin), scheme.onSurface)
+            Stat(stringResource(R.string.ult_awakenings), "${d.awakenings}", scheme.onSurface)
         }
     }
 }
@@ -266,20 +268,29 @@ private fun SummaryCard(d: SleepDayData) {
 @Composable
 private fun TrueSleepCard(d: SleepDayData) {
     val scheme = MaterialTheme.colorScheme
+    val lEfficiency = stringResource(R.string.ult_efficiency)
+    val lLatency = stringResource(R.string.ult_latency)
+    val lPulse = stringResource(R.string.ult_pulse)
+    val lAvgPulse = stringResource(R.string.ult_avg_pulse)
+    val lBreathing = stringResource(R.string.ult_breathing)
+    val lAvgHrv = stringResource(R.string.ult_avg_hrv)
+    val lSnoring = stringResource(R.string.ult_snoring)
+    val lApnea = stringResource(R.string.ult_apnea_rdi)
+    val lTurnovers = stringResource(R.string.ult_turnovers)
     val items = buildList {
-        d.sleepEfficiency?.let { add("Efficiency" to "$it%") }
-        d.sleepLatencyMin?.let { add("Latencia" to "$it min") }
-        if (d.hrMin != null && d.hrMax != null) add("Pulso" to "${d.hrMin}–${d.hrMax} bpm")
-        else d.hrAvg?.let { add("Pulso medio" to "$it bpm") }
-        d.breathAvg?.let { add("Breathing" to "$it/min") }
-        d.hrvAvg?.let { add("HRV media" to "$it ms") }
-        d.snoreCount?.let { add("Ronquidos" to "$it") }
-        d.apneaIndex?.let { add("Apnea (RDI)" to "$it") }
-        d.turnOverCount?.let { add("Vueltas" to "$it") }
+        d.sleepEfficiency?.let { add(lEfficiency to "$it%") }
+        d.sleepLatencyMin?.let { add(lLatency to "$it min") }
+        if (d.hrMin != null && d.hrMax != null) add(lPulse to "${d.hrMin}–${d.hrMax} bpm")
+        else d.hrAvg?.let { add(lAvgPulse to "$it bpm") }
+        d.breathAvg?.let { add(lBreathing to "$it/min") }
+        d.hrvAvg?.let { add(lAvgHrv to "$it ms") }
+        d.snoreCount?.let { add(lSnoring to "$it") }
+        d.apneaIndex?.let { add(lApnea to "$it") }
+        d.turnOverCount?.let { add(lTurnovers to "$it") }
     }
     if (items.isEmpty()) return
     DashboardCard {
-        SectionLabel("TrueSleep (Huawei)")
+        SectionLabel(stringResource(R.string.ult_truesleep))
         Spacer(Modifier.height(10.dp))
         items.chunked(3).forEachIndexed { i, row ->
             if (i > 0) Spacer(Modifier.height(12.dp))
@@ -296,14 +307,14 @@ private fun Spo2Card(d: SleepDayData) {
     val scheme = MaterialTheme.colorScheme
     DashboardCard {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            SectionLabel("SpO₂ nocturno")
-            Text("min ${d.spo2Min}% · avg ${d.spo2Avg}%", style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
+            SectionLabel(stringResource(R.string.ult_spo2_night))
+            Text(stringResource(R.string.ult_spo2_min_avg, d.spo2Min, d.spo2Avg), style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
         }
         Spacer(Modifier.height(10.dp))
         Row(verticalAlignment = Alignment.Bottom) {
             Text("${d.spo2Avg}", style = MetricValueStyle, color = scheme.secondary)
             Spacer(Modifier.width(6.dp))
-            Text("% media", style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 4.dp))
+            Text(stringResource(R.string.ult_pct_avg), style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 4.dp))
         }
         if (d.spo2Samples.size >= 2) {
             Spacer(Modifier.height(10.dp))
@@ -338,7 +349,7 @@ private fun Spo2Bars(values: List<Int>, normal: Color, low: Color, track: Color)
 private fun NapsCard(d: SleepDayData) {
     val scheme = MaterialTheme.colorScheme
     DashboardCard {
-        SectionLabel("Siestas")
+        SectionLabel(stringResource(R.string.ult_naps))
         Spacer(Modifier.height(8.dp))
         d.naps.forEach { nap ->
             Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -368,9 +379,9 @@ private fun LoadingCard() {
 @Composable
 private fun EmptyCard() {
     DashboardCard {
-        Text("No sleep data for this day", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(stringResource(R.string.ult_no_sleep_data_day), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(Modifier.height(6.dp))
-        Text("Sync the watch or pick another night.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(stringResource(R.string.ult_sync_or_pick), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
@@ -385,10 +396,11 @@ private fun hoursMinutes(min: Int): String =
     if (min >= 60) String.format(Locale.getDefault(), "%dh %02dm", min / 60, min % 60)
     else String.format(Locale.getDefault(), "%dm", min)
 
-private fun scoreLabel(score: Int): String = when {
-    score >= 85 -> "Excelente"
-    score >= 70 -> "Bueno"
-    score >= 50 -> "Regular"
-    score > 0 -> "Deficiente"
-    else -> "Sin datos"
-}
+@Composable
+private fun scoreLabel(score: Int): String = stringResource(when {
+    score >= 85 -> R.string.ult_quality_excellent
+    score >= 70 -> R.string.ult_quality_good
+    score >= 50 -> R.string.ult_quality_fair
+    score > 0 -> R.string.ult_quality_poor
+    else -> R.string.ult_quality_nodata
+})

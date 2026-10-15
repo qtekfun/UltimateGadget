@@ -16,6 +16,7 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 package nodomain.freeyourgadget.gadgetbridge.activities.ultimate.install
 
+import androidx.compose.ui.res.stringResource
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -387,10 +388,10 @@ private fun InstallScreen(
         containerColor = palette.background,
         topBar = {
             TopAppBar(
-                title = { Text("Transferencia") },
+                title = { Text(stringResource(R.string.ult_transfer)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.ult_back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -451,19 +452,19 @@ private fun InstallScreen(
                 OutlinedTextField(
                     value = ui.trackName,
                     onValueChange = { ui.trackName = it },
-                    label = { Text("Route name") },
+                    label = { Text(stringResource(R.string.ult_route_name)) },
                     singleLine = true,
                     isError = ui.trackName.isBlank(),
                     modifier = Modifier.fillMaxWidth(),
                 )
                 if (ui.supportsTbt) {
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        Text("Turn-by-turn navigation", Modifier.weight(1f), color = palette.onSurface)
+                        Text(stringResource(R.string.ult_tbt_nav), Modifier.weight(1f), color = palette.onSurface)
                         Switch(checked = ui.navEnabled, onCheckedChange = { ui.navEnabled = it })
                     }
                     if (ui.navEnabled) {
                         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                            Text("Straight-line navigation", Modifier.weight(1f), color = palette.onSurface)
+                            Text(stringResource(R.string.ult_straight_nav), Modifier.weight(1f), color = palette.onSurface)
                             Switch(checked = ui.straightNavEnabled, onCheckedChange = { ui.straightNavEnabled = it })
                         }
                     }
@@ -507,12 +508,12 @@ private fun InstallScreen(
             if (ui.installEnabled) {
                 Button(onClick = onInstall, modifier = Modifier.fillMaxWidth()) {
                     Icon(Icons.Filled.Download, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Text("  Install")
+                    Text(stringResource(R.string.ult_install_btn))
                 }
             }
             if (ui.closeEnabled) {
                 OutlinedButton(onClick = onClose, modifier = Modifier.fillMaxWidth()) {
-                    Text("Cerrar")
+                    Text(stringResource(R.string.ult_close))
                 }
             }
         }

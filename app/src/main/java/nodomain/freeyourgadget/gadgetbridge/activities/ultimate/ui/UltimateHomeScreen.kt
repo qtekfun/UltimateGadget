@@ -68,6 +68,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import nodomain.freeyourgadget.gadgetbridge.R
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.theme.LocalUltimatePalette
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.theme.UltimateTheme
@@ -103,7 +104,7 @@ fun UltimateHomeScreen(
                     )
                 },
                 actions = {
-                    IconButton(onClick = {}) { Icon(Icons.Filled.Search, contentDescription = "Search") }
+                    IconButton(onClick = {}) { Icon(Icons.Filled.Search, contentDescription = stringResource(R.string.ult_search)) }
                     UltimateOverflowMenu(
                         onSortCards = onSortCards,
                         onExportImport = onExportImport,
@@ -128,7 +129,7 @@ fun UltimateHomeScreen(
                 containerColor = palette.primary,
                 contentColor = palette.onPrimary,
                 icon = { Icon(Icons.Filled.Add, contentDescription = null) },
-                text = { Text("Add device", fontWeight = FontWeight.Bold) },
+                text = { Text(stringResource(R.string.ult_add_device), fontWeight = FontWeight.Bold) },
             )
         },
     ) { inner ->
@@ -151,7 +152,7 @@ fun UltimateHomeScreen(
                     HeroCard(connected, stats, onClick = { onOpenDevice(connected) })
                 }
             }
-            item { SectionHeader("Your devices") }
+            item { SectionHeader(stringResource(R.string.ult_your_devices)) }
             items(devices, key = { it.address }) { d ->
                 DeviceCard(d, onClick = { onOpenDevice(d) })
             }
@@ -178,17 +179,17 @@ fun UltimateOverflowMenu(
 ) {
     Box {
         var menuOpen by remember { mutableStateOf(false) }
-        IconButton(onClick = { menuOpen = true }) { Icon(Icons.Filled.MoreVert, contentDescription = "More") }
+        IconButton(onClick = { menuOpen = true }) { Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.ult_more)) }
         DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
-            DropdownMenuItem(text = { Text("Ordenar tarjetas") }, onClick = { menuOpen = false; onSortCards() })
-            DropdownMenuItem(text = { Text("Exportar / Importar") }, onClick = { menuOpen = false; onExportImport() })
-            DropdownMenuItem(text = { Text("Phone maps") }, onClick = { menuOpen = false; onPhoneMaps() })
-            DropdownMenuItem(text = { Text("Notifications") }, onClick = { menuOpen = false; onNotifications() })
-            DropdownMenuItem(text = { Text("Informes y objetivos") }, onClick = { menuOpen = false; onReports() })
-            DropdownMenuItem(text = { Text("Rendimiento") }, onClick = { menuOpen = false; onPerformance() })
-            DropdownMenuItem(text = { Text("Settings") }, onClick = { menuOpen = false; onSettings() })
+            DropdownMenuItem(text = { Text(stringResource(R.string.ult_menu_sort_cards)) }, onClick = { menuOpen = false; onSortCards() })
+            DropdownMenuItem(text = { Text(stringResource(R.string.ult_menu_export_import)) }, onClick = { menuOpen = false; onExportImport() })
+            DropdownMenuItem(text = { Text(stringResource(R.string.ult_menu_phone_maps)) }, onClick = { menuOpen = false; onPhoneMaps() })
+            DropdownMenuItem(text = { Text(stringResource(R.string.ult_menu_notifications)) }, onClick = { menuOpen = false; onNotifications() })
+            DropdownMenuItem(text = { Text(stringResource(R.string.ult_menu_reports)) }, onClick = { menuOpen = false; onReports() })
+            DropdownMenuItem(text = { Text(stringResource(R.string.ult_menu_performance)) }, onClick = { menuOpen = false; onPerformance() })
+            DropdownMenuItem(text = { Text(stringResource(R.string.ult_menu_settings)) }, onClick = { menuOpen = false; onSettings() })
             HorizontalDivider()
-            DropdownMenuItem(text = { Text("Exit (stop the app)") }, onClick = { menuOpen = false; onQuit() })
+            DropdownMenuItem(text = { Text(stringResource(R.string.ult_menu_exit)) }, onClick = { menuOpen = false; onQuit() })
         }
     }
 }
@@ -259,7 +260,7 @@ fun HeroCard(d: DeviceCardUi, stats: HeroStats?, onClick: () -> Unit) {
                 }
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
-                        (if (d.busy) "Syncing" else "Connected").uppercase(),
+                        (if (d.busy) stringResource(R.string.ult_state_syncing) else stringResource(R.string.ult_state_connected)).uppercase(),
                         style = MaterialTheme.typography.labelSmall,
                         color = heroAccent,
                     )
@@ -286,7 +287,8 @@ fun HeroCard(d: DeviceCardUi, stats: HeroStats?, onClick: () -> Unit) {
             ) {
                 HeroMetric(
                     value = stats?.steps?.let { formatThousands(it) } ?: "--",
-                    label = stats?.stepsGoal?.let { "pasos · " + formatThousands(it) } ?: "steps",
+                    label = stats?.stepsGoal?.let { stringResource(R.string.ult_steps_with_goal, formatThousands(it)) }
+                        ?: stringResource(R.string.ult_metric_steps),
                     accent = onHero,
                     muted = onHeroMuted,
                 )
@@ -294,7 +296,7 @@ fun HeroCard(d: DeviceCardUi, stats: HeroStats?, onClick: () -> Unit) {
                 if (d.supportsHeartRate) {
                     HeroMetric(
                         value = stats?.heartRate?.toString() ?: "--",
-                        label = "ppm",
+                        label = stringResource(R.string.ult_metric_ppm),
                         accent = onHero,
                         muted = onHeroMuted,
                     )
@@ -303,7 +305,7 @@ fun HeroCard(d: DeviceCardUi, stats: HeroStats?, onClick: () -> Unit) {
                 if (d.batteryLevel in 0..100) {
                     HeroMetric(
                         value = "${d.batteryLevel}%",
-                        label = "battery",
+                        label = stringResource(R.string.ult_metric_battery),
                         accent = onHero,
                         muted = onHeroMuted,
                     )
@@ -478,10 +480,10 @@ private fun EmptyState(modifier: Modifier = Modifier) {
     ) {
         Icon(Icons.Filled.Watch, contentDescription = null, tint = palette.onSurfaceVariant, modifier = Modifier.size(56.dp))
         Spacer(Modifier.height(16.dp))
-        Text("No devices yet", style = MaterialTheme.typography.titleLarge, color = palette.onSurface)
+        Text(stringResource(R.string.ult_no_devices), style = MaterialTheme.typography.titleLarge, color = palette.onSurface)
         Spacer(Modifier.height(6.dp))
         Text(
-            "Add your first watch or band to get started.",
+            stringResource(R.string.ult_no_devices_sub),
             style = MaterialTheme.typography.bodyMedium,
             color = palette.onSurfaceVariant,
         )

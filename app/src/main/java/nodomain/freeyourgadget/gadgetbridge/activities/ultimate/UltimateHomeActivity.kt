@@ -52,7 +52,9 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import androidx.compose.ui.res.stringResource
 import nodomain.freeyourgadget.gadgetbridge.GBApplication
+import nodomain.freeyourgadget.gadgetbridge.R
 import nodomain.freeyourgadget.gadgetbridge.util.GBPrefs
 import nodomain.freeyourgadget.gadgetbridge.util.PermissionsUtils
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.dashboard.CrossDeviceSteps
@@ -150,14 +152,14 @@ class UltimateHomeActivity : AppCompatActivity() {
                                 selected = tab == 0,
                                 onClick = { tab = 0 },
                                 icon = { Icon(Icons.Filled.Favorite, contentDescription = null) },
-                                label = { Text("Home") },
+                                label = { Text(stringResource(R.string.ult_tab_home)) },
                                 colors = itemColors,
                             )
                             NavigationBarItem(
                                 selected = tab == 1,
                                 onClick = { tab = 1 },
                                 icon = { Icon(Icons.Filled.Watch, contentDescription = null) },
-                                label = { Text("Devices") },
+                                label = { Text(stringResource(R.string.ult_tab_devices)) },
                                 colors = itemColors,
                             )
                         }

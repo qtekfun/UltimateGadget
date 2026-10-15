@@ -46,6 +46,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import nodomain.freeyourgadget.gadgetbridge.R
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -93,7 +95,7 @@ class UltimateBatteryActivity : AppCompatActivity() {
                 }
 
                 BatteryScreen(
-                    title = (device.aliasOrName ?: "").ifBlank { "Battery" },
+                    title = (device.aliasOrName ?: "").ifBlank { getString(R.string.ult_battery) },
                     rangeDays = rangeDays,
                     onRange = { rangeDays = it },
                     samples = samples,
@@ -137,7 +139,7 @@ private fun BatteryScreen(
                 title = { Text(title, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.ult_back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -167,15 +169,15 @@ private fun BatteryScreen(
                     Modifier.fillMaxWidth().height(240.dp).clip(RoundedCornerShape(16.dp))
                         .background(palette.surfaceContainer),
                     contentAlignment = Alignment.Center,
-                ) { Text("No battery data in this period", color = palette.onSurfaceVariant) }
+                ) { Text(stringResource(R.string.ult_no_battery_data), color = palette.onSurfaceVariant) }
                 else -> {
                     val last = list.last().value.toInt()
                     val min = list.minOf { it.value }.toInt()
                     val max = list.maxOf { it.value }.toInt()
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        StatCard("Actual", "$last%", Modifier.weight(1f))
-                        StatCard("Minimum", "$min%", Modifier.weight(1f))
-                        StatCard("Maximum", "$max%", Modifier.weight(1f))
+                        StatCard(stringResource(R.string.ult_current), "$last%", Modifier.weight(1f))
+                        StatCard(stringResource(R.string.ult_minimum), "$min%", Modifier.weight(1f))
+                        StatCard(stringResource(R.string.ult_maximum), "$max%", Modifier.weight(1f))
                     }
                     BatteryChartCard(list)
                 }
@@ -204,7 +206,7 @@ private fun BatteryChartCard(samples: List<BatteryMetric.Sample>) {
         Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(palette.surfaceContainer).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Text("Battery level (%)", style = MaterialTheme.typography.labelLarge, color = palette.onSurfaceVariant)
+        Text(stringResource(R.string.ult_battery_level_pct), style = MaterialTheme.typography.labelLarge, color = palette.onSurfaceVariant)
         val line = palette.primary
         val grid = palette.outlineVariant
         Canvas(Modifier.fillMaxWidth().height(200.dp)) {

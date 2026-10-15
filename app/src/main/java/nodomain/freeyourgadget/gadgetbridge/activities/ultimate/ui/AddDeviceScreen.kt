@@ -16,6 +16,8 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 package nodomain.freeyourgadget.gadgetbridge.activities.ultimate.ui
 
+import nodomain.freeyourgadget.gadgetbridge.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -93,7 +95,7 @@ fun AddDeviceScreen(
             )
             Spacer(Modifier.height(8.dp))
             Text(
-                "Pair your watch or band",
+                stringResource(R.string.ult_pair_title),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 color = palette.onSurface,
@@ -101,8 +103,7 @@ fun AddDeviceScreen(
             )
             Spacer(Modifier.height(12.dp))
             Text(
-                "Put the device in pairing mode and keep it close. " +
-                    "We will scan for nearby Bluetooth devices.",
+                stringResource(R.string.ult_pair_desc),
                 style = MaterialTheme.typography.bodyMedium,
                 color = palette.onSurfaceVariant,
                 textAlign = TextAlign.Center,
@@ -112,7 +113,7 @@ fun AddDeviceScreen(
 
             if (!permissionsGranted) {
                 PermissionNote(
-                    text = "We need Bluetooth permission (and location on older versions) to scan for devices.",
+                    text = stringResource(R.string.ult_add_perm_msg),
                 )
                 Spacer(Modifier.height(16.dp))
                 Button(
@@ -126,7 +127,7 @@ fun AddDeviceScreen(
                 ) {
                     Icon(Icons.Filled.Check, contentDescription = null)
                     Spacer(Modifier.size(8.dp))
-                    Text("Conceder permisos", fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.ult_grant_permissions), fontWeight = FontWeight.Bold)
                 }
             } else {
                 Button(
@@ -140,7 +141,7 @@ fun AddDeviceScreen(
                 ) {
                     Icon(Icons.Filled.Search, contentDescription = null)
                     Spacer(Modifier.size(8.dp))
-                    Text("Scan for devices", fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.ult_scan_devices), fontWeight = FontWeight.Bold)
                 }
             }
         }

@@ -45,6 +45,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import nodomain.freeyourgadget.gadgetbridge.R
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -68,10 +70,10 @@ fun PerformanceScreen(state: PerformanceUiState, onBack: () -> Unit) {
         containerColor = scheme.background,
         topBar = {
             TopAppBar(
-                title = { Text("Performance", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.ult_performance), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.ult_back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -109,7 +111,7 @@ fun PerformanceScreen(state: PerformanceUiState, onBack: () -> Unit) {
 @Composable
 private fun PaiCard(pai: PaiData?) {
     val scheme = MaterialTheme.colorScheme
-    if (pai == null) { NoDataCard("PAI", "Not enough heart-rate data in the last 7 days.") ; return }
+    if (pai == null) { NoDataCard(stringResource(R.string.ult_pai), stringResource(R.string.ult_pai_no_data)) ; return }
     val color = when {
         pai.total >= 100 -> scheme.secondary
         pai.total >= 50 -> scheme.tertiary
@@ -117,22 +119,22 @@ private fun PaiCard(pai: PaiData?) {
     }
     DashboardCard {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            SectionLabel("PAI · 7 days")
-            Text("objetivo 100", style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
+            SectionLabel(stringResource(R.string.ult_pai_7days))
+            Text(stringResource(R.string.ult_target_100), style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
         }
         Spacer(Modifier.height(10.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
             ProgressRing(progress = pai.total / 100f, color = color, track = scheme.surfaceContainerHighest) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text("${pai.total}", style = MetricValueStyle, color = color)
-                    Text("PAI", style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
+                    Text(stringResource(R.string.ult_pai), style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
                 }
             }
             Spacer(Modifier.width(18.dp))
             Column(Modifier.weight(1f)) {
-                ZoneRow("Moderado", "${pai.moderateMinutes} min", scheme.tertiary)
+                ZoneRow(stringResource(R.string.ult_moderate), "${pai.moderateMinutes} min", scheme.tertiary)
                 Spacer(Modifier.height(6.dp))
-                ZoneRow("Vigoroso", "${pai.vigorousMinutes} min", scheme.secondary)
+                ZoneRow(stringResource(R.string.ult_vigorous), "${pai.vigorousMinutes} min", scheme.secondary)
             }
         }
         Spacer(Modifier.height(12.dp))
@@ -141,10 +143,7 @@ private fun PaiCard(pai: PaiData?) {
             color = color, trackColor = scheme.surfaceContainerHighest,
         )
         Spacer(Modifier.height(10.dp))
-        Explain(
-            "HUNT-style model: accrues points for minutes with elevated HR (moderate zone 59–76% " +
-                "of HRmax, vigorous ≥76%) over the last 7 days. Keeping ~100 PAI/week is the target.",
-        )
+        Explain(stringResource(R.string.ult_pai_explain))
     }
 }
 
@@ -164,7 +163,7 @@ private fun ZoneRow(label: String, value: String, dot: Color) {
 @Composable
 private fun TrainingLoadCard(load: TrainingLoadData?) {
     val scheme = MaterialTheme.colorScheme
-    if (load == null) { NoDataCard("Training load", "No workouts recorded in the last 28 days.") ; return }
+    if (load == null) { NoDataCard(stringResource(R.string.ult_training_load), stringResource(R.string.ult_training_load_no_data)) ; return }
     val acwr = load.acwr
     val acwrColor = when {
         acwr == null -> scheme.onSurface
@@ -175,17 +174,17 @@ private fun TrainingLoadCard(load: TrainingLoadData?) {
     }
     DashboardCard {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            SectionLabel("Training load")
+            SectionLabel(stringResource(R.string.ult_training_load))
             Text(
-                if (load.usedHeartRate) "TRIMP" else "estimated (no HR)",
+                if (load.usedHeartRate) stringResource(R.string.ult_trimp) else stringResource(R.string.ult_estimated_no_hr),
                 style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant,
             )
         }
         Spacer(Modifier.height(10.dp))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Metric("Aguda · 7d", "${load.acute}", scheme.onSurface)
-            Metric("Chronic · wk", "${load.chronic}", scheme.onSurface)
-            Metric("ACWR", acwr?.let { String.format(Locale.US, "%.2f", it) } ?: "—", acwrColor)
+            Metric(stringResource(R.string.ult_acute_7d), "${load.acute}", scheme.onSurface)
+            Metric(stringResource(R.string.ult_chronic_wk), "${load.chronic}", scheme.onSurface)
+            Metric(stringResource(R.string.ult_acwr), acwr?.let { String.format(Locale.US, "%.2f", it) } ?: "—", acwrColor)
         }
         Spacer(Modifier.height(12.dp))
         BarSparkline(
@@ -194,15 +193,11 @@ private fun TrainingLoadCard(load: TrainingLoadData?) {
         )
         Spacer(Modifier.height(6.dp))
         Text(
-            "${load.workoutsCounted} workouts · last 28 days",
+            stringResource(R.string.ult_workouts_28days, load.workoutsCounted),
             style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant,
         )
         Spacer(Modifier.height(10.dp))
-        Explain(
-            "Banister TRIMP per workout (duration × HR reserve, exponentially weighted). The " +
-                "acute load (7 days) against the chronic load (28-day weekly average) gives the ACWR: " +
-                "0.8–1.3 is the recommended zone; above 1.5 the injury risk rises.",
-        )
+        Explain(stringResource(R.string.ult_load_explain))
     }
 }
 
@@ -211,29 +206,26 @@ private fun TrainingLoadCard(load: TrainingLoadData?) {
 @Composable
 private fun Vo2MaxCard(vo2: Vo2MaxData?) {
     val scheme = MaterialTheme.colorScheme
-    if (vo2 == null) { NoDataCard("VO2max", "Needs resting HR or a recent run with distance.") ; return }
+    if (vo2 == null) { NoDataCard(stringResource(R.string.ult_vo2max), stringResource(R.string.ult_vo2_no_data)) ; return }
     DashboardCard {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            SectionLabel("VO2max")
-            Text("estimado", style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
+            SectionLabel(stringResource(R.string.ult_vo2max))
+            Text(stringResource(R.string.ult_vo2_estimated), style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
         }
         Spacer(Modifier.height(6.dp))
         Row(verticalAlignment = Alignment.Bottom) {
             Text(String.format(Locale.US, "%.1f", vo2.value), style = MetricValueStyle, color = scheme.secondary)
             Spacer(Modifier.width(8.dp))
-            Text("ml/kg/min", style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 4.dp))
+            Text("ml/kg/min", style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 4.dp)) // unit, not translated
         }
         Spacer(Modifier.height(6.dp))
         Text(vo2.detail, style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
         Spacer(Modifier.height(10.dp))
         Explain(
-            when (vo2.method) {
-                Vo2Method.RUNNING_VDOT ->
-                    "Estimated with Jack Daniels' VDOT from a recent run (speed and duration)."
-                Vo2Method.HR_RATIO ->
-                    "Estimated with the Uth–Sørensen HR ratio: 15.3 × HRmax / HRrest. It is an approximation, " +
-                        "not a lab measurement."
-            },
+            stringResource(when (vo2.method) {
+                Vo2Method.RUNNING_VDOT -> R.string.ult_vo2_explain_vdot
+                Vo2Method.HR_RATIO -> R.string.ult_vo2_explain_hr
+            }),
         )
     }
 }
@@ -244,22 +236,22 @@ private fun Vo2MaxCard(vo2: Vo2MaxData?) {
 private fun HrvCard(hrv: HrvData?) {
     val scheme = MaterialTheme.colorScheme
     if (hrv == null) {
-        NoDataCard("HRV (rMSSD)", "The device has not synced heart-rate variability data.")
+        NoDataCard(stringResource(R.string.ult_hrv_rmssd_title), stringResource(R.string.ult_hrv_no_data))
         return
     }
     DashboardCard {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            SectionLabel("HRV · rMSSD")
+            SectionLabel(stringResource(R.string.ult_hrv_rmssd))
             hrv.status?.let { Text(hrvStatusLabel(it), style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant) }
         }
         Spacer(Modifier.height(6.dp))
         Row(verticalAlignment = Alignment.Bottom) {
             Text(hrv.lastNight?.toString() ?: "—", style = MetricValueStyle, color = scheme.secondary)
             Spacer(Modifier.width(8.dp))
-            Text("ms anoche", style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 4.dp))
+            Text(stringResource(R.string.ult_ms_last_night), style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 4.dp))
         }
         hrv.weekly?.let {
-            Text("Media semanal $it ms", style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
+            Text(stringResource(R.string.ult_weekly_avg_ms, it), style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
         }
         if (hrv.trend.size >= 2) {
             Spacer(Modifier.height(10.dp))
@@ -269,7 +261,7 @@ private fun HrvCard(hrv: HrvData?) {
             )
         }
         Spacer(Modifier.height(10.dp))
-        Explain("Values read straight from the device; no estimation of our own is computed.")
+        Explain(stringResource(R.string.ult_hrv_explain))
     }
 }
 
@@ -279,16 +271,15 @@ private fun HrvCard(hrv: HrvData?) {
 private fun MethodNote(d: PerformanceData) {
     val scheme = MaterialTheme.colorScheme
     DashboardCard {
-        SectionLabel("How it is calculated")
+        SectionLabel(stringResource(R.string.ult_how_calculated))
         Spacer(Modifier.height(8.dp))
+        val intro = stringResource(R.string.ult_method_intro)
+        val hrmaxStr = if (d.age > 0) stringResource(R.string.ult_hrmax_set, d.hrMax, d.age)
+        else stringResource(R.string.ult_hrmax_noage, d.hrMax)
+        val restingStr = d.restingHr?.let { stringResource(R.string.ult_resting_ref, it) }
+            ?: stringResource(R.string.ult_resting_none)
         Text(
-            buildString {
-                append("Everything is computed on the phone from the Gadgetbridge database, offline. ")
-                if (d.age > 0) append("Estimated HRmax ${d.hrMax} bpm (220 − ${d.age}). ")
-                else append("Estimated HRmax ${d.hrMax} bpm (age not set; adjust it in the profile). ")
-                d.restingHr?.let { append("Reference resting HR $it bpm.") }
-                    ?: append("No resting HR recorded: some metrics use an approximation.")
-            },
+            intro + hrmaxStr + restingStr,
             style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant,
         )
     }
@@ -314,7 +305,7 @@ private fun NoDataCard(title: String, reason: String) {
     DashboardCard {
         SectionLabel(title)
         Spacer(Modifier.height(8.dp))
-        Text("Sin datos", style = MaterialTheme.typography.titleMedium, color = scheme.onSurfaceVariant)
+        Text(stringResource(R.string.ult_quality_nodata), style = MaterialTheme.typography.titleMedium, color = scheme.onSurfaceVariant)
         Spacer(Modifier.height(4.dp))
         Text(reason, style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant)
     }
@@ -330,9 +321,9 @@ private fun LoadingCard() {
 @Composable
 private fun EmptyCard() {
     DashboardCard {
-        Text("No device with data", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(stringResource(R.string.ult_perf_no_device), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(Modifier.height(6.dp))
-        Text("Connect and sync the watch to see your performance.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(stringResource(R.string.ult_perf_connect_sync), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
@@ -365,10 +356,11 @@ private fun ProgressRing(
     }
 }
 
+@Composable
 private fun hrvStatusLabel(status: String): String = when (status) {
-    "BALANCED" -> "Equilibrado"
-    "UNBALANCED" -> "Desequilibrado"
-    "LOW" -> "Bajo"
-    "POOR" -> "Pobre"
+    "BALANCED" -> stringResource(R.string.ult_hrv_balanced)
+    "UNBALANCED" -> stringResource(R.string.ult_hrv_unbalanced)
+    "LOW" -> stringResource(R.string.ult_hrv_low)
+    "POOR" -> stringResource(R.string.ult_hrv_poor)
     else -> status.lowercase().replaceFirstChar { it.uppercase() }
 }

@@ -16,6 +16,8 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 package nodomain.freeyourgadget.gadgetbridge.activities.ultimate.reports
 
+import nodomain.freeyourgadget.gadgetbridge.R
+import androidx.compose.ui.res.stringResource
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
@@ -102,10 +104,10 @@ fun ReportsScreen(
         containerColor = scheme.background,
         topBar = {
             TopAppBar(
-                title = { Text("Reports", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.ult_reports), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.ult_back))
                     }
                 },
                 actions = {
@@ -119,16 +121,16 @@ fun ReportsScreen(
                                 if (file != null) ReportPdfExporter.shareFile(context, file)
                             }
                         }) {
-                            Icon(Icons.Filled.Share, contentDescription = "Compartir informe en PDF")
+                            Icon(Icons.Filled.Share, contentDescription = stringResource(R.string.ult_share_pdf))
                         }
                         IconButton(onClick = {
                             runCatching { saveLauncher.launch(ReportPdfExporter.suggestedName(s)) }
                         }) {
-                            Icon(Icons.Filled.SaveAlt, contentDescription = "Guardar informe en PDF")
+                            Icon(Icons.Filled.SaveAlt, contentDescription = stringResource(R.string.ult_save_pdf))
                         }
                     }
                     IconButton(onClick = onOpenGoals) {
-                        Icon(Icons.Filled.EmojiEvents, contentDescription = "Goals and medals")
+                        Icon(Icons.Filled.EmojiEvents, contentDescription = stringResource(R.string.ult_goals_medals))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -154,11 +156,11 @@ fun ReportsScreen(
             item { PeriodSelector(state.period, onSetPeriod) }
 
             if (data == null || !data.hasDevice) {
-                item { InfoCard("No device", "Connect a watch to see your reports.") }
+                item { InfoCard(stringResource(R.string.ult_rep_no_device), stringResource(R.string.ult_rep_connect)) }
                 return@LazyColumn
             }
             if (summary == null || summary.daysWithData == 0) {
-                item { InfoCard("No data yet", "Sync the watch to start seeing your weekly and monthly reports.") }
+                item { InfoCard(stringResource(R.string.ult_no_data_yet), stringResource(R.string.ult_rep_sync)) }
                 return@LazyColumn
             }
 
@@ -180,8 +182,8 @@ private fun PeriodSelector(period: ReportPeriod, onSetPeriod: (ReportPeriod) -> 
         Modifier.fillMaxWidth().clip(androidx.compose.foundation.shape.RoundedCornerShape(14.dp)),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        PeriodChip("Week", period == ReportPeriod.WEEK, Modifier.weight(1f)) { onSetPeriod(ReportPeriod.WEEK) }
-        PeriodChip("Month", period == ReportPeriod.MONTH, Modifier.weight(1f)) { onSetPeriod(ReportPeriod.MONTH) }
+        PeriodChip(stringResource(R.string.ult_pdf_week), period == ReportPeriod.WEEK, Modifier.weight(1f)) { onSetPeriod(ReportPeriod.WEEK) }
+        PeriodChip(stringResource(R.string.ult_pdf_month), period == ReportPeriod.MONTH, Modifier.weight(1f)) { onSetPeriod(ReportPeriod.MONTH) }
     }
 }
 
@@ -211,16 +213,16 @@ private fun StatGrid(summary: ReportSummary) {
     val rhr = if (summary.avgRestingHr > 0) "${summary.avgRestingHr} bpm" else "—"
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            StatTile("Steps / day", "%,d".format(summary.avgSteps), Modifier.weight(1f))
-            StatTile("Distance", distance, Modifier.weight(1f))
+            StatTile(stringResource(R.string.ult_rep_steps_day), "%,d".format(summary.avgSteps), Modifier.weight(1f))
+            StatTile(stringResource(R.string.ult_wd_distance), distance, Modifier.weight(1f))
         }
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            StatTile("Average sleep", sleep, Modifier.weight(1f))
-            StatTile("FC reposo", rhr, Modifier.weight(1f))
+            StatTile(stringResource(R.string.ult_pdf_avg_sleep), sleep, Modifier.weight(1f))
+            StatTile(stringResource(R.string.ult_rep_rhr_short), rhr, Modifier.weight(1f))
         }
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            StatTile("Workouts", "${summary.workoutCount}", Modifier.weight(1f))
-            StatTile("Days on goal", "${summary.goalDays}", Modifier.weight(1f))
+            StatTile(stringResource(R.string.ult_pdf_workouts), "${summary.workoutCount}", Modifier.weight(1f))
+            StatTile(stringResource(R.string.ult_pdf_days_goal), "${summary.goalDays}", Modifier.weight(1f))
         }
     }
 }
@@ -258,7 +260,7 @@ private fun StepsChartCard(summary: ReportSummary, barColor: Color, trackColor: 
             labelColor = labelColor,
         )
         Spacer(Modifier.height(8.dp))
-        Text("Total ${"%,d".format(summary.totalSteps)} pasos",
+        Text(stringResource(R.string.ult_total_steps, summary.totalSteps),
             color = scheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
     }
 }
@@ -268,7 +270,7 @@ private fun SleepChartCard(summary: ReportSummary, barColor: Color, trackColor: 
     val scheme = MaterialTheme.colorScheme
     if (summary.points.none { it.sleepMinutes > 0 }) return
     DashboardCard {
-        SectionLabel("Sleep (hours)")
+        SectionLabel(stringResource(R.string.ult_rep_sleep_hours))
         Spacer(Modifier.height(10.dp))
         LabeledBarChart(
             points = summary.points,
@@ -286,7 +288,7 @@ private fun SleepChartCard(summary: ReportSummary, barColor: Color, trackColor: 
 private fun RestingHrChartCard(summary: ReportSummary, barColor: Color, trackColor: Color, labelColor: Color) {
     val scheme = MaterialTheme.colorScheme
     DashboardCard {
-        SectionLabel("FC en reposo (bpm)")
+        SectionLabel(stringResource(R.string.ult_rep_rhr_bpm))
         Spacer(Modifier.height(10.dp))
         LabeledBarChart(
             points = summary.points,

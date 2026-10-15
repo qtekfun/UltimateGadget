@@ -22,6 +22,7 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import nodomain.freeyourgadget.gadgetbridge.GBApplication
+import nodomain.freeyourgadget.gadgetbridge.R
 import nodomain.freeyourgadget.gadgetbridge.activities.devicesettings.DeviceSettingsActivity
 import nodomain.freeyourgadget.gadgetbridge.activities.devicesettings.DeviceSpecificSettings
 import nodomain.freeyourgadget.gadgetbridge.activities.devicesettings.DeviceSpecificSettingsScreen
@@ -71,7 +72,7 @@ class UltimateDeviceSettingsActivity : AppCompatActivity() {
         setContent {
             UltimateTheme {
                 UltimateDeviceSettingsScreen(
-                    rootTitle = (device.aliasOrName ?: "").ifBlank { "Ajustes del dispositivo" },
+                    rootTitle = (device.aliasOrName ?: "").ifBlank { getString(R.string.ult_device_settings) },
                     rootNodes = nodes,
                     store = DeviceSettingsStore(device),
                     hasClassicFallback = false,
@@ -133,7 +134,7 @@ class UltimateDeviceSettingsActivity : AppCompatActivity() {
                         // Native battery history chart (replaces the classic BatteryInfoActivity).
                         PrefNode.Action(
                             key = ACTION_BATTERY_HISTORY,
-                            title = "Battery history",
+                            title = getString(R.string.ult_battery_history),
                             summary = "See the battery level over time",
                             iconRes = 0,
                         ),

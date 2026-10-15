@@ -16,6 +16,8 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 package nodomain.freeyourgadget.gadgetbridge.activities.ultimate.workout
 
+import nodomain.freeyourgadget.gadgetbridge.R
+import androidx.compose.ui.res.stringResource
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -138,10 +140,10 @@ private fun WorkoutScreen(
             TopAppBar(
                 title = { Text(detail?.typeLabel.orEmpty(), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
-                    IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back") }
+                    IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.ult_back)) }
                 },
                 actions = {
-                    if (detail != null) IconButton(onClick = onExport) { Icon(Icons.Filled.Share, contentDescription = "Export") }
+                    if (detail != null) IconButton(onClick = onExport) { Icon(Icons.Filled.Share, contentDescription = stringResource(R.string.ult_export)) }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = scheme.background,
@@ -157,7 +159,7 @@ private fun WorkoutScreen(
                 CircularProgressIndicator(color = scheme.primary)
             }
             detail == null -> Box(Modifier.fillMaxSize().padding(inner), contentAlignment = Alignment.Center) {
-                Text("Could not load the workout", color = scheme.onSurfaceVariant)
+                Text(stringResource(R.string.ult_workout_load_error), color = scheme.onSurfaceVariant)
             }
             else -> Column(
                 Modifier.fillMaxSize().padding(inner).verticalScroll(rememberScrollState())

@@ -16,6 +16,7 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 package nodomain.freeyourgadget.gadgetbridge.activities.ultimate.performance
 
+import nodomain.freeyourgadget.gadgetbridge.R
 import android.app.Application
 import nodomain.freeyourgadget.gadgetbridge.GBApplication
 import nodomain.freeyourgadget.gadgetbridge.database.DBHelper
@@ -264,7 +265,7 @@ class PerformanceRepository(private val app: Application) {
                 return Vo2MaxData(
                     value = vdot,
                     method = Vo2Method.RUNNING_VDOT,
-                    detail = "Run VDOT (%.1f km in %.0f min)".format(run.distanceMeters / 1000.0, t),
+                    detail = nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_perf_vdot_detail, run.distanceMeters / 1000.0, t),
                 )
             }
         }
@@ -274,7 +275,7 @@ class PerformanceRepository(private val app: Application) {
                 return Vo2MaxData(
                     value = value,
                     method = Vo2Method.HR_RATIO,
-                    detail = "HR ratio (HRmax $hrMax / HRrest $restingHr)",
+                    detail = nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_perf_hr_ratio_detail, hrMax, restingHr),
                 )
             }
         }

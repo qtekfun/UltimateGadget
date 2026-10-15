@@ -16,6 +16,8 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 package nodomain.freeyourgadget.gadgetbridge.activities.ultimate.devsettings
 
+import nodomain.freeyourgadget.gadgetbridge.R
+import androidx.compose.ui.res.stringResource
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -118,7 +120,7 @@ fun UltimateDeviceSettingsScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = { if (stack.size > 1) stack.removeAt(stack.lastIndex) else onBack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.ult_back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -154,7 +156,7 @@ fun UltimateDeviceSettingsScreen(
                 item {
                     Spacer(Modifier.height(4.dp))
                     SimpleRow(
-                        title = "Classic settings (advanced)",
+                        title = stringResource(R.string.ult_classic_settings),
                         summary = "Battery, developer, authentication and other settings not yet migrated",
                         iconRes = 0,
                         trailing = { Icon(Icons.Filled.OpenInNew, contentDescription = null, tint = palette.onSurfaceVariant) },
@@ -505,7 +507,7 @@ private fun ChoiceDialog(
             }
         },
         confirmButton = {},
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.ult_cancel)) } },
     )
 }
 
@@ -533,8 +535,8 @@ private fun TextDialog(
                 ),
             )
         },
-        confirmButton = { TextButton(onClick = { onConfirm(text) }) { Text("OK") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        confirmButton = { TextButton(onClick = { onConfirm(text) }) { Text(stringResource(R.string.ult_ok)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.ult_cancel)) } },
     )
 }
 

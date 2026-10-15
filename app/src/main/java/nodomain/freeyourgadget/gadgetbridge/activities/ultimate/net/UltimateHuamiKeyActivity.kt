@@ -16,6 +16,8 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 package nodomain.freeyourgadget.gadgetbridge.activities.ultimate.net
 
+import nodomain.freeyourgadget.gadgetbridge.R
+import androidx.compose.ui.res.stringResource
 import android.app.Activity
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -101,13 +103,13 @@ private fun KeyScreen(onBack: () -> Unit) {
         if (res.resultCode != Activity.RESULT_OK || data == null) return@rememberLauncherForActivityResult
         val userId = data.getStringExtra(UltimateAccountLoginActivity.EXTRA_USER_ID).orEmpty()
         val token = data.getStringExtra(UltimateAccountLoginActivity.EXTRA_TOKEN).orEmpty()
-        if (userId.isBlank() || token.isBlank()) { error = "Could not read the session token."; return@rememberLauncherForActivityResult }
+        if (userId.isBlank() || token.isBlank()) { error = context.getString(R.string.ult_huami_token_error); return@rememberLauncherForActivityResult }
         busy = true; error = null; keys = null
         val r = region
         scope.launch {
             runCatching { withContext(Dispatchers.IO) { InAppNetworkImpl.fetchHuamiKeysWithToken(userId, token, r) } }
                 .onSuccess { keys = it }
-                .onFailure { error = it.message ?: "Network error" }
+                .onFailure { error = it.message ?: context.getString(R.string.ult_network_error) }
             busy = false
         }
     }
@@ -116,12 +118,12 @@ private fun KeyScreen(onBack: () -> Unit) {
         if (res.resultCode != Activity.RESULT_OK || data == null) return@rememberLauncherForActivityResult
         val userId = data.getStringExtra(UltimateAccountLoginActivity.EXTRA_USER_ID).orEmpty()
         val token = data.getStringExtra(UltimateAccountLoginActivity.EXTRA_TOKEN).orEmpty()
-        if (userId.isBlank() || token.isBlank()) { xError = "Could not read the session token."; return@rememberLauncherForActivityResult }
+        if (userId.isBlank() || token.isBlank()) { xError = context.getString(R.string.ult_huami_token_error); return@rememberLauncherForActivityResult }
         xBusy = true; xError = null; xKeys = null
         scope.launch {
             runCatching { withContext(Dispatchers.IO) { InAppNetworkImpl.fetchXiaomiKeysWithPassToken(userId, token) } }
                 .onSuccess { xKeys = it }
-                .onFailure { xError = it.message ?: "Network error" }
+                .onFailure { xError = it.message ?: context.getString(R.string.ult_network_error) }
             xBusy = false
         }
     }
@@ -130,7 +132,7 @@ private fun KeyScreen(onBack: () -> Unit) {
         containerColor = palette.background,
         topBar = {
             TopAppBar(
-                title = { Text("Watch Bluetooth key") },
+                title = { Text(stringResource(R.string.ult_huami_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null) }
                 },
@@ -148,8 +150,7 @@ private fun KeyScreen(onBack: () -> Unit) {
         ) {
             Text("Amazfit / Zepp", style = MaterialTheme.typography.titleMedium, color = palette.onSurface)
             Text(
-                "Sign in to your own Zepp/Amazfit account (also works for Mi Bands paired with Zepp). The session " +
-                    "opens on Zepp's official page, so two-factor, OTP and captcha all work. Nothing is stored.",
+                stringResource(R.string.ult_huami_zepp_desc),
                 style = MaterialTheme.typography.bodyMedium,
                 color = palette.onSurfaceVariant,
             )
@@ -164,15 +165,14 @@ private fun KeyScreen(onBack: () -> Unit) {
                     error = null
                     zeppLogin.launch(UltimateAccountLoginActivity.intent(context, UltimateAccountLoginActivity.PROVIDER_ZEPP))
                 },
-            ) { Text(if (busy) "Checking…" else "Sign in (Amazfit/Zepp)") }
+            ) { Text(if (busy) stringResource(R.string.ult_checking) else stringResource(R.string.ult_huami_signin_zepp)) }
             error?.let { Text(it, color = palette.error, style = MaterialTheme.typography.bodySmall) }
             keys?.let { list -> KeyList(list.map { Triple(it.mac, it.authKey, "") }, palette, context) }
 
             // --- Xiaomi (Mi Fitness) ---
             Text("Xiaomi (Mi Fitness)", style = MaterialTheme.typography.titleMedium, color = palette.onSurface)
             Text(
-                "For Mi Band 8/9 and Xiaomi watches paired with the Mi Fitness / Xiaomi Wear app. The session opens " +
-                    "on Xiaomi's official page, so OTP, captcha and two-factor all work. Nothing is stored.",
+                stringResource(R.string.ult_huami_xiaomi_desc),
                 style = MaterialTheme.typography.bodyMedium,
                 color = palette.onSurfaceVariant,
             )
@@ -182,7 +182,7 @@ private fun KeyScreen(onBack: () -> Unit) {
                     xError = null
                     xiaomiLogin.launch(UltimateAccountLoginActivity.intent(context, UltimateAccountLoginActivity.PROVIDER_XIAOMI))
                 },
-            ) { Text(if (xBusy) "Checking…" else "Sign in (Xiaomi)") }
+            ) { Text(if (xBusy) stringResource(R.string.ult_checking) else stringResource(R.string.ult_huami_signin_xiaomi)) }
             xError?.let { Text(it, color = palette.error, style = MaterialTheme.typography.bodySmall) }
             xKeys?.let { list -> KeyList(list.map { Triple(it.mac, it.authKey, it.name) }, palette, context) }
         }
@@ -197,7 +197,7 @@ private fun KeyList(
     context: Context,
 ) {
     if (items.isEmpty()) {
-        Text("The account has no devices with a key.", color = palette.onSurfaceVariant)
+        Text(stringResource(R.string.ult_huami_no_devices), color = palette.onSurfaceVariant)
     }
     items.forEach { (mac, authKey, name) ->
         Card(
@@ -215,8 +215,8 @@ private fun KeyList(
                 TextButton(onClick = {
                     val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                     cm.setPrimaryClip(ClipData.newPlainText("auth key", authKey))
-                    Toast.makeText(context, "Key copied", Toast.LENGTH_SHORT).show()
-                }) { Text("Copy key") }
+                    Toast.makeText(context, context.getString(R.string.ult_key_copied), Toast.LENGTH_SHORT).show()
+                }) { Text(stringResource(R.string.ult_copy_key)) }
             }
         }
     }

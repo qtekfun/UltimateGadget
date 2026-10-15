@@ -16,6 +16,7 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 package nodomain.freeyourgadget.gadgetbridge.activities.ultimate.workout
 
+import androidx.compose.ui.res.stringResource
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -162,7 +163,7 @@ class UltimateWorkoutMapActivity : AppCompatActivity() {
                                 .clickable { startActivity(Intent().setClassName(this@UltimateWorkoutMapActivity, PHONE_MAPS)) }
                                 .padding(horizontal = 14.dp, vertical = 10.dp),
                         ) {
-                            Text("Importar mapa base", color = palette.onSecondaryContainer, style = MaterialTheme.typography.titleMedium)
+                            Text(stringResource(R.string.ult_import_basemap), color = palette.onSecondaryContainer, style = MaterialTheme.typography.titleMedium)
                         }
                     }
                 }

@@ -16,6 +16,7 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 package nodomain.freeyourgadget.gadgetbridge.activities.ultimate
 
+import nodomain.freeyourgadget.gadgetbridge.R
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -47,7 +48,7 @@ class UltimateAddDeviceActivity : AppCompatActivity() {
             if (granted) {
                 launchDiscovery()
             } else {
-                Toast.makeText(this, "Permissions needed to scan for devices", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.ult_perm_needed_scan), Toast.LENGTH_SHORT).show()
             }
         }
 
