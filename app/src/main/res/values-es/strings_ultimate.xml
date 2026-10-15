@@ -135,4 +135,56 @@
     <string name="ult_stress_level">Estrés: %1$d/100</string>
     <string name="ult_spo2_value">SpO₂ %1$d%%</string>
     <string name="ult_workouts">Entrenos</string>
+
+    <!-- Relojes mundiales -->
+    <string name="ult_no_free_clock_slots">No quedan huecos de reloj libres (%1$d)</string>
+    <string name="ult_clock_create_error">Error al crear el reloj</string>
+    <string name="ult_add_clock">Añadir reloj</string>
+    <string name="ult_world_clock_singular">Reloj mundial</string>
+    <string name="ult_time_zone">Zona horaria</string>
+    <string name="ult_code_3_letters">Código (3 letras)</string>
+    <string name="ult_show_clock_on_device">Mostrar este reloj en el dispositivo</string>
+    <string name="ult_no_world_clocks">Sin relojes mundiales</string>
+    <string name="ult_add_time_zone_hint">Toca + para añadir una zona horaria.</string>
+
+    <!-- Recordatorios -->
+    <string name="ult_rep_once">Una vez</string>
+    <string name="ult_rep_daily">Cada día</string>
+    <string name="ult_rep_weekly">Cada semana</string>
+    <string name="ult_rep_monthly">Cada mes</string>
+    <string name="ult_rep_yearly">Cada año</string>
+    <string name="ult_no_free_reminder_slots">No quedan huecos de recordatorio libres (%1$d)</string>
+    <string name="ult_reminder_create_error">Error al crear el recordatorio</string>
+    <string name="ult_add_reminder">Añadir recordatorio</string>
+    <string name="ult_repeat">Repetición</string>
+    <string name="ult_reminder_text">Texto del recordatorio</string>
+    <string name="ult_no_reminders">Sin recordatorios</string>
+    <string name="ult_add_reminder_hint">Toca + para crear un recordatorio.</string>
+
+    <!-- Temporizadores -->
+    <string name="ult_timer_finished">Temporizador terminado</string>
+    <string name="ult_timer_default">Temporizador</string>
+    <string name="ult_add_timer">Añadir temporizador</string>
+    <string name="ult_timer_phone_note">Temporizador local del teléfono. El reloj no admite temporizadores, así que la cuenta atrás corre en el teléfono y avisa aquí.</string>
+    <string name="ult_timer_running">En marcha</string>
+    <string name="ult_timer_paused">En pausa</string>
+    <string name="ult_timer_ready">Listo · %1$s</string>
+    <string name="ult_new_timer">Nuevo temporizador</string>
+    <string name="ult_edit_timer">Editar temporizador</string>
+    <string name="ult_timer_name">Nombre del temporizador</string>
+    <string name="ult_no_timers">Sin temporizadores</string>
+    <string name="ult_add_timer_hint">Toca + para crear una cuenta atrás.</string>
+
+    <!-- Alarmas -->
+    <string name="ult_no_free_alarm_slots">No quedan huecos de alarma libres</string>
+    <string name="ult_add_alarm">Añadir alarma</string>
+    <string name="ult_no_alarms">Sin alarmas</string>
+    <string name="ult_add_alarm_hint">Toca + para crear tu primera alarma.</string>
+    <string name="ult_new_alarm">Nueva alarma</string>
+    <string name="ult_edit_alarm">Editar alarma</string>
+    <string name="ult_smart_alarm">Despertador inteligente</string>
+    <string name="ult_mandatory_slot">Obligatorio en este hueco</string>
+    <string name="ult_wake_light_sleep">Despertar en sueño ligero</string>
+    <string name="ult_allow_snooze">Permitir posponer la alarma</string>
+    <string name="ult_alarm_name">Nombre de la alarma</string>
 </resources>

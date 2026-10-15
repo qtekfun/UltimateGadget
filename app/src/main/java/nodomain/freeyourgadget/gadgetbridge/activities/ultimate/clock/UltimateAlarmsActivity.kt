@@ -55,6 +55,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.ui.res.stringResource
+import nodomain.freeyourgadget.gadgetbridge.R
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
@@ -147,15 +149,15 @@ private fun AlarmsScreen(device: GBDevice, onBack: () -> Unit) {
                 onClick = {
                     val free = alarms.firstOrNull { it.unused }
                     if (free != null) editing = free
-                    else Toast.makeText(context, "No free alarm slots left", Toast.LENGTH_SHORT).show()
+                    else Toast.makeText(context, context.getString(R.string.ult_no_free_alarm_slots), Toast.LENGTH_SHORT).show()
                 },
                 containerColor = palette.primary,
                 contentColor = palette.onPrimary,
-            ) { Icon(Icons.Filled.Add, contentDescription = "Add alarm") }
+            ) { Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.ult_add_alarm)) }
         },
     ) {
         if (used.isEmpty()) {
-            EmptyState("Sin alarmas", "Tap + to create your first alarm.")
+            EmptyState(stringResource(R.string.ult_no_alarms), stringResource(R.string.ult_add_alarm_hint))
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
@@ -293,7 +295,7 @@ private fun AlarmEditor(
     val titleLimit = coordinator.getAlarmTitleLimit(device)
 
     ClockScaffold(
-        title = if (alarm.unused) "New alarm" else "Edit alarm",
+        title = if (alarm.unused) stringResource(R.string.ult_new_alarm) else stringResource(R.string.ult_edit_alarm),
         onBack = onCancel,
         actions = {
             TextButton(onClick = {
@@ -348,8 +350,8 @@ private fun AlarmEditor(
 
             if (supportsSmart) {
                 ToggleRow(
-                    title = "Despertador inteligente",
-                    subtitle = if (forcedSmart) "Obligatorio en este hueco" else "Wake during light sleep",
+                    title = stringResource(R.string.ult_smart_alarm),
+                    subtitle = if (forcedSmart) stringResource(R.string.ult_mandatory_slot) else stringResource(R.string.ult_wake_light_sleep),
                     checked = smartWakeup || forcedSmart,
                     enabled = !forcedSmart,
                     onChange = { smartWakeup = it },
@@ -358,7 +360,7 @@ private fun AlarmEditor(
             if (supportsSnooze) {
                 ToggleRow(
                     title = "Posponer",
-                    subtitle = "Allow snoozing the alarm",
+                    subtitle = stringResource(R.string.ult_allow_snooze),
                     checked = snooze,
                     onChange = { snooze = it },
                 )
@@ -370,7 +372,7 @@ private fun AlarmEditor(
                         onValueChange = { if (titleLimit <= 0 || it.length <= titleLimit) title = it },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
-                        placeholder = { Text("Alarm name") },
+                        placeholder = { Text(stringResource(R.string.ult_alarm_name)) },
                     )
                 }
             }
