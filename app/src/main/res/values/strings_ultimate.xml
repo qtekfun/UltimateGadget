@@ -725,4 +725,7 @@
     <string name="ult_confirm_yes">Yes</string>
     <string name="ult_hr_zone_n">Zone %1$d</string>
     <string name="ult_hr_zone_max">Maximum</string>
+    <string name="ult_calendars">Calendars</string>
+    <string name="ult_calendar_no_permission">Calendar permission not granted. Grant it in the app permissions to choose calendars.</string>
+    <string name="ult_calendar_none">No calendars found on this phone.</string>
 </resources>

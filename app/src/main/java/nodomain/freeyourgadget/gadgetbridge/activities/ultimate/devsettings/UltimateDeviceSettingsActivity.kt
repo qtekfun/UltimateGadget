@@ -191,7 +191,7 @@ class UltimateDeviceSettingsActivity : AppCompatActivity() {
             "pref_upload_notifications_app_icon" ->
                 open(nodomain.freeyourgadget.gadgetbridge.activities.NotificationsAppIconUploadActivity::class.java)
             "calendar_blacklist" ->
-                open(nodomain.freeyourgadget.gadgetbridge.activities.CalendarSelectionActivity::class.java)
+                startActivity(nodomain.freeyourgadget.gadgetbridge.activities.ultimate.calendar.UltimateCalendarSelectionActivity.intent(this, device))
             "pref_huawei_stress_perform_calibrate" ->
                 open(nodomain.freeyourgadget.gadgetbridge.devices.huawei.ui.HuaweiStressCalibrationActivity::class.java)
             // Command-style actions (send canned messages, debug request, …): fire the same signal
