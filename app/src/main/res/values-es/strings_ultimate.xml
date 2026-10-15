@@ -725,4 +725,7 @@
     <string name="ult_confirm_yes">Sí</string>
     <string name="ult_hr_zone_n">Zona %1$d</string>
     <string name="ult_hr_zone_max">Máximo</string>
+    <string name="ult_calendars">Calendarios</string>
+    <string name="ult_calendar_no_permission">Permiso de calendario no concedido. Concédelo en los permisos de la app para elegir calendarios.</string>
+    <string name="ult_calendar_none">No se han encontrado calendarios en este teléfono.</string>
 </resources>
