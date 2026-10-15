@@ -16,6 +16,8 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 package nodomain.freeyourgadget.gadgetbridge.activities.ultimate.dataio
 
+import nodomain.freeyourgadget.gadgetbridge.R
+import androidx.compose.ui.res.stringResource
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -178,12 +180,9 @@ class UltimateDataIOActivity : AppCompatActivity() {
             busy = false
             status = result.fold(
                 {
-                    "Encrypted full backup created successfully. Includes the database " +
-                        "(workouts, activity, sleep, heart rate), app and per-device settings, " +
-                        "and saved routes. Keep it and remember the password: without it, it cannot be " +
-                        "restored."
+                    getString(R.string.ult_dio_backup_created)
                 },
-                { "Export failed: ${it.localizedMessage}" },
+                { getString(R.string.ult_dio_export_failed, it.localizedMessage ?: "") },
             )
         }
     }
@@ -204,15 +203,13 @@ class UltimateDataIOActivity : AppCompatActivity() {
             result.fold(
                 { res ->
                     importDone = true
-                    status = "Backup restored: database + ${res.prefsFiles} settings files" +
-                        (if (res.routeFiles > 0) " + ${res.routeFiles} routes" else "") +
-                        ". Restart the app to apply the changes. Note: the Bluetooth " +
-                        "pairing cannot be restored (it belongs to Android); reconnect " +
-                        "the watch from the app."
+                    status = getString(R.string.ult_dio_restored, res.prefsFiles) +
+                        (if (res.routeFiles > 0) getString(R.string.ult_dio_restored_routes, res.routeFiles) else "") +
+                        getString(R.string.ult_dio_restored_tail)
                 },
                 {
                     importDone = false
-                    status = "Import failed: ${it.localizedMessage}"
+                    status = getString(R.string.ult_dio_import_failed, it.localizedMessage ?: "")
                 },
             )
         }
@@ -231,8 +228,8 @@ class UltimateDataIOActivity : AppCompatActivity() {
             }
             busy = false
             status = result.fold(
-                { "Database exported (unencrypted, DB only)." },
-                { "Export failed: ${it.localizedMessage}" },
+                { getString(R.string.ult_dio_db_exported) },
+                { getString(R.string.ult_dio_export_failed, it.localizedMessage ?: "") },
             )
         }
     }
@@ -291,10 +288,10 @@ private fun DataIOScreen(
         containerColor = palette.background,
         topBar = {
             TopAppBar(
-                title = { Text("Backup", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.ult_backup), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.ult_back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -310,56 +307,46 @@ private fun DataIOScreen(
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             SectionCard(
-                title = "Encrypted full backup",
-                body = "Creates a single .ugbak file you can carry to another phone. Includes the " +
-                    "database (workouts, activity, sleep, heart rate), all settings (app " +
-                    "and per-device) and saved routes. It is encrypted with your password " +
-                    "(AES-256). Without the password it cannot be restored, so do not forget it.",
+                title = stringResource(R.string.ult_dio_enc_title),
+                body = stringResource(R.string.ult_dio_enc_body),
             ) {
-                Button(onClick = onExportFull, enabled = !busy) { Text("Create encrypted backup…") }
+                Button(onClick = onExportFull, enabled = !busy) { Text(stringResource(R.string.ult_dio_enc_btn)) }
             }
 
             SectionCard(
-                title = "Restore full backup",
-                body = "Choose a .ugbak file and type its password. It OVERWRITES the current " +
-                    "database and settings with those from the backup. Afterwards you must restart the " +
-                    "app for the changes to take effect.",
+                title = stringResource(R.string.ult_dio_restore_title),
+                body = stringResource(R.string.ult_dio_restore_body),
             ) {
-                OutlinedButton(onClick = onPickImport, enabled = !busy) { Text("Choose backup…") }
+                OutlinedButton(onClick = onPickImport, enabled = !busy) { Text(stringResource(R.string.ult_dio_choose_btn)) }
             }
 
             SectionCard(
-                title = "When moving to another phone",
-                body = "The Bluetooth pairing (the watch's bonding keys) is stored by " +
-                    "Android, NOT the app, so it cannot be exported. On the new phone, " +
-                    "after restoring the backup you will have to reconnect/pair the watch from " +
-                    "the app. Workouts, settings and the saved device ARE restored.",
+                title = stringResource(R.string.ult_dio_move_title),
+                body = stringResource(R.string.ult_dio_move_body),
             ) {}
 
             SectionCard(
-                title = "Restart app",
+                title = stringResource(R.string.ult_dio_restart_app),
                 body = if (importDone) {
-                    "Restore ready. Restart the app to apply the changes and see the restored " +
-                        "data. On return, your watch reconnects automatically."
+                    stringResource(R.string.ult_dio_restart_ready)
                 } else {
-                    "Closes and reopens the app cleanly. Useful after restoring a backup."
+                    stringResource(R.string.ult_dio_restart_hint)
                 },
             ) {
-                Button(onClick = onRestartRequest, enabled = !busy) { Text("Restart app") }
+                Button(onClick = onRestartRequest, enabled = !busy) { Text(stringResource(R.string.ult_dio_restart_app)) }
             }
 
             SectionCard(
-                title = "Export database only (unencrypted)",
-                body = "Legacy option: saves only the database file, without " +
-                    "settings or encryption. Useful for interoperating with Gadgetbridge backups.",
+                title = stringResource(R.string.ult_dio_dbonly_title),
+                body = stringResource(R.string.ult_dio_dbonly_body),
             ) {
-                OutlinedButton(onClick = onExportDbOnly, enabled = !busy) { Text("Export DB only…") }
+                OutlinedButton(onClick = onExportDbOnly, enabled = !busy) { Text(stringResource(R.string.ult_dio_dbonly_btn)) }
             }
 
             if (busy) {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     CircularProgressIndicator(color = palette.primary)
-                    Text("Working…", color = palette.onSurfaceVariant)
+                    Text(stringResource(R.string.ult_working), color = palette.onSurfaceVariant)
                 }
             }
             status?.let {
@@ -385,10 +372,10 @@ private fun DataIOScreen(
     if (confirmRestart) {
         AlertDialog(
             onDismissRequest = onCancelRestart,
-            title = { Text("Restart the app") },
-            text = { Text("The app will close and restart to apply the restore. Continue?") },
-            confirmButton = { Button(onClick = onConfirmRestart) { Text("Restart") } },
-            dismissButton = { OutlinedButton(onClick = onCancelRestart) { Text("Cancel") } },
+            title = { Text(stringResource(R.string.ult_dio_restart_title)) },
+            text = { Text(stringResource(R.string.ult_dio_restart_confirm)) },
+            confirmButton = { Button(onClick = onConfirmRestart) { Text(stringResource(R.string.ult_dio_restart)) } },
+            dismissButton = { OutlinedButton(onClick = onCancelRestart) { Text(stringResource(R.string.ult_cancel)) } },
             containerColor = palette.surfaceContainer,
             titleContentColor = palette.onSurface,
             textContentColor = palette.onSurfaceVariant,
@@ -407,34 +394,33 @@ private fun ExportPasswordDialog(onConfirm: (String) -> Unit, onCancel: () -> Un
     val mismatch = pwd != confirm
     val error = when {
         pwd.isEmpty() -> null
-        tooShort -> "The password must be at least 6 characters."
-        mismatch && confirm.isNotEmpty() -> "The passwords do not match."
+        tooShort -> stringResource(R.string.ult_dio_pw_short)
+        mismatch && confirm.isNotEmpty() -> stringResource(R.string.ult_dio_pw_mismatch)
         else -> null
     }
     val canConfirm = !tooShort && !mismatch && confirm.isNotEmpty()
 
     AlertDialog(
         onDismissRequest = onCancel,
-        title = { Text("Backup password") },
+        title = { Text(stringResource(R.string.ult_dio_pw_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text(
-                    "Choose a password to encrypt the backup. You will need it to restore it; " +
-                        "it cannot be recovered if you lose it.",
+                    stringResource(R.string.ult_dio_pw_choose),
                     color = palette.onSurfaceVariant,
                 )
-                PasswordField(pwd, { pwd = it }, "Password", reveal)
-                PasswordField(confirm, { confirm = it }, "Repeat the password", reveal)
+                PasswordField(pwd, { pwd = it }, stringResource(R.string.ult_password), reveal)
+                PasswordField(confirm, { confirm = it }, stringResource(R.string.ult_dio_pw_repeat), reveal)
                 TextButton(onClick = { reveal = !reveal }) {
-                    Text(if (reveal) "Hide" else "Show", color = palette.primary)
+                    Text(if (reveal) stringResource(R.string.ult_hide) else stringResource(R.string.ult_show), color = palette.primary)
                 }
                 error?.let { Text(it, color = palette.error) }
             }
         },
         confirmButton = {
-            Button(onClick = { onConfirm(pwd) }, enabled = canConfirm) { Text("Encrypt and save") }
+            Button(onClick = { onConfirm(pwd) }, enabled = canConfirm) { Text(stringResource(R.string.ult_dio_encrypt_save)) }
         },
-        dismissButton = { OutlinedButton(onClick = onCancel) { Text("Cancel") } },
+        dismissButton = { OutlinedButton(onClick = onCancel) { Text(stringResource(R.string.ult_cancel)) } },
         containerColor = palette.surfaceContainer,
         titleContentColor = palette.onSurface,
         textContentColor = palette.onSurfaceVariant,
@@ -449,23 +435,23 @@ private fun ImportPasswordDialog(onConfirm: (String) -> Unit, onCancel: () -> Un
 
     AlertDialog(
         onDismissRequest = onCancel,
-        title = { Text("Backup password") },
+        title = { Text(stringResource(R.string.ult_dio_pw_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text(
-                    "Type the password this backup was encrypted with to restore it.",
+                    stringResource(R.string.ult_dio_pw_type),
                     color = palette.onSurfaceVariant,
                 )
-                PasswordField(pwd, { pwd = it }, "Password", reveal)
+                PasswordField(pwd, { pwd = it }, stringResource(R.string.ult_password), reveal)
                 TextButton(onClick = { reveal = !reveal }) {
-                    Text(if (reveal) "Hide" else "Show", color = palette.primary)
+                    Text(if (reveal) stringResource(R.string.ult_hide) else stringResource(R.string.ult_show), color = palette.primary)
                 }
             }
         },
         confirmButton = {
-            Button(onClick = { onConfirm(pwd) }, enabled = pwd.isNotEmpty()) { Text("Restore") }
+            Button(onClick = { onConfirm(pwd) }, enabled = pwd.isNotEmpty()) { Text(stringResource(R.string.ult_restore)) }
         },
-        dismissButton = { OutlinedButton(onClick = onCancel) { Text("Cancel") } },
+        dismissButton = { OutlinedButton(onClick = onCancel) { Text(stringResource(R.string.ult_cancel)) } },
         containerColor = palette.surfaceContainer,
         titleContentColor = palette.onSurface,
         textContentColor = palette.onSurfaceVariant,

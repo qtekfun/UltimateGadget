@@ -375,4 +375,43 @@
     <string name="ult_edit_fmt">Edit \"%1$s\"</string>
     <string name="ult_no_tracks_uploaded">No tracks uploaded to the watch. Add music from the Tracks tab first.</string>
     <string name="ult_untitled">(untitled)</string>
+
+    <!-- Backup / data import-export -->
+    <string name="ult_dio_backup_created">Encrypted full backup created successfully. Includes the database (workouts, activity, sleep, heart rate), app and per-device settings, and saved routes. Keep it and remember the password: without it, it cannot be restored.</string>
+    <string name="ult_dio_export_failed">Export failed: %1$s</string>
+    <string name="ult_dio_restored">Backup restored: database + %1$d settings files</string>
+    <string name="ult_dio_restored_routes">" + %1$d routes"</string>
+    <string name="ult_dio_restored_tail">. Restart the app to apply the changes. Note: the Bluetooth pairing cannot be restored (it belongs to Android); reconnect the watch from the app.</string>
+    <string name="ult_dio_import_failed">Import failed: %1$s</string>
+    <string name="ult_dio_db_exported">Database exported (unencrypted, DB only).</string>
+    <string name="ult_backup">Backup</string>
+    <string name="ult_dio_enc_title">Encrypted full backup</string>
+    <string name="ult_dio_enc_body">Creates a single .ugbak file you can carry to another phone. Includes the database (workouts, activity, sleep, heart rate), all settings (app and per-device) and saved routes. It is encrypted with your password (AES-256). Without the password it cannot be restored, so do not forget it.</string>
+    <string name="ult_dio_enc_btn">Create encrypted backup…</string>
+    <string name="ult_dio_restore_title">Restore full backup</string>
+    <string name="ult_dio_restore_body">Choose a .ugbak file and type its password. It OVERWRITES the current database and settings with those from the backup. Afterwards you must restart the app for the changes to take effect.</string>
+    <string name="ult_dio_choose_btn">Choose backup…</string>
+    <string name="ult_dio_move_title">When moving to another phone</string>
+    <string name="ult_dio_move_body">The Bluetooth pairing (the watch\'s bonding keys) is stored by Android, NOT the app, so it cannot be exported. On the new phone, after restoring the backup you will have to reconnect/pair the watch from the app. Workouts, settings and the saved device ARE restored.</string>
+    <string name="ult_dio_restart_app">Restart app</string>
+    <string name="ult_dio_restart_ready">Restore ready. Restart the app to apply the changes and see the restored data. On return, your watch reconnects automatically.</string>
+    <string name="ult_dio_restart_hint">Closes and reopens the app cleanly. Useful after restoring a backup.</string>
+    <string name="ult_dio_dbonly_title">Export database only (unencrypted)</string>
+    <string name="ult_dio_dbonly_body">Legacy option: saves only the database file, without settings or encryption. Useful for interoperating with Gadgetbridge backups.</string>
+    <string name="ult_dio_dbonly_btn">Export DB only…</string>
+    <string name="ult_working">Working…</string>
+    <string name="ult_dio_restart_title">Restart the app</string>
+    <string name="ult_dio_restart_confirm">The app will close and restart to apply the restore. Continue?</string>
+    <string name="ult_dio_restart">Restart</string>
+    <string name="ult_dio_pw_short">The password must be at least 6 characters.</string>
+    <string name="ult_dio_pw_mismatch">The passwords do not match.</string>
+    <string name="ult_dio_pw_title">Backup password</string>
+    <string name="ult_dio_pw_choose">Choose a password to encrypt the backup. You will need it to restore it; it cannot be recovered if you lose it.</string>
+    <string name="ult_password">Password</string>
+    <string name="ult_dio_pw_repeat">Repeat the password</string>
+    <string name="ult_hide">Hide</string>
+    <string name="ult_show">Show</string>
+    <string name="ult_dio_encrypt_save">Encrypt and save</string>
+    <string name="ult_dio_pw_type">Type the password this backup was encrypted with to restore it.</string>
+    <string name="ult_restore">Restore</string>
 </resources>
