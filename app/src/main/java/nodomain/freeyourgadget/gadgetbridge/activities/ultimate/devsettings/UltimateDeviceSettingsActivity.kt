@@ -185,7 +185,7 @@ class UltimateDeviceSettingsActivity : AppCompatActivity() {
             "pref_music_management" ->
                 startActivity(nodomain.freeyourgadget.gadgetbridge.activities.ultimate.music.UltimateMusicActivity.intent(this, device))
             "pref_contacts" ->
-                open(nodomain.freeyourgadget.gadgetbridge.activities.ConfigureContacts::class.java)
+                startActivity(nodomain.freeyourgadget.gadgetbridge.activities.ultimate.contacts.UltimateContactsActivity.intent(this, device))
             "pref_perform_heart_rate_settings" ->
                 startActivity(nodomain.freeyourgadget.gadgetbridge.activities.ultimate.heartrate.UltimateHeartRateZonesActivity.intent(this, device))
             "pref_upload_notifications_app_icon" ->
