@@ -61,6 +61,8 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import nodomain.freeyourgadget.gadgetbridge.R
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -174,15 +176,15 @@ private fun WatchfacesScreen(device: GBDevice, onBack: () -> Unit) {
         containerColor = palette.background,
         topBar = {
             TopAppBar(
-                title = { Text("Watchfaces") },
+                title = { Text(stringResource(R.string.ult_watchfaces)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.ult_back))
                     }
                 },
                 actions = {
                     IconButton(onClick = { requestList() }) {
-                        Icon(Icons.Filled.Refresh, contentDescription = "Actualizar")
+                        Icon(Icons.Filled.Refresh, contentDescription = stringResource(R.string.ult_refresh))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -199,25 +201,24 @@ private fun WatchfacesScreen(device: GBDevice, onBack: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             Text(
-                "Watchfaces installed on the watch. Activate or delete them, or import one from a file " +
-                    "(.watchface/.bin). There is no online gallery: only the watch and your files.",
+                stringResource(R.string.ult_watchfaces_explain),
                 style = MaterialTheme.typography.bodyMedium,
                 color = palette.onSurfaceVariant,
             )
             Button(onClick = { importPicker.launch(arrayOf("*/*")) }) {
                 Icon(Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(18.dp))
-                Text("  Importar esfera")
+                Text(stringResource(R.string.ult_import_watchface_btn))
             }
 
             Text(
-                "INSTALADAS",
+                stringResource(R.string.ult_installed).uppercase(),
                 style = SectionLabelStyle,
                 color = palette.onSurfaceVariant,
             )
 
             if (watchfaces.isEmpty()) {
                 Text(
-                    "No watchfaces. Connect the watch and tap refresh, or import one.",
+                    stringResource(R.string.ult_no_watchfaces),
                     style = MaterialTheme.typography.bodyMedium,
                     color = palette.onSurfaceVariant,
                 )
@@ -234,7 +235,7 @@ private fun WatchfacesScreen(device: GBDevice, onBack: () -> Unit) {
                             onActivate = {
                                 GBApplication.deviceService(device).onAppStart(wf.uuid, true)
                                 activeUuid = wf.uuid
-                                Toast.makeText(context, "Watchface activated", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, context.getString(R.string.ult_watchface_activated), Toast.LENGTH_SHORT).show()
                                 requestList()
                             },
                             onDelete = { pendingDelete = wf },
@@ -250,10 +251,10 @@ private fun WatchfacesScreen(device: GBDevice, onBack: () -> Unit) {
         AlertDialog(
             containerColor = palette.surfaceContainer,
             onDismissRequest = { pendingDelete = null },
-            title = { Text("Delete watchface", color = palette.onSurface) },
+            title = { Text(stringResource(R.string.ult_delete_watchface), color = palette.onSurface) },
             text = {
                 Text(
-                    "Delete \"${toDelete.name}\" from the watch?",
+                    stringResource(R.string.ult_delete_confirm, toDelete.name),
                     color = palette.onSurfaceVariant,
                 )
             },
@@ -263,11 +264,11 @@ private fun WatchfacesScreen(device: GBDevice, onBack: () -> Unit) {
                     if (toDelete.uuid == activeUuid) activeUuid = null
                     pendingDelete = null
                     requestList()
-                }) { Text("Delete", color = palette.error) }
+                }) { Text(stringResource(R.string.ult_delete), color = palette.error) }
             },
             dismissButton = {
                 TextButton(onClick = { pendingDelete = null }) {
-                    Text("Cancel", color = palette.onSurfaceVariant)
+                    Text(stringResource(R.string.ult_cancel), color = palette.onSurfaceVariant)
                 }
             },
         )
@@ -310,7 +311,7 @@ private fun WatchfaceCard(
                 if (isActive) {
                     Icon(
                         Icons.Filled.CheckCircle,
-                        contentDescription = "Activa",
+                        contentDescription = stringResource(R.string.ult_active),
                         tint = palette.secondary,
                         modifier = Modifier.size(18.dp),
                     )
@@ -324,6 +325,8 @@ private fun WatchfaceCard(
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
+                val activeLabel = stringResource(R.string.ult_active)
+                val builtinLabel = stringResource(R.string.ult_builtin)
                 val subtitle = buildString {
                     if (app.creator.isNotBlank() && app.creator != HuaweiWatchfaceManager.CURRENT_MARKER) append(app.creator)
                     if (app.version.isNotBlank()) {
@@ -332,10 +335,10 @@ private fun WatchfaceCard(
                     }
                     if (isActive) {
                         if (isNotEmpty()) append(" · ")
-                        append("Activa")
+                        append(activeLabel)
                     } else if (isSystem) {
                         if (isNotEmpty()) append(" · ")
-                        append("Built-in")
+                        append(builtinLabel)
                     }
                 }
                 if (subtitle.isNotBlank()) {
@@ -358,12 +361,12 @@ private fun WatchfaceCard(
                     enabled = canActivate,
                     modifier = Modifier.weight(1f),
                 ) {
-                    Text(if (isActive) "Activa" else "Activate")
+                    Text(if (isActive) stringResource(R.string.ult_active) else stringResource(R.string.ult_activate))
                 }
                 // System/factory watchfaces cannot be removed from the device.
                 if (!isSystem) {
                     IconButton(onClick = onDelete) {
-                        Icon(Icons.Filled.Delete, contentDescription = "Delete", tint = palette.error)
+                        Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.ult_delete), tint = palette.error)
                     }
                 } else {
                     Box(Modifier.size(48.dp))
