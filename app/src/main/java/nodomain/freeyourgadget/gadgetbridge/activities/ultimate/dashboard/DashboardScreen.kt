@@ -43,6 +43,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import nodomain.freeyourgadget.gadgetbridge.R
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -119,7 +121,7 @@ fun DashboardScreen(
                 Modifier.fillMaxSize().padding(inner),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally,
-            ) { Text("Loading…", color = scheme.onSurfaceVariant) }
+            ) { Text(stringResource(R.string.ult_loading), color = scheme.onSurfaceVariant) }
             return@Scaffold
         }
 
@@ -165,7 +167,7 @@ private fun SampleBanner() {
     val scheme = MaterialTheme.colorScheme
     DashboardCard {
         Text(
-            "Showing sample data — device metrics will appear here once wired to the database.",
+            stringResource(R.string.ult_sample_data_note),
             style = MaterialTheme.typography.bodyMedium,
             color = scheme.onSurfaceVariant,
         )
@@ -186,10 +188,10 @@ private fun CustomizeList(
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         item {
-            SectionLabel("Customize cards")
+            SectionLabel(stringResource(R.string.ult_customize_cards))
             Spacer(Modifier.height(6.dp))
             Text(
-                "Turn cards on or off and reorder them.",
+                stringResource(R.string.ult_customize_cards_sub),
                 style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant,
             )
             Spacer(Modifier.height(8.dp))
@@ -203,11 +205,11 @@ private fun CustomizeList(
                         Text(cardSubtitle(cfg.id), style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
                     }
                     IconButton(onClick = { if (index > 0) onMove(index, index - 1) }, enabled = index > 0) {
-                        Icon(Icons.Filled.ArrowUpward, contentDescription = "Move up",
+                        Icon(Icons.Filled.ArrowUpward, contentDescription = stringResource(R.string.ult_move_up),
                             tint = if (index > 0) scheme.onSurface else scheme.outlineVariant)
                     }
                     IconButton(onClick = { if (index < cards.lastIndex) onMove(index, index + 1) }, enabled = index < cards.lastIndex) {
-                        Icon(Icons.Filled.ArrowDownward, contentDescription = "Move down",
+                        Icon(Icons.Filled.ArrowDownward, contentDescription = stringResource(R.string.ult_move_down),
                             tint = if (index < cards.lastIndex) scheme.onSurface else scheme.outlineVariant)
                     }
                     Switch(checked = cfg.enabled, onCheckedChange = { onToggle(cfg.id) })
@@ -217,21 +219,23 @@ private fun CustomizeList(
     }
 }
 
-private fun cardTitle(id: DashboardCardId) = when (id) {
-    DashboardCardId.READINESS -> "Readiness"
-    DashboardCardId.STEPS -> "Steps & activity"
-    DashboardCardId.LAST_WORKOUT -> "Last workout"
-    DashboardCardId.HEART -> "Heart rate & SpO₂"
-    DashboardCardId.SLEEP_STRESS -> "Sleep & stress"
-}
+@Composable
+private fun cardTitle(id: DashboardCardId) = stringResource(when (id) {
+    DashboardCardId.READINESS -> R.string.ult_readiness
+    DashboardCardId.STEPS -> R.string.ult_steps_activity
+    DashboardCardId.LAST_WORKOUT -> R.string.ult_last_workout
+    DashboardCardId.HEART -> R.string.ult_hr_spo2
+    DashboardCardId.SLEEP_STRESS -> R.string.ult_sleep_stress
+})
 
-private fun cardSubtitle(id: DashboardCardId) = when (id) {
-    DashboardCardId.READINESS -> "Today's estimated recovery"
-    DashboardCardId.STEPS -> "Daily steps, distance and goal"
-    DashboardCardId.LAST_WORKOUT -> "Your most recent session"
-    DashboardCardId.HEART -> "Current, resting and oxygen"
-    DashboardCardId.SLEEP_STRESS -> "Last night and stress level"
-}
+@Composable
+private fun cardSubtitle(id: DashboardCardId) = stringResource(when (id) {
+    DashboardCardId.READINESS -> R.string.ult_readiness_sub
+    DashboardCardId.STEPS -> R.string.ult_steps_activity_sub
+    DashboardCardId.LAST_WORKOUT -> R.string.ult_last_workout_sub
+    DashboardCardId.HEART -> R.string.ult_hr_spo2_sub
+    DashboardCardId.SLEEP_STRESS -> R.string.ult_sleep_stress_sub
+})
 
 // --- previews ---
 

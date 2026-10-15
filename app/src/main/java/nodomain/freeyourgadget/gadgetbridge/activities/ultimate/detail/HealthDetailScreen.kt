@@ -47,6 +47,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import nodomain.freeyourgadget.gadgetbridge.R
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -125,27 +127,26 @@ fun HealthDetailScreen(
 private fun StepsDetail(data: DashboardData?) {
     val s = data?.steps
     val scheme = MaterialTheme.colorScheme
-    if (s == null) { EmptyCard("No step data") ; return }
+    if (s == null) { EmptyCard(stringResource(R.string.ult_no_step_data)) ; return }
     DashboardCard {
-        SectionLabel("Today")
+        SectionLabel(stringResource(R.string.ult_today))
         Spacer(Modifier.height(6.dp))
         Text("%,d".format(s.steps), style = MetricValueStyle, color = scheme.onSurface)
         Spacer(Modifier.height(10.dp))
         BarSparkline(s.weekly.map { it.toFloat() }, scheme.primary, scheme.surfaceContainerHighest)
         Spacer(Modifier.height(8.dp))
         Text(
-            String.format(Locale.getDefault(), "%.1f km · %d kcal · meta %,d",
-                s.distanceKm, s.kcal, s.goal),
+            stringResource(R.string.ult_dist_kcal_goal_int, s.distanceKm, s.kcal, s.goal),
             color = scheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium,
         )
     }
     DashboardCard {
-        SectionLabel("Last 7 days")
+        SectionLabel(stringResource(R.string.ult_last_7_days))
         Spacer(Modifier.height(8.dp))
         s.weekly.reversed().forEachIndexed { idx, v ->
             Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(if (idx == 0) "Today" else "-$idx d", color = scheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
-                Text("%,d pasos".format(v), color = scheme.onSurface, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                Text(if (idx == 0) stringResource(R.string.ult_today) else "-$idx d", color = scheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
+                Text(stringResource(R.string.ult_steps_count, v), color = scheme.onSurface, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
             }
         }
     }
@@ -155,22 +156,22 @@ private fun StepsDetail(data: DashboardData?) {
 private fun HeartDetail(data: DashboardData?) {
     val h = data?.heart
     val scheme = MaterialTheme.colorScheme
-    if (h == null) { EmptyCard("No heart-rate data") ; return }
+    if (h == null) { EmptyCard(stringResource(R.string.ult_no_hr_data)) ; return }
     DashboardCard {
-        SectionLabel("Frecuencia cardiaca")
+        SectionLabel(stringResource(R.string.ult_heart_rate))
         Spacer(Modifier.height(6.dp))
         Row(verticalAlignment = Alignment.Bottom) {
             Text("${h.currentBpm}", style = MetricValueStyle, color = scheme.onSurface)
             Spacer(Modifier.width(8.dp))
-            Text("bpm", color = scheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 4.dp))
+            Text(stringResource(R.string.ult_bpm), color = scheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 4.dp))
         }
         if (h.recent.size >= 2) {
             Spacer(Modifier.height(10.dp))
             Sparkline(h.recent.map { it.toFloat() }, scheme.error)
         }
         Spacer(Modifier.height(8.dp))
-        Text("Reposo ${h.restingBpm} bpm", color = scheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
-        if (h.spo2 > 0) Text("SpO₂ ${h.spo2}%", color = scheme.secondary, style = MaterialTheme.typography.bodyMedium)
+        Text(stringResource(R.string.ult_resting_bpm, h.restingBpm), color = scheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
+        if (h.spo2 > 0) Text(stringResource(R.string.ult_spo2_value, h.spo2), color = scheme.secondary, style = MaterialTheme.typography.bodyMedium)
     }
 }
 
@@ -178,15 +179,15 @@ private fun HeartDetail(data: DashboardData?) {
 private fun SleepDetail(data: DashboardData?) {
     val sl = data?.sleepStress
     val scheme = MaterialTheme.colorScheme
-    if (sl == null) { EmptyCard("No sleep data") ; return }
+    if (sl == null) { EmptyCard(stringResource(R.string.ult_no_sleep_data)) ; return }
     DashboardCard {
-        SectionLabel("Last night's sleep")
+        SectionLabel(stringResource(R.string.ult_last_night_sleep))
         Spacer(Modifier.height(6.dp))
         Text(String.format(Locale.getDefault(), "%dh %02dm", sl.sleepMinutes / 60, sl.sleepMinutes % 60),
             style = MetricValueStyle, color = scheme.onSurface)
         if (sl.stressLevel > 0) {
             Spacer(Modifier.height(10.dp))
-            Text("Stress: ${sl.stressLevel}/100", color = scheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
+            Text(stringResource(R.string.ult_stress_level, sl.stressLevel), color = scheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
         }
     }
 }
@@ -198,7 +199,7 @@ private data class WorkoutType(val code: Int, val label: String, val iconRes: In
 @Composable
 private fun WorkoutsDetail(workouts: List<WorkoutRow>, onOpenWorkout: (WorkoutRow) -> Unit = {}) {
     val scheme = MaterialTheme.colorScheme
-    if (workouts.isEmpty()) { EmptyCard("No workouts yet") ; return }
+    if (workouts.isEmpty()) { EmptyCard(stringResource(R.string.ult_no_workouts_yet)) ; return }
 
     // Distinct activity types present in the data, in order of first appearance.
     val types = remember(workouts) {
@@ -301,10 +302,11 @@ private fun EmptyCard(text: String) {
     }
 }
 
-private fun titleFor(card: DashboardCardId) = when (card) {
-    DashboardCardId.STEPS -> "Steps and activity"
-    DashboardCardId.HEART -> "Heart rate and SpO₂"
-    DashboardCardId.SLEEP_STRESS -> "Sleep and stress"
-    DashboardCardId.LAST_WORKOUT -> "Workouts"
-    DashboardCardId.READINESS -> "Readiness"
-}
+@Composable
+private fun titleFor(card: DashboardCardId) = stringResource(when (card) {
+    DashboardCardId.STEPS -> R.string.ult_steps_activity
+    DashboardCardId.HEART -> R.string.ult_hr_spo2
+    DashboardCardId.SLEEP_STRESS -> R.string.ult_sleep_stress
+    DashboardCardId.LAST_WORKOUT -> R.string.ult_workouts
+    DashboardCardId.READINESS -> R.string.ult_readiness
+})
