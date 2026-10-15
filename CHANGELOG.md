@@ -2,6 +2,10 @@
 
 <!-- For contributors: do not modify this file - the project maintainers will update it as needed -->
 
+#### 0.115.14
+
+* Home: the heart rate on the main screen no longer reads 0 when there is nothing from the last few hours. A device that measures periodically or has not synced recently (such as a ring) now shows its most recent reading instead of 0
+
 #### 0.115.13
 
 * Casio **GBD-800**: pairing now completes. A basic G-SHOCK does not implement every optional feature and never sends the "initialised" event a fuller watch does, so setup waited for it forever and the watch never appeared in the device list. Setup now skips a feature the watch rejects and finishes after setting the time, as the official app does — confirmed end to end on a real GBD-800
