@@ -44,6 +44,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import nodomain.freeyourgadget.gadgetbridge.R
 import java.util.Locale
 
 /** Shown inside a card when the device has no data for that metric yet. */
@@ -52,19 +54,19 @@ private fun NoData(label: String) {
     val scheme = MaterialTheme.colorScheme
     SectionLabel(label)
     Spacer(Modifier.height(8.dp))
-    Text("No data yet", style = MaterialTheme.typography.titleMedium, color = scheme.onSurfaceVariant)
+    Text(stringResource(R.string.ult_no_data_yet), style = MaterialTheme.typography.titleMedium, color = scheme.onSurfaceVariant)
 }
 
 /** STEPS: big count, weekly bar sparkline, goal progress. */
 @Composable
 fun StepsCard(data: StepsData?, onClick: () -> Unit) {
     val scheme = MaterialTheme.colorScheme
-    if (data == null) { DashboardCard(onClick = onClick) { NoData("Steps today") }; return }
+    if (data == null) { DashboardCard(onClick = onClick) { NoData(stringResource(R.string.ult_steps_today)) }; return }
     DashboardCard(onClick = onClick) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            SectionLabel("Steps today")
+            SectionLabel(stringResource(R.string.ult_steps_today))
             Text(
-                "${pct(data.steps, data.goal)}% of goal",
+                stringResource(R.string.ult_pct_of_goal, pct(data.steps, data.goal)),
                 style = MaterialTheme.typography.labelSmall,
                 color = scheme.onSurfaceVariant,
             )
@@ -74,7 +76,7 @@ fun StepsCard(data: StepsData?, onClick: () -> Unit) {
             Text(group(data.steps), style = MetricValueStyle, color = scheme.onSurface)
             Spacer(Modifier.width(8.dp))
             Text(
-                "steps", style = MaterialTheme.typography.bodyMedium,
+                stringResource(R.string.ult_metric_steps), style = MaterialTheme.typography.bodyMedium,
                 color = scheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 4.dp),
             )
         }
@@ -85,8 +87,7 @@ fun StepsCard(data: StepsData?, onClick: () -> Unit) {
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            String.format(Locale.getDefault(), "%.1f km · %d kcal · goal %s",
-                data.distanceKm, data.kcal, group(data.goal)),
+            stringResource(R.string.ult_dist_kcal_goal, data.distanceKm, data.kcal, group(data.goal)),
             style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant,
         )
     }
@@ -97,10 +98,10 @@ fun StepsCard(data: StepsData?, onClick: () -> Unit) {
 fun WorkoutCard(data: WorkoutData?, onClick: () -> Unit) {
     val scheme = MaterialTheme.colorScheme
     DashboardCard(onClick = onClick) {
-        SectionLabel("Last workout")
+        SectionLabel(stringResource(R.string.ult_last_workout))
         Spacer(Modifier.height(8.dp))
         if (data == null) {
-            Text("No workouts yet", style = MaterialTheme.typography.titleMedium, color = scheme.onSurfaceVariant)
+            Text(stringResource(R.string.ult_no_workouts_yet), style = MaterialTheme.typography.titleMedium, color = scheme.onSurfaceVariant)
             return@DashboardCard
         }
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -146,22 +147,22 @@ fun WorkoutCard(data: WorkoutData?, onClick: () -> Unit) {
 @Composable
 fun HeartCard(data: HeartData?, onClick: () -> Unit) {
     val scheme = MaterialTheme.colorScheme
-    if (data == null) { DashboardCard(onClick = onClick) { NoData("Heart rate & SpO₂") }; return }
+    if (data == null) { DashboardCard(onClick = onClick) { NoData(stringResource(R.string.ult_hr_spo2)) }; return }
     DashboardCard(onClick = onClick) {
-        SectionLabel("Heart rate & SpO₂")
+        SectionLabel(stringResource(R.string.ult_hr_spo2))
         Spacer(Modifier.height(8.dp))
         Row(verticalAlignment = Alignment.Bottom) {
             Column(Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.Bottom) {
                     Text("${data.currentBpm}", style = MetricValueStyle, color = scheme.onSurface)
                     Spacer(Modifier.width(6.dp))
-                    Text("bpm", style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 4.dp))
+                    Text(stringResource(R.string.ult_bpm), style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 4.dp))
                 }
-                Text("Resting ${data.restingBpm} bpm", style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
+                Text(stringResource(R.string.ult_resting_bpm, data.restingBpm), style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
             }
             Column(horizontalAlignment = Alignment.End) {
                 Text("${data.spo2}%", style = MaterialTheme.typography.headlineSmall, color = scheme.secondary, fontWeight = FontWeight.Bold)
-                Text("SpO₂", style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
+                Text(stringResource(R.string.ult_spo2), style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
             }
         }
         Spacer(Modifier.height(10.dp))
@@ -173,14 +174,14 @@ fun HeartCard(data: HeartData?, onClick: () -> Unit) {
 @Composable
 fun SleepStressCard(data: SleepStressData?, onClick: () -> Unit) {
     val scheme = MaterialTheme.colorScheme
-    if (data == null) { DashboardCard(onClick = onClick) { NoData("Sleep & stress") }; return }
+    if (data == null) { DashboardCard(onClick = onClick) { NoData(stringResource(R.string.ult_sleep_stress)) }; return }
     DashboardCard(onClick = onClick) {
-        SectionLabel("Sleep & stress")
+        SectionLabel(stringResource(R.string.ult_sleep_stress))
         Spacer(Modifier.height(8.dp))
         Row(verticalAlignment = Alignment.Bottom) {
             Text(hoursMinutes(data.sleepMinutes), style = MetricValueStyle, color = scheme.onSurface)
             Spacer(Modifier.width(8.dp))
-            Text("last night", style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 4.dp))
+            Text(stringResource(R.string.ult_last_night), style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 4.dp))
         }
         Spacer(Modifier.height(10.dp))
         SegmentBar(
@@ -193,13 +194,12 @@ fun SleepStressCard(data: SleepStressData?, onClick: () -> Unit) {
         )
         Spacer(Modifier.height(6.dp))
         Text(
-            String.format(Locale.getDefault(), "Deep %dm · REM %dm · Light %dm",
-                data.deepMinutes, data.remMinutes, data.lightMinutes),
+            stringResource(R.string.ult_sleep_phases, data.deepMinutes, data.remMinutes, data.lightMinutes),
             style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant,
         )
         Spacer(Modifier.height(12.dp))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            Text("Stress", style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
+            Text(stringResource(R.string.ult_stress), style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
             Text(
                 "${data.stressLevel} · ${stressLabel(data.stressLevel)}",
                 style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold,
@@ -217,7 +217,7 @@ fun ReadinessCard(
 ) {
     val scheme = MaterialTheme.colorScheme
     val score = data?.score
-    if (score == null) { DashboardCard(onClick = onClick) { NoData("Readiness") }; return }
+    if (score == null) { DashboardCard(onClick = onClick) { NoData(stringResource(R.string.ult_readiness)) }; return }
     val color = when {
         score >= 75 -> scheme.secondary
         score >= 35 -> scheme.tertiary
@@ -225,8 +225,8 @@ fun ReadinessCard(
     }
     DashboardCard(onClick = onClick) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            SectionLabel("Readiness")
-            Text("${data.confidence}% conf.", style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
+            SectionLabel(stringResource(R.string.ult_readiness))
+            Text(stringResource(R.string.ult_confidence, data.confidence), style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
         }
         Spacer(Modifier.height(6.dp))
         Row(verticalAlignment = Alignment.Bottom) {
