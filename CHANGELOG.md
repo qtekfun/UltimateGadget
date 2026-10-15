@@ -2,6 +2,12 @@
 
 <!-- For contributors: do not modify this file - the project maintainers will update it as needed -->
 
+#### 0.115.13
+
+* Casio **GBD-800**: pairing now completes. A basic G-SHOCK does not implement every optional feature and never sends the "initialised" event a fuller watch does, so setup waited for it forever and the watch never appeared in the device list. Setup now skips a feature the watch rejects and finishes after setting the time, as the official app does — confirmed end to end on a real GBD-800
+* Casio: the watch now **reconnects on its own**. These watches only accept a connection during the brief window they open when you press the watch's CONNECT button, so the app now keeps a scan running and connects the moment the watch appears, instead of retrying blindly and missing the window
+* The connected-device card no longer shows metrics the watch cannot provide: a watch with no heart-rate sensor hides the "ppm" reading, and a watch that reports no battery hides the battery reading
+
 #### 0.115.12
 
 * Casio **GBD-800**: fixed pairing. The watch connected and ran the whole handshake but then never finished initialising, so it never showed up in the device list. A simpler G-SHOCK does not implement every optional feature (world-time cities, basic settings) and rejects those requests; the setup now skips a rejected feature and continues instead of waiting forever. Watches that do have those features are unaffected
