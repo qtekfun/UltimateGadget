@@ -120,7 +120,18 @@ class DbHealthRepository(private val app: Application) : HealthRepository {
                 coordinator.getSpo2SampleProvider(device, session)?.latestSample?.spo2
             }.getOrNull()?.takeIf { it in 1..100 }
 
-            val current = recentHr.lastOrNull() ?: resting
+            // Nothing in the last 6h (a ring or watch that only measures periodically, or has not
+            // synced recently) should still show the most recent reading on record instead of 0.
+            // Find the device's latest sample and scan the day up to it for the last valid bpm.
+            val lastKnownHr = recentHr.lastOrNull() ?: runCatching {
+                val prov = activity ?: return@runCatching null
+                val latest = prov.getLatestActivitySample() ?: return@runCatching null
+                val endTs = latest.timestamp
+                prov.getAllActivitySamples(endTs - 24 * 60 * 60, endTs)
+                    .map { it.heartRate }.filter { it in 1..250 }.lastOrNull()
+            }.getOrNull()
+
+            val current = lastKnownHr ?: resting
             if (current == null && resting == null && spo2 == null) return null
             return HeartData(
                 currentBpm = current ?: 0,

@@ -300,7 +300,17 @@ class UltimateHomeActivity : AppCompatActivity() {
                             .orEmpty()
                             .map { it.heartRate }
                             .filter { it in 1..250 }
-                        recent.lastOrNull()
+                        // Nothing in the last 6h: show the most recent reading on record (scan the
+                        // day up to the device's latest sample) rather than nothing, so an old but
+                        // real bpm is still shown.
+                        val lastKnown = recent.lastOrNull() ?: runCatching {
+                            val prov = activity ?: return@runCatching null
+                            val latest = prov.getLatestActivitySample() ?: return@runCatching null
+                            val endTs = latest.timestamp
+                            prov.getAllActivitySamples(endTs - 24 * 60 * 60, endTs)
+                                .map { it.heartRate }.filter { it in 1..250 }.lastOrNull()
+                        }.getOrNull()
+                        lastKnown
                             ?: coordinator.getHeartRateRestingSampleProvider(device, session)
                                 ?.latestSample?.heartRate?.takeIf { it in 1..250 }
                     }
