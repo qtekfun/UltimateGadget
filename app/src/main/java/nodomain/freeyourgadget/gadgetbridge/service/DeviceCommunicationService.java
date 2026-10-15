@@ -404,12 +404,26 @@ public class DeviceCommunicationService extends Service implements SharedPrefere
 
         startForeground();
         updateReceiversState();
-        if (reconnectViaScan) {
+        if (reconnectViaScan || anyDeviceRequiresScanReconnect()) {
             scanAllDevices();
 
             Intent scanServiceIntent = new Intent(this, BLEScanService.class);
             startService(scanServiceIntent);
         }
+    }
+
+    /**
+     * Whether any paired device forces scan-based reconnection (see
+     * {@link DeviceCoordinator#getAlwaysScanReconnect()}), so the reconnect scan must run even when
+     * the global "reconnect by scan" preference is off.
+     */
+    private boolean anyDeviceRequiresScanReconnect() {
+        for (final GBDevice device : GBApplication.app().getDeviceManager().getDevices()) {
+            if (device.getDeviceCoordinator().getAlwaysScanReconnect()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -442,6 +456,11 @@ public class DeviceCommunicationService extends Service implements SharedPrefere
         final String lastUsed = lastUsedAddress();
         for (GBDevice device : devices) {
             if (!device.getDeviceCoordinator().getConnectionType().usesBluetoothLE()) {
+                continue;
+            }
+            // When scan reconnection is off globally, only devices that force it (on-demand Casio
+            // watches) are reconnected by scan; every other BLE device keeps its usual path.
+            if (!reconnectViaScan && !device.getDeviceCoordinator().getAlwaysScanReconnect()) {
                 continue;
             }
             if (device.getState() != GBDevice.State.NOT_CONNECTED) {
@@ -670,7 +689,13 @@ public class DeviceCommunicationService extends Service implements SharedPrefere
                             connected = deviceSupport.connectFirstTime();
                         } else {
                             deviceSupport.setAutoReconnect(autoReconnect);
-                            deviceSupport.setScanReconnect(reconnectViaScan);
+                            deviceSupport.setScanReconnect(reconnectViaScan
+                                    || gbDevice.getDeviceCoordinator().getAlwaysScanReconnect());
+                            if (gbDevice.getDeviceCoordinator().getAlwaysScanReconnect()) {
+                                // Ensure the reconnect scan runs so this watch is caught the moment
+                                // it advertises again, even if it was paired after the service start.
+                                startService(new Intent(this, BLEScanService.class));
+                            }
                             if (BuildConfig.DEBUG) {
                                 connected = stressTestConnect(deviceSupport);
                             } else {
