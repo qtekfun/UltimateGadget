@@ -44,6 +44,9 @@ import nodomain.freeyourgadget.gadgetbridge.impl.GBDevice
  */
 class UltimateDeviceSettingsActivity : AppCompatActivity() {
 
+    /** Click handlers of DSL action rows, by preference key (empty for XML-based devices). */
+    private var dslActions: Map<String, (android.content.Context, GBDevice?) -> Boolean> = emptyMap()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -55,19 +58,26 @@ class UltimateDeviceSettingsActivity : AppCompatActivity() {
 
         val coordinator = runCatching { device.deviceCoordinator }.getOrNull()
 
-        // Devices using the newer DSL settings model (getDeviceSettings != null) are not handled by
-        // this generic XML renderer yet — fall back to the legacy screen entirely.
+        // Devices using the settings DSL (getDeviceSettings != null: rings, earbuds, scales, …) are
+        // converted to the same native node tree as the XML-based ones; only a device that exposes
+        // neither model falls back to the legacy screen.
         val modelSpec = runCatching { coordinator?.getDeviceSettings(device) }.getOrNull()
         val settings: DeviceSpecificSettings? =
             if (modelSpec == null) runCatching { coordinator?.getDeviceSpecificSettings(device) }.getOrNull() else null
 
-        if (settings == null) {
+        if (modelSpec == null && settings == null) {
             openClassic(device)
             finish()
             return
         }
 
-        val nodes = buildNodes(device, settings)
+        val nodes: List<PrefNode> = if (modelSpec != null) {
+            val dsl = DslSettingsConverter.convert(this, device, modelSpec)
+            dslActions = dsl.actions
+            appendCommonNodes(device, dsl.nodes.toMutableList())
+        } else {
+            buildNodes(device, settings!!)
+        }
 
         setContent {
             UltimateTheme {
@@ -85,8 +95,13 @@ class UltimateDeviceSettingsActivity : AppCompatActivity() {
     }
 
     private fun buildNodes(device: GBDevice, settings: DeviceSpecificSettings): List<PrefNode> {
-        val coordinator = runCatching { device.deviceCoordinator }.getOrNull()
         val nodes = DeviceSettingsParser.buildTopLevel(this, settings).toMutableList()
+        return appendCommonNodes(device, nodes)
+    }
+
+    /** Adds the generic connection and battery-polling sub-screens the legacy builder appends. */
+    private fun appendCommonNodes(device: GBDevice, nodes: MutableList<PrefNode>): List<PrefNode> {
+        val coordinator = runCatching { device.deviceCoordinator }.getOrNull()
 
         // The generic connection sub-screen (reconnect / priority / …) is added by the legacy
         // builder, not by the coordinator's own settings, so append it here from the public API.
@@ -153,6 +168,11 @@ class UltimateDeviceSettingsActivity : AppCompatActivity() {
      */
     private fun onAction(key: String?, device: GBDevice) {
         if (key == null) return
+        // DSL action rows carry their own click handler (the settings model's onClick).
+        dslActions[key]?.let { handler ->
+            runCatching { handler(this, device) }
+            return
+        }
         fun open(cls: Class<*>) = startActivity(
             Intent(this, cls).putExtra(GBDevice.EXTRA_DEVICE, device),
         )

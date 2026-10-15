@@ -331,11 +331,19 @@ private fun PrefRow(
             )
         }
 
+        is PrefNode.Info -> SimpleRow(
+            title = node.title,
+            summary = node.summary,
+            iconRes = node.iconRes,
+            enabled = true,
+            onClick = null,
+        )
+
         is PrefNode.Delegated -> {
             val palette = LocalUltimatePalette.current
             SimpleRow(
                 title = node.title,
-                summary = node.summary ?: "Open in classic settings",
+                summary = node.summary ?: stringResource(R.string.ult_open_classic),
                 iconRes = node.iconRes,
                 onClick = { onDelegate(node) },
                 trailing = { Icon(Icons.Filled.OpenInNew, contentDescription = null, tint = palette.onSurfaceVariant) },

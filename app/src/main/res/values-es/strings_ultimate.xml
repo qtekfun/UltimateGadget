@@ -721,4 +721,5 @@
     <!-- Últimos restos -->
     <string name="ult_date">Fecha</string>
     <string name="ult_rep_steps_day">Pasos / día</string>
+    <string name="ult_open_classic">Abrir en ajustes clásicos</string>
 </resources>

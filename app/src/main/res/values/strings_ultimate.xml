@@ -721,4 +721,5 @@
     <!-- Last leftovers -->
     <string name="ult_date">Date</string>
     <string name="ult_rep_steps_day">Steps / day</string>
+    <string name="ult_open_classic">Open in classic settings</string>
 </resources>
