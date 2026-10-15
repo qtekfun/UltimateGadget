@@ -16,6 +16,8 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 package nodomain.freeyourgadget.gadgetbridge.activities.ultimate.settings
 
+import nodomain.freeyourgadget.gadgetbridge.R
+import androidx.compose.ui.res.stringResource
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -97,17 +99,17 @@ fun UltimateAboutScreen(onBack: () -> Unit) {
             "\nFlavor: ${BuildConfig.FLAVOR}"
         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         clipboard.setPrimaryClip(ClipData.newPlainText("Build data", details))
-        Toast.makeText(context, "Build details copied", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, context.getString(R.string.ult_build_copied), Toast.LENGTH_SHORT).show()
     }
 
     Scaffold(
         containerColor = palette.background,
         topBar = {
             TopAppBar(
-                title = { Text("About") },
+                title = { Text(stringResource(R.string.ult_about)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.ult_back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -135,7 +137,7 @@ fun UltimateAboutScreen(onBack: () -> Unit) {
                     color = palette.onSurface,
                 )
                 Text(
-                    "Version $version",
+                    stringResource(R.string.ult_version_fmt, version),
                     style = MaterialTheme.typography.bodyMedium,
                     color = palette.onSurfaceVariant,
                 )
@@ -153,9 +155,7 @@ fun UltimateAboutScreen(onBack: () -> Unit) {
                 colors = CardDefaults.cardColors(containerColor = palette.surfaceContainer),
             ) {
                 Text(
-                    "UltimateGadget is a fork of Gadgetbridge focused on Huawei watches " +
-                        "(golf, maps and A-GNSS) without Huawei Health or HMS on the phone. " +
-                        "Software libre bajo licencia GNU AGPL-3.0.",
+                    stringResource(R.string.ult_about_desc),
                     style = MaterialTheme.typography.bodyMedium,
                     color = palette.onSurfaceVariant,
                     modifier = Modifier.padding(16.dp),
@@ -168,10 +168,10 @@ fun UltimateAboutScreen(onBack: () -> Unit) {
                 colors = CardDefaults.cardColors(containerColor = palette.surfaceContainer),
             ) {
                 Column(Modifier.padding(vertical = 4.dp)) {
-                    AboutRow(Icons.Filled.Code, "Source code", REPO_URL) { openUrl(REPO_URL) }
-                    AboutRow(Icons.Filled.Description, "License AGPL-3.0", LICENSE_URL) { openUrl(LICENSE_URL) }
-                    AboutRow(Icons.Filled.Info, "Based on Gadgetbridge", GADGETBRIDGE_URL) { openUrl(GADGETBRIDGE_URL) }
-                    AboutRow(Icons.Filled.Description, "Third-party licenses", null) {
+                    AboutRow(Icons.Filled.Code, stringResource(R.string.ult_about_source), REPO_URL) { openUrl(REPO_URL) }
+                    AboutRow(Icons.Filled.Description, stringResource(R.string.ult_about_license), LICENSE_URL) { openUrl(LICENSE_URL) }
+                    AboutRow(Icons.Filled.Info, stringResource(R.string.ult_about_based), GADGETBRIDGE_URL) { openUrl(GADGETBRIDGE_URL) }
+                    AboutRow(Icons.Filled.Description, stringResource(R.string.ult_about_third), null) {
                         context.startActivity(Intent(context, LicensesActivity::class.java))
                     }
                 }

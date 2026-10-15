@@ -16,6 +16,7 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 package nodomain.freeyourgadget.gadgetbridge.activities.ultimate.golf
 
+import nodomain.freeyourgadget.gadgetbridge.R
 import nodomain.freeyourgadget.gadgetbridge.entities.BaseActivitySummary
 import nodomain.freeyourgadget.gadgetbridge.model.ActivityKind
 import nodomain.freeyourgadget.gadgetbridge.model.ActivitySummaryData
@@ -210,20 +211,20 @@ data class GolfRound(
 
             val stats = mutableListOf<GolfStat>()
             // Duration is always meaningful for a round.
-            stats += GolfStat("Duration", formatDuration(dur))
+            stats += GolfStat(nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_wd_duration), formatDuration(dur))
 
             if (data != null) {
                 data.num(ActivitySummaryEntries.DISTANCE_METERS)?.takeIf { it > 0 }?.let {
-                    stats += GolfStat("Distance walked", formatDistance(it))
+                    stats += GolfStat(nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_golf_distance_walked), formatDistance(it))
                 }
                 data.num(ActivitySummaryEntries.STEPS)?.takeIf { it > 0 }?.let {
-                    stats += GolfStat("Steps", "%,d".format(it.toLong()))
+                    stats += GolfStat(nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_wd_steps), "%,d".format(it.toLong()))
                 }
                 data.num(ActivitySummaryEntries.CALORIES_BURNT)?.takeIf { it > 0 }?.let {
-                    stats += GolfStat("Calories", "%,d kcal".format(it.toLong()))
+                    stats += GolfStat(nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_wd_calories), "%,d kcal".format(it.toLong()))
                 }
                 data.num(ActivitySummaryEntries.HR_AVG)?.takeIf { it > 0 }?.let {
-                    stats += GolfStat("Pulso medio", "${it.toInt()} bpm")
+                    stats += GolfStat(nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_wd_avg_hr), "${it.toInt()} bpm")
                 }
                 val hrMin = data.num(ActivitySummaryEntries.HR_MIN)?.takeIf { it > 0 }
                 val hrMax = data.num(ActivitySummaryEntries.HR_MAX)?.takeIf { it > 0 }
@@ -234,7 +235,7 @@ data class GolfRound(
                     )
                 }
                 data.num(ActivitySummaryEntries.WORKOUT_LOAD)?.takeIf { it > 0 }?.let {
-                    stats += GolfStat("Workout load", "${it.toInt()}")
+                    stats += GolfStat(nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_workout_load), "${it.toInt()}")
                 }
             }
 
@@ -242,15 +243,15 @@ data class GolfRound(
             if (hasScorecard) {
                 // Defensive: if some future device/firmware does send scoring fields, surface them
                 // instead of hiding them. Not expected with the current Huawei integration.
-                data!!.num("holes")?.let { stats += GolfStat("Holes", "${it.toInt()}") }
-                data.num("golfHoles")?.let { stats += GolfStat("Holes", "${it.toInt()}") }
-                data.num("par")?.let { stats += GolfStat("Par", "${it.toInt()}") }
-                data.num("golfPar")?.let { stats += GolfStat("Par", "${it.toInt()}") }
-                data.num("score")?.let { stats += GolfStat("Score", "${it.toInt()}") }
-                data.num("golfScore")?.let { stats += GolfStat("Score", "${it.toInt()}") }
-                data.num("putts")?.let { stats += GolfStat("Putts", "${it.toInt()}") }
-                data.num("golfPutts")?.let { stats += GolfStat("Putts", "${it.toInt()}") }
-                data.num("golfSwingCount")?.let { stats += GolfStat("Golpes", "${it.toInt()}") }
+                data!!.num("holes")?.let { stats += GolfStat(nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_golf_holes), "${it.toInt()}") }
+                data.num("golfHoles")?.let { stats += GolfStat(nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_golf_holes), "${it.toInt()}") }
+                data.num("par")?.let { stats += GolfStat(nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_golf_par), "${it.toInt()}") }
+                data.num("golfPar")?.let { stats += GolfStat(nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_golf_par), "${it.toInt()}") }
+                data.num("score")?.let { stats += GolfStat(nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_golf_score), "${it.toInt()}") }
+                data.num("golfScore")?.let { stats += GolfStat(nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_golf_score), "${it.toInt()}") }
+                data.num("putts")?.let { stats += GolfStat(nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_golf_putts), "${it.toInt()}") }
+                data.num("golfPutts")?.let { stats += GolfStat(nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_golf_putts), "${it.toInt()}") }
+                data.num("golfSwingCount")?.let { stats += GolfStat(nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_golf_strokes), "${it.toInt()}") }
             }
 
             return GolfRound(

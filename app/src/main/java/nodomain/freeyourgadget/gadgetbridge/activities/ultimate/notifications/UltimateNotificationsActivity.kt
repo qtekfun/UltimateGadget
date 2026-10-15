@@ -16,6 +16,8 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 package nodomain.freeyourgadget.gadgetbridge.activities.ultimate.notifications
 
+import nodomain.freeyourgadget.gadgetbridge.R
+import androidx.compose.ui.res.stringResource
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -146,15 +148,15 @@ private fun AppsScreen(onBack: () -> Unit, onOpenRules: () -> Unit) {
         containerColor = palette.background,
         topBar = {
             TopAppBar(
-                title = { Text("Notifications") },
+                title = { Text(stringResource(R.string.ult_menu_notifications)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Filled.ArrowBack, contentDescription = stringResource(R.string.ult_back))
                     }
                 },
                 actions = {
                     IconButton(onClick = onOpenRules) {
-                        Icon(Icons.Filled.Bedtime, contentDescription = "Schedule rules")
+                        Icon(Icons.Filled.Bedtime, contentDescription = stringResource(R.string.ult_notif_schedule_rules))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -168,7 +170,7 @@ private fun AppsScreen(onBack: () -> Unit, onOpenRules: () -> Unit) {
     ) { inner ->
         Column(Modifier.fillMaxSize().padding(inner)) {
             Text(
-                "Choose which apps send their notifications to the watch.",
+                stringResource(R.string.ult_notif_choose_apps),
                 style = MaterialTheme.typography.bodyMedium,
                 color = palette.onSurfaceVariant,
                 modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 12.dp),
@@ -178,7 +180,7 @@ private fun AppsScreen(onBack: () -> Unit, onOpenRules: () -> Unit) {
                 onValueChange = { query = it },
                 singleLine = true,
                 leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
-                placeholder = { Text("Search app…") },
+                placeholder = { Text(stringResource(R.string.ult_notif_search_app)) },
                 modifier = Modifier.fillMaxWidth().padding(16.dp),
             )
 
@@ -315,10 +317,10 @@ private fun RulesScreen(onBack: () -> Unit) {
         containerColor = palette.background,
         topBar = {
             TopAppBar(
-                title = { Text("Do not disturb") },
+                title = { Text(stringResource(R.string.ult_notif_dnd)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Filled.ArrowBack, contentDescription = stringResource(R.string.ult_back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -334,7 +336,7 @@ private fun RulesScreen(onBack: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Text(
-                "During this schedule, no notifications are sent to the watch.",
+                stringResource(R.string.ult_notif_dnd_desc),
                 style = MaterialTheme.typography.bodyMedium,
                 color = palette.onSurfaceVariant,
             )
@@ -348,12 +350,12 @@ private fun RulesScreen(onBack: () -> Unit) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
                             Text(
-                                "Activar horario",
+                                stringResource(R.string.ult_notif_enable_schedule),
                                 style = MaterialTheme.typography.titleMedium,
                                 color = palette.onSurface,
                             )
                             Text(
-                                "Do not disturb in the chosen range",
+                                stringResource(R.string.ult_notif_dnd_range),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = palette.onSurfaceVariant,
                             )
@@ -372,14 +374,14 @@ private fun RulesScreen(onBack: () -> Unit) {
 
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         TimeField(
-                            label = "Home",
+                            label = stringResource(R.string.ult_notif_start),
                             value = NotificationRulesStore.formatMinutes(rule.startMinutes),
                             enabled = rule.enabled,
                             modifier = Modifier.weight(1f),
                             onClick = { pickStart = true },
                         )
                         TimeField(
-                            label = "Fin",
+                            label = stringResource(R.string.ult_notif_end),
                             value = NotificationRulesStore.formatMinutes(rule.endMinutes),
                             enabled = rule.enabled,
                             modifier = Modifier.weight(1f),
@@ -390,7 +392,7 @@ private fun RulesScreen(onBack: () -> Unit) {
             }
 
             Text(
-                "DAYS",
+                stringResource(R.string.ult_notif_days).uppercase(),
                 style = SectionLabelStyle,
                 color = palette.onSurfaceVariant,
             )
@@ -483,11 +485,11 @@ private fun TimePickerDialog(
         containerColor = palette.surfaceContainer,
         confirmButton = {
             TextButton(onClick = { onConfirm(state.hour * 60 + state.minute) }) {
-                Text("OK", color = palette.primary)
+                Text(stringResource(R.string.ult_ok), color = palette.primary)
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel", color = palette.onSurfaceVariant) }
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.ult_cancel), color = palette.onSurfaceVariant) }
         },
         text = {
             Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {

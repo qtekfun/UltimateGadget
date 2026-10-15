@@ -16,6 +16,7 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 package nodomain.freeyourgadget.gadgetbridge.activities.ultimate.reports
 
+import nodomain.freeyourgadget.gadgetbridge.R
 import android.content.Context
 import android.content.Intent
 import android.graphics.Canvas
@@ -95,7 +96,7 @@ object ReportPdfExporter {
      * Fires the Android share sheet (ACTION_SEND, application/pdf) for [file]. Safe from any
      * context; adds NEW_TASK so it also works from a non-activity caller.
      */
-    fun shareFile(context: Context, file: File, chooserTitle: String? = "Compartir informe") {
+    fun shareFile(context: Context, file: File, chooserTitle: String? = nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_pdf_share_title)) {
         val uri: Uri = FileProvider.getUriForFile(context, authority(context), file)
         val send = Intent(Intent.ACTION_SEND).apply {
             type = "application/pdf"
@@ -133,13 +134,13 @@ object ReportPdfExporter {
         y += 28f
 
         val title = paint(INK, 24f, bold = true)
-        val heading = if (summary.period == ReportPeriod.WEEK) "Informe semanal" else "Informe mensual"
+        val heading = if (summary.period == ReportPeriod.WEEK) nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_pdf_weekly) else nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_pdf_monthly)
         c.drawText(heading, left, y, title)
         y += 18f
 
         val sub = paint(MUTED, 10.5f)
         val generated = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US).format(Date())
-        c.drawText("Generated on $generated · ${summary.daysWithData} days with data", left, y, sub)
+        c.drawText(nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_pdf_generated, generated, summary.daysWithData), left, y, sub)
         y += 16f
 
         hairline(c, left, right, y)
@@ -153,7 +154,7 @@ object ReportPdfExporter {
         if (summary.points.isNotEmpty()) {
             val label = paint(ACCENT, 12f, bold = true, letterSpacing = 0.04f)
             val chartHeading = if (summary.period == ReportPeriod.WEEK)
-                "Steps per day" else "Pasos (media diaria por semana)"
+                nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_pdf_steps_per_day) else nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_pdf_steps_weekly_avg)
             c.drawText(chartHeading.uppercase(Locale.US), left, y, label)
             y += 16f
             drawStepsChart(c, left, right, y, summary)
@@ -163,28 +164,28 @@ object ReportPdfExporter {
         val footer = paint(MUTED, 9f)
         val fy = PAGE_H - MARGIN + 8f
         hairline(c, left, right, fy - 16f)
-        c.drawText("© 2026 UltimateGadget contributors · AGPL-3.0 · Generado localmente", left, fy, footer)
+        c.drawText(nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_pdf_footer), left, fy, footer)
 
         doc.finishPage(page)
         return doc
     }
 
     private fun buildRows(s: ReportSummary): List<Pair<String, String>> {
-        val periodLabel = if (s.period == ReportPeriod.WEEK) "Semana" else "Mes"
+        val periodLabel = if (s.period == ReportPeriod.WEEK) nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_pdf_week) else nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_pdf_month)
         val distance = String.format(Locale.US, "%.1f km", s.totalDistanceKm)
         val sleep = if (s.avgSleepMinutes > 0)
             String.format(Locale.US, "%dh %02dm", s.avgSleepMinutes / 60, s.avgSleepMinutes % 60)
         else "—"
         val rhr = if (s.avgRestingHr > 0) "${s.avgRestingHr} bpm" else "—"
         return listOf(
-            "Periodo" to periodLabel,
-            "Steps (average / day)" to String.format(Locale.US, "%,d", s.avgSteps),
-            "Pasos (total)" to String.format(Locale.US, "%,d", s.totalSteps),
-            "Distancia total" to distance,
-            "Average sleep" to sleep,
-            "FC en reposo (media)" to rhr,
-            "Workouts" to s.workoutCount.toString(),
-            "Days on goal" to "${s.goalDays} / ${s.daysWithData}",
+            nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_pdf_period) to periodLabel,
+            nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_pdf_avg_steps) to String.format(Locale.US, "%,d", s.avgSteps),
+            nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_pdf_total_steps) to String.format(Locale.US, "%,d", s.totalSteps),
+            nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_pdf_total_distance) to distance,
+            nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_pdf_avg_sleep) to sleep,
+            nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_pdf_avg_rhr) to rhr,
+            nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_pdf_workouts) to s.workoutCount.toString(),
+            nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_pdf_days_goal) to "${s.goalDays} / ${s.daysWithData}",
         )
     }
 

@@ -16,6 +16,7 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 package nodomain.freeyourgadget.gadgetbridge.activities.ultimate.workout
 
+import nodomain.freeyourgadget.gadgetbridge.R
 import android.content.Context
 import com.qtekfun.mapcore.LatLon
 import nodomain.freeyourgadget.gadgetbridge.GBApplication
@@ -90,7 +91,7 @@ class WorkoutDetailRepository(context: Context) {
 
         /**
          * The summary value [key] as a metric, or null when it is missing (or not positive, unless
-         * [allowZero]). Every key looked at is marked used so "More data" does not repeat it.
+         * [allowZero]). Every key looked at is marked used so ctx.getString(R.string.ult_more_data) does not repeat it.
          */
         private fun metric(key: String, label: String, allowZero: Boolean = false): WorkoutMetric? {
             consumed += key
@@ -118,34 +119,34 @@ class WorkoutDetailRepository(context: Context) {
             val durationSeconds = number(E.ACTIVE_SECONDS)?.toLong()?.takeIf { it > 0 }
                 ?: (((summary.endTime?.time ?: startMs) - startMs) / 1000)
             consumed += E.ACTIVE_SECONDS
-            val duration = WorkoutMetric("Duration", WorkoutMath.clock(durationSeconds))
+            val duration = WorkoutMetric(ctx.getString(R.string.ult_wd_duration), WorkoutMath.clock(durationSeconds))
 
-            val distance = metric(E.DISTANCE_METERS, "Distance")
+            val distance = metric(E.DISTANCE_METERS, ctx.getString(R.string.ult_wd_distance))
                 ?: if (profile.leadsWithDistance && track.size >= 2) {
                     val m = HealthUnits.pathMeters(track.map { it.lat to it.lon })
-                    if (m > 0) WorkoutMetric("Distance", fmt.formatTileValue(m, E.UNIT_METERS)) else null
+                    if (m > 0) WorkoutMetric(ctx.getString(R.string.ult_wd_distance), fmt.formatTileValue(m, E.UNIT_METERS)) else null
                 } else null
             val isPace = ActivityKind.isPaceActivity(kind) || profile == WorkoutProfile.SWIM
-            val avgPace = if (isPace) metric(E.PACE_AVG_SECONDS_KM, "Avg pace") else metric(E.SPEED_AVG, "Avg speed")
-            val maxPace = if (isPace) metric(E.PACE_MAX, "Best pace") else metric(E.SPEED_MAX, "Max speed")
-            val kcal = metric(E.CALORIES_BURNT, "Calories")
-            val avgHr = metric(E.HR_AVG, "Avg heart rate")
+            val avgPace = if (isPace) metric(E.PACE_AVG_SECONDS_KM, ctx.getString(R.string.ult_wd_avg_pace)) else metric(E.SPEED_AVG, ctx.getString(R.string.ult_wd_avg_speed))
+            val maxPace = if (isPace) metric(E.PACE_MAX, ctx.getString(R.string.ult_wd_best_pace)) else metric(E.SPEED_MAX, ctx.getString(R.string.ult_wd_max_speed))
+            val kcal = metric(E.CALORIES_BURNT, ctx.getString(R.string.ult_wd_calories))
+            val avgHr = metric(E.HR_AVG, ctx.getString(R.string.ult_wd_avg_hr))
             val total = firstMetric(cycleTotalLabel(), E.STEPS, E.STROKES, E.JUMPS)
-            val cadence = firstMetric(if (profile == WorkoutProfile.SWIM) "Avg stroke rate" else "Avg cadence",E.CADENCE_AVG, E.STEP_RATE_AVG, E.STROKE_RATE_AVG, E.JUMP_RATE_AVG)
-            val power = metric(E.CYCLING_POWER_AVERAGE, "Avg power")
+            val cadence = firstMetric(if (profile == WorkoutProfile.SWIM) ctx.getString(R.string.ult_wd_avg_stroke) else ctx.getString(R.string.ult_wd_avg_cadence),E.CADENCE_AVG, E.STEP_RATE_AVG, E.STROKE_RATE_AVG, E.JUMP_RATE_AVG)
+            val power = metric(E.CYCLING_POWER_AVERAGE, ctx.getString(R.string.ult_wd_avg_power))
 
             val (hero, secondary) = when (profile) {
                 WorkoutProfile.OUTDOOR -> listOf(
-                    distance, duration, avgPace, metric(E.ELEVATION_GAIN, "Elevation gain"),
-                ) to listOf(kcal, avgHr, total, cadence, maxPace, metric(E.ELEVATION_LOSS, "Elevation loss"), power)
+                    distance, duration, avgPace, metric(E.ELEVATION_GAIN, ctx.getString(R.string.ult_wd_elev_gain)),
+                ) to listOf(kcal, avgHr, total, cadence, maxPace, metric(E.ELEVATION_LOSS, ctx.getString(R.string.ult_wd_elev_loss)), power)
                 WorkoutProfile.INDOOR -> listOf(
                     duration, kcal, avgHr,
                 ) to listOf(total, cadence, distance, if (distance != null) avgPace else null, power)
                 WorkoutProfile.SWIM -> listOf(
-                    distance, duration, avgPace, metric(E.LAPS, "Lengths"),
+                    distance, duration, avgPace, metric(E.LAPS, ctx.getString(R.string.ult_wd_lengths)),
                 ) to listOf(
-                    metric(E.SWOLF_AVG, "Avg SWOLF"), cadence, total, metric(E.SWIM_STYLE, "Style"),
-                    metric(E.LANE_LENGTH, "Pool length"), kcal, avgHr,
+                    metric(E.SWOLF_AVG, ctx.getString(R.string.ult_wd_avg_swolf)), cadence, total, metric(E.SWIM_STYLE, ctx.getString(R.string.ult_wd_style)),
+                    metric(E.LANE_LENGTH, ctx.getString(R.string.ult_wd_pool_length)), kcal, avgHr,
                 )
                 WorkoutProfile.GENERIC, WorkoutProfile.GOLF -> listOf(
                     duration, kcal, avgHr,
@@ -154,17 +155,17 @@ class WorkoutDetailRepository(context: Context) {
 
             val heart = heartSection()
             val effort = listOfNotNull(
-                metric(E.WORKOUT_LOAD, "Training load"),
-                metric(E.TRAINING_EFFECT_AEROBIC, "Aerobic effect", allowZero = true),
-                metric(E.TRAINING_EFFECT_ANAEROBIC, "Anaerobic effect", allowZero = true),
-                metric(E.TRAINING_EFFECT_TOTAL, "Training effect", allowZero = true),
-                metric(E.RECOVERY_TIME, "Recovery time"),
+                metric(E.WORKOUT_LOAD, ctx.getString(R.string.ult_training_load)),
+                metric(E.TRAINING_EFFECT_AEROBIC, ctx.getString(R.string.ult_wd_aerobic), allowZero = true),
+                metric(E.TRAINING_EFFECT_ANAEROBIC, ctx.getString(R.string.ult_wd_anaerobic), allowZero = true),
+                metric(E.TRAINING_EFFECT_TOTAL, ctx.getString(R.string.ult_wd_training_effect), allowZero = true),
+                metric(E.RECOVERY_TIME, ctx.getString(R.string.ult_wd_recovery_time)),
                 metric(E.MAXIMUM_OXYGEN_UPTAKE, "VO₂max"),
             )
 
             val start = summary.startTime
             val end = summary.endTime
-            val typeLabel = runCatching { kind.getLabel(ctx) }.getOrNull().orEmpty().ifEmpty { "Workout" }
+            val typeLabel = runCatching { kind.getLabel(ctx) }.getOrNull().orEmpty().ifEmpty { ctx.getString(R.string.ult_workout) }
             return WorkoutDetail(
                 summaryId = summary.id ?: -1L,
                 profile = profile,
@@ -187,9 +188,9 @@ class WorkoutDetailRepository(context: Context) {
         }
 
         private fun cycleTotalLabel(): String = when (ActivityKind.getCycleUnit(kind)) {
-            ActivityKind.CycleUnit.STROKES -> "Strokes"
-            ActivityKind.CycleUnit.JUMPS -> "Jumps"
-            else -> "Steps"
+            ActivityKind.CycleUnit.STROKES -> ctx.getString(R.string.ult_wd_strokes)
+            ActivityKind.CycleUnit.JUMPS -> ctx.getString(R.string.ult_wd_jumps)
+            else -> ctx.getString(R.string.ult_wd_steps)
         }
 
         private fun t(p: ActivityPoint): Float = (p.time.time - startMs) / 1000f
@@ -198,7 +199,7 @@ class WorkoutDetailRepository(context: Context) {
 
         private fun heartSection(): HeartSection? {
             val stats = listOfNotNull(
-                metric(E.HR_AVG, "Avg"), metric(E.HR_MAX, "Max"), metric(E.HR_MIN, "Min"),
+                metric(E.HR_AVG, ctx.getString(R.string.ult_wd_avg)), metric(E.HR_MAX, ctx.getString(R.string.ult_wd_max)), metric(E.HR_MIN, ctx.getString(R.string.ult_wd_min)),
             )
             val raw = points.filter { it.heartRate > 0 }.map { SeriesPoint(t(it), it.heartRate.toFloat()) }
             val zonesCfg = runCatching { HeartRateZonesResolver.resolve(data, device, ActivityUser()) }.getOrNull()
@@ -217,7 +218,7 @@ class WorkoutDetailRepository(context: Context) {
 
             if (stats.isEmpty() && raw.size < 2 && zones.isEmpty()) return null
             val curve = raw.takeIf { it.size >= 2 }?.let {
-                WorkoutSeries("Heart rate", "bpm", WorkoutMath.downsample(it), { v -> v.toInt().toString() })
+                WorkoutSeries(ctx.getString(R.string.ult_heart_rate), ctx.getString(R.string.ult_bpm), WorkoutMath.downsample(it), { v -> v.toInt().toString() })
             }
             return HeartSection(stats, curve, bounds, zones.takeIf { z -> z.any { it.seconds > 0 } }.orEmpty(), recovery)
         }
@@ -238,7 +239,7 @@ class WorkoutDetailRepository(context: Context) {
             val speed = speedCurve()
             val elevation = elevationCurve()
             val cadence = cadenceCurve()
-            val power = series("Power", "W", points.filter { it.power > 0 }.map { SeriesPoint(t(it), it.power) }) { "%.0f".format(it) }
+            val power = series(ctx.getString(R.string.ult_wd_power), "W", points.filter { it.power > 0 }.map { SeriesPoint(t(it), it.power) }) { "%.0f".format(it) }
             return when (profile) {
                 WorkoutProfile.OUTDOOR -> listOf(speed, elevation, cadence, power)
                 WorkoutProfile.INDOOR -> listOf(cadence, power, speed)
@@ -256,7 +257,7 @@ class WorkoutDetailRepository(context: Context) {
             val best = if (inverted) raw.minOf { it.v } else raw.maxOf { it.v }
             return WorkoutSeries(
                 title, unit, WorkoutMath.downsample(raw), format, inverted,
-                listOf(WorkoutMetric("Avg", format(avg)), WorkoutMetric(if (inverted) "Best" else "Max", format(best))),
+                listOf(WorkoutMetric(ctx.getString(R.string.ult_wd_avg), format(avg)), WorkoutMetric(if (inverted) ctx.getString(R.string.ult_wd_best) else ctx.getString(R.string.ult_wd_max), format(best))),
             )
         }
 
@@ -272,14 +273,14 @@ class WorkoutDetailRepository(context: Context) {
                     SeriesPoint(t(p), c.value.toFloat())
                 }
                 val unit = fmt.getUnitString(fmt.convert(0.0, unitToken, true).unit)
-                return series("Pace", unit, raw, inverted = true) { v ->
+                return series(ctx.getString(R.string.ult_wd_pace), unit, raw, inverted = true) { v ->
                     val s = Math.round(v * 60)
                     String.format(Locale.ROOT, "%d:%02d", s / 60, s % 60)
                 }
             }
             val raw = moving.map { p -> SeriesPoint(t(p), fmt.convert(p.speed.toDouble(), E.UNIT_METERS_PER_SECOND, true).value.toFloat()) }
             val unit = fmt.getUnitString(fmt.convert(0.0, E.UNIT_METERS_PER_SECOND, true).unit)
-            return series("Speed", unit, raw) { "%.1f".format(it) }
+            return series(ctx.getString(R.string.ult_wd_speed), unit, raw) { "%.1f".format(it) }
         }
 
         private fun elevationCurve(): WorkoutSeries? {
@@ -288,9 +289,9 @@ class WorkoutDetailRepository(context: Context) {
             // A barometer on a gym bike reports one constant altitude; that is not a profile.
             if (raw.size < 2 || raw.maxOf { it.v } - raw.minOf { it.v } < 3f) return null
             val unit = fmt.getUnitString(fmt.convert(0.0, E.UNIT_METERS, true).unit)
-            return series("Elevation", unit, raw) { "%.0f".format(it) }?.let { s ->
+            return series(ctx.getString(R.string.ult_wd_elevation), unit, raw) { "%.0f".format(it) }?.let { s ->
                 s.copy(stats = listOf(
-                    WorkoutMetric("Min", s.format(raw.minOf { it.v })), WorkoutMetric("Max", s.format(raw.maxOf { it.v })),
+                    WorkoutMetric(ctx.getString(R.string.ult_wd_min), s.format(raw.minOf { it.v })), WorkoutMetric(ctx.getString(R.string.ult_wd_max), s.format(raw.maxOf { it.v })),
                 ))
             }
         }
@@ -298,7 +299,7 @@ class WorkoutDetailRepository(context: Context) {
         private fun cadenceCurve(): WorkoutSeries? {
             val raw = points.filter { it.cadence > 0 }.map { SeriesPoint(t(it), it.cadence.toFloat()) }
             val unit = fmt.getUnitString(DefaultWorkoutCharts.getCadenceUnit(ActivityKind.getCycleUnit(kind)))
-            return series("Cadence", unit, raw) { it.toInt().toString() }
+            return series(ctx.getString(R.string.ult_wd_cadence), unit, raw) { it.toInt().toString() }
         }
 
         // ---- Tables and the rest ---------------------------------------------------------
@@ -320,9 +321,9 @@ class WorkoutDetailRepository(context: Context) {
         }
 
         private fun tableTitle(group: String): String = when {
-            profile == WorkoutProfile.SWIM -> "Lengths"
-            group == E.GROUP_PACE -> "Splits"
-            group.isEmpty() -> "Laps"
+            profile == WorkoutProfile.SWIM -> ctx.getString(R.string.ult_wd_lengths)
+            group == E.GROUP_PACE -> ctx.getString(R.string.ult_wd_splits)
+            group.isEmpty() -> ctx.getString(R.string.ult_wd_laps)
             else -> fmt.getStringResourceByName(group)
         }
 

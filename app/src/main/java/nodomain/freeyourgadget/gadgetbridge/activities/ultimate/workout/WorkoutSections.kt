@@ -16,6 +16,7 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 package nodomain.freeyourgadget.gadgetbridge.activities.ultimate.workout
 
+import androidx.compose.ui.res.stringResource
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -242,7 +243,7 @@ fun HeartRateCard(heart: HeartSection) {
     val colors = zoneColors()
     val hrColor = colorResource(R.color.hr_zone_maximum_color)
     DashboardCard {
-        SectionLabel("Heart rate (bpm)")
+        SectionLabel(stringResource(R.string.ult_wd_hr_bpm))
         Spacer(Modifier.height(10.dp))
         StatsRow(heart.stats)
 
@@ -254,7 +255,7 @@ fun HeartRateCard(heart: HeartSection) {
 
         if (heart.zones.isNotEmpty()) {
             Spacer(Modifier.height(16.dp))
-            Text("Time in zone", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = scheme.onSurface)
+            Text(stringResource(R.string.ult_time_in_zone), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = scheme.onSurface)
             Spacer(Modifier.height(8.dp))
             SegmentBar(heart.zones.map { it.seconds.toFloat() to colors[it.index - 1] })
             Spacer(Modifier.height(10.dp))
@@ -277,7 +278,7 @@ fun HeartRateCard(heart: HeartSection) {
             Spacer(Modifier.height(16.dp))
             val first = heart.recovery.first().toInt()
             val last = heart.recovery.last().toInt()
-            Text("Recovery", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = scheme.onSurface)
+            Text(stringResource(R.string.ult_recovery), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = scheme.onSurface)
             Text(
                 if (first > last) "Dropped ${first - last} bpm after the workout ($first → $last)"
                 else "$first → $last bpm after the workout",
@@ -293,7 +294,7 @@ fun HeartRateCard(heart: HeartSection) {
 fun EffortCard(effort: List<WorkoutMetric>) {
     if (effort.isEmpty()) return
     DashboardCard {
-        SectionLabel("Effort")
+        SectionLabel(stringResource(R.string.ult_wd_effort))
         Spacer(Modifier.height(10.dp))
         MetricChips(effort)
     }
@@ -337,7 +338,7 @@ fun MoreDataCard(more: List<WorkoutMetric>) {
     var open by rememberSaveable { mutableStateOf(false) }
     DashboardCard(onClick = { open = !open }) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            SectionLabel("More data", Modifier.weight(1f))
+            SectionLabel(stringResource(R.string.ult_more_data), Modifier.weight(1f))
             Icon(if (open) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore, contentDescription = null, tint = scheme.onSurfaceVariant)
         }
         AnimatedVisibility(open) {
@@ -363,14 +364,14 @@ fun RouteMapCard(track: List<LatLon>, tilesDir: File, hasBaseMap: Boolean, onOpe
     val scheme = MaterialTheme.colorScheme
     DashboardCard {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            SectionLabel("Route", Modifier.weight(1f))
-            if (hasBaseMap) Icon(Icons.Filled.OpenInFull, contentDescription = "Full screen", tint = scheme.onSurfaceVariant,
+            SectionLabel(stringResource(R.string.ult_route), Modifier.weight(1f))
+            if (hasBaseMap) Icon(Icons.Filled.OpenInFull, contentDescription = stringResource(R.string.ult_full_screen), tint = scheme.onSurfaceVariant,
                 modifier = Modifier.size(18.dp).clickable { onOpen() })
         }
         Spacer(Modifier.height(10.dp))
         if (!hasBaseMap) {
-            Text("Import a base map to see the route.", style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
-            TextButton(onClick = onImportMap) { Text("Import base map") }
+            Text(stringResource(R.string.ult_import_basemap_route), style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
+            TextButton(onClick = onImportMap) { Text(stringResource(R.string.ult_import_basemap)) }
             return@DashboardCard
         }
         var engine by remember { mutableStateOf<UltimateMapEngine?>(null) }

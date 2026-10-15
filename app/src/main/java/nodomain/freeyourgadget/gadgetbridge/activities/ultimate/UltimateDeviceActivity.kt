@@ -32,6 +32,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import nodomain.freeyourgadget.gadgetbridge.GBApplication
+import nodomain.freeyourgadget.gadgetbridge.R
 import nodomain.freeyourgadget.gadgetbridge.activities.devicesettings.DeviceSettingsActivity
 import nodomain.freeyourgadget.gadgetbridge.activities.install.FwAppInstallerActivity
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.theme.UltimateTheme
@@ -109,65 +110,65 @@ class UltimateDeviceActivity : AppCompatActivity() {
         val options = mutableListOf<DeviceOptionUi>()
 
         // --- Connection: status and sync ---
-        val sConn = "Connection"
+        val sConn = getString(R.string.ult_section_connection)
         val connecting = !device.isConnected && !device.isInitialized && device.state != GBDevice.State.NOT_CONNECTED
         if (device.isConnected || device.isInitialized) {
-            options += DeviceOptionUi("disconnect", "Disconnect", "Drop the connection", section = sConn)
-            options += DeviceOptionUi("sync", "Sync activity", "Download new data", section = sConn)
+            options += DeviceOptionUi("disconnect", getString(R.string.ult_disconnect), getString(R.string.ult_disconnect_sub), section = sConn)
+            options += DeviceOptionUi("sync", getString(R.string.ult_sync), getString(R.string.ult_sync_sub), section = sConn)
         } else if (connecting) {
-            options += DeviceOptionUi("disconnect", "Cancel connection", "Stop the connection attempt", section = sConn)
+            options += DeviceOptionUi("disconnect", getString(R.string.ult_cancel_connection), getString(R.string.ult_cancel_connection_sub), section = sConn)
         } else {
-            options += DeviceOptionUi("connect", "Connect", "Connect to the device", section = sConn)
+            options += DeviceOptionUi("connect", getString(R.string.ult_connect), getString(R.string.ult_connect_sub), section = sConn)
         }
 
         // --- Watch: settings and the watch's own features ---
-        val sWatch = "Watch"
-        options += DeviceOptionUi("settings", "Device settings", "Notificaciones, pantallas, gestos…", section = sWatch)
+        val sWatch = getString(R.string.ult_section_watch)
+        options += DeviceOptionUi("settings", getString(R.string.ult_device_settings), getString(R.string.ult_device_settings_sub), section = sWatch)
         if (coordinator != null) {
             if (runCatching { coordinator.getAlarmSlotCount(device) }.getOrDefault(0) > 0) {
-                options += DeviceOptionUi("alarms", "Alarmas", "Watch alarms", section = sWatch)
+                options += DeviceOptionUi("alarms", getString(R.string.ult_alarms), getString(R.string.ult_alarms_sub), section = sWatch)
             }
             if (runCatching { coordinator.getReminderSlotCount(device) }.getOrDefault(0) > 0) {
-                options += DeviceOptionUi("reminders", "Recordatorios", "Date and time reminders", section = sWatch)
+                options += DeviceOptionUi("reminders", getString(R.string.ult_reminders), getString(R.string.ult_reminders_sub), section = sWatch)
             }
             if (runCatching { coordinator.getWorldClocksSlotCount() }.getOrDefault(0) > 0) {
-                options += DeviceOptionUi("worldclocks", "World clocks", "Otras zonas horarias", section = sWatch)
+                options += DeviceOptionUi("worldclocks", getString(R.string.ult_world_clocks), getString(R.string.ult_world_clocks_sub), section = sWatch)
             }
             // Phone-side countdown timer (the watch has no timer protocol); always available.
-            options += DeviceOptionUi("timers", "Timers", "Countdown on the phone", section = sWatch)
+            options += DeviceOptionUi("timers", getString(R.string.ult_timers), getString(R.string.ult_timers_sub), section = sWatch)
             if (cap { coordinator.supportsWatchfaceManagement(device) }) {
-                options += DeviceOptionUi("watchfaces", "Watchfaces", "View, activate and delete watchfaces", section = sWatch)
+                options += DeviceOptionUi("watchfaces", getString(R.string.ult_watchfaces), getString(R.string.ult_watchfaces_sub), section = sWatch)
             }
             if (cap { coordinator.supportsMusicInfo(device) }) {
-                options += DeviceOptionUi("music", "Music", "View, upload and delete watch music", section = sWatch)
+                options += DeviceOptionUi("music", getString(R.string.ult_music), getString(R.string.ult_music_sub), section = sWatch)
             }
             if (cap { coordinator.supportsInstalledAppManagement(device) }) {
-                options += DeviceOptionUi("watchapps", "Apps", "View, delete and install watch apps", section = sWatch)
+                options += DeviceOptionUi("watchapps", getString(R.string.ult_apps), getString(R.string.ult_apps_sub), section = sWatch)
             }
         }
 
         // --- Maps and navigation ---
-        val sNav = "Maps and navigation"
+        val sNav = getString(R.string.ult_section_nav)
         if (coordinator is HuaweiCoordinator) {
-            options += DeviceOptionUi("maps", "Mapas offline", "Install and delete watch maps", section = sNav)
-            options += DeviceOptionUi("routes", "Rutas", "Planificar y enviar rutas", section = sNav)
-            options += DeviceOptionUi("golf", "Golf courses", "Send and delete course maps on the watch", section = sNav)
-            options += DeviceOptionUi("agnss", "Actualizar GPS (A-GNSS)", "Satellite data for a faster fix", section = sNav)
+            options += DeviceOptionUi("maps", getString(R.string.ult_maps_offline), getString(R.string.ult_maps_offline_sub), section = sNav)
+            options += DeviceOptionUi("routes", getString(R.string.ult_routes), getString(R.string.ult_routes_sub), section = sNav)
+            options += DeviceOptionUi("golf", getString(R.string.ult_golf_courses), getString(R.string.ult_golf_courses_sub), section = sNav)
+            options += DeviceOptionUi("agnss", getString(R.string.ult_agnss), getString(R.string.ult_agnss_sub), section = sNav)
         }
         if (supportsAgps(device)) {
-            options += DeviceOptionUi("agps", "Actualizar GPS (A-GNSS)", "Install satellite data for a faster fix", section = sNav)
+            options += DeviceOptionUi("agps", getString(R.string.ult_agnss), getString(R.string.ult_agps_sub), section = sNav)
         }
 
         // --- Device: actions on the pairing ---
-        val sDev = "Device"
-        options += DeviceOptionUi("find", "Find device", "Ring the device", section = sDev)
+        val sDev = getString(R.string.ult_section_device)
+        options += DeviceOptionUi("find", getString(R.string.ult_find_device), getString(R.string.ult_find_device_sub), section = sDev)
         // Power off: only if the device supports it and is initialized (you must be connected
         // to send the command). The gating is generic: it covers the Colmi/Yawell rings and any
         // other device whose coordinator declares supportsPowerOff.
         if (coordinator != null && device.isInitialized && cap { coordinator.supportsPowerOff(device) }) {
-            options += DeviceOptionUi("poweroff", "Power off", "Power off the device", section = sDev)
+            options += DeviceOptionUi("poweroff", getString(R.string.ult_power_off), getString(R.string.ult_power_off_sub), section = sDev)
         }
-        options += DeviceOptionUi("remove", "Remove device", "Unlink from UltimateGadget", destructive = true, section = sDev)
+        options += DeviceOptionUi("remove", getString(R.string.ult_remove_device), getString(R.string.ult_remove_device_sub), destructive = true, section = sDev)
         return options
     }
 
@@ -177,7 +178,7 @@ class UltimateDeviceActivity : AppCompatActivity() {
             "disconnect" -> GBApplication.deviceService(device).disconnect()
             "sync" -> {
                 GBApplication.deviceService(device).onFetchRecordedData(RecordedDataTypes.TYPE_SYNC)
-                toast("Syncing…")
+                toast(getString(R.string.ult_syncing_toast))
             }
             "settings" -> startActivity(
                 nodomain.freeyourgadget.gadgetbridge.activities.ultimate.devsettings.UltimateDeviceSettingsActivity.intent(this, device),
@@ -220,7 +221,7 @@ class UltimateDeviceActivity : AppCompatActivity() {
             )
             "agps" -> {
                 agpsDevice = device
-                toast("Choose the downloaded A-GNSS file")
+                toast(getString(R.string.ult_choose_agnss_file))
                 agpsPicker.launch(arrayOf("*/*"))
             }
             "find" -> {
@@ -229,9 +230,9 @@ class UltimateDeviceActivity : AppCompatActivity() {
                 // stop it; dismissing (button, back, outside) stops the ringing.
                 GBApplication.deviceService(device).onFindDevice(true)
                 androidx.appcompat.app.AlertDialog.Builder(this)
-                    .setTitle("Find device")
-                    .setMessage("The watch is ringing/vibrating. Tap Stop when you find it.")
-                    .setPositiveButton("Stop", null)
+                    .setTitle(R.string.ult_find_device)
+                    .setMessage(R.string.ult_find_dialog_msg)
+                    .setPositiveButton(R.string.ult_stop, null)
                     .setOnDismissListener { GBApplication.deviceService(device).onFindDevice(false) }
                     .show()
             }
@@ -239,13 +240,13 @@ class UltimateDeviceActivity : AppCompatActivity() {
                 // Gadgetbridge already implements power off (onPowerOff → device command).
                 // We confirm first because afterwards it must be turned on by hand to reconnect.
                 androidx.appcompat.app.AlertDialog.Builder(this)
-                    .setTitle("Power off device")
-                    .setMessage("Power off the device? You'll have to turn it on manually to connect again.")
-                    .setPositiveButton("Power off") { _, _ ->
+                    .setTitle(R.string.ult_power_off_dialog_title)
+                    .setMessage(R.string.ult_power_off_dialog_msg)
+                    .setPositiveButton(R.string.ult_power_off) { _, _ ->
                         GBApplication.deviceService(device).onPowerOff()
-                        toast("Apagando…")
+                        toast(getString(R.string.ult_powering_off_toast))
                     }
-                    .setNegativeButton("Cancel", null)
+                    .setNegativeButton(R.string.ult_cancel, null)
                     .show()
             }
             "remove" -> startActivity(

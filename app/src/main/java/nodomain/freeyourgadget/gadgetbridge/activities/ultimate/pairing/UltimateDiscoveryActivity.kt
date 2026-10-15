@@ -16,6 +16,7 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 package nodomain.freeyourgadget.gadgetbridge.activities.ultimate.pairing
 
+import androidx.compose.ui.res.stringResource
 import android.Manifest
 import android.app.Activity
 import android.bluetooth.BluetoothAdapter
@@ -495,17 +496,12 @@ class UltimateDiscoveryActivity : AppCompatActivity(), BondingInterface, GBScanE
         // If the authentication value is already configured for this device, pairing is safe, so
         // the pairing button is a plain "Pair" rather than the "…de todas formas" warning.
         val alreadyConfigured = hasAuthConfigured(deviceCandidate.macAddress)
-        val pairLabel = if (alreadyConfigured) "Pair" else "Pair anyway"
+        val pairLabel = if (alreadyConfigured) getString(R.string.ult_pair) else getString(R.string.ult_pair_anyway)
         MaterialAlertDialogBuilder(this)
-            .setTitle("Configure authentication?")
-            .setMessage(
-                "This device may require you to configure authentication (for example, a " +
-                    "Huawei account) before pairing. Pairing without it can make the watch " +
-                    "unlink and factory-reset itself.\n\nConfigure it now and tap the device " +
-                    "again to pair — or pair anyway.",
-            )
+            .setTitle(R.string.ult_configure_auth_title)
+            .setMessage(R.string.ult_configure_auth_msg)
             .setIcon(R.drawable.ic_vpn_key)
-            .setPositiveButton("Configurar") { _, _ ->
+            .setPositiveButton(R.string.ult_configure) { _, _ ->
                 val startIntent = Intent(this, DeviceSettingsActivity::class.java)
                 startIntent.putExtra(GBDevice.EXTRA_DEVICE, device)
                 startIntent.putExtra(
@@ -515,7 +511,7 @@ class UltimateDiscoveryActivity : AppCompatActivity(), BondingInterface, GBScanE
                 startActivity(startIntent)
             }
             .setNegativeButton(pairLabel) { _, _ -> startPair(deviceCandidate, coordinator) }
-            .setNeutralButton("Cancel", null)
+            .setNeutralButton(R.string.ult_cancel, null)
             .show()
     }
 
@@ -563,7 +559,7 @@ class UltimateDiscoveryActivity : AppCompatActivity(), BondingInterface, GBScanE
         }
         val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         clipboard.setPrimaryClip(ClipData.newPlainText(deviceCandidate.name, details.joinToString(", ")))
-        GB.toast(this, "Device details copied to clipboard", Toast.LENGTH_SHORT, GB.INFO)
+        GB.toast(this, getString(R.string.ult_device_details_copied), Toast.LENGTH_SHORT, GB.INFO)
     }
 
     // endregion
@@ -752,15 +748,15 @@ private fun DiscoveryScreen(
         containerColor = palette.background,
         topBar = {
             TopAppBar(
-                title = { Text("Add device") },
+                title = { Text(stringResource(R.string.ult_add_device)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Filled.ArrowBack, contentDescription = stringResource(R.string.ult_back))
                     }
                 },
                 actions = {
                     IconButton(onClick = onOpenPairingPrefs) {
-                        Icon(Icons.Filled.Tune, contentDescription = "Pairing settings")
+                        Icon(Icons.Filled.Tune, contentDescription = stringResource(R.string.ult_pairing_settings))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -783,7 +779,7 @@ private fun DiscoveryScreen(
                         contentDescription = null,
                     )
                     Spacer(Modifier.size(8.dp))
-                    Text(if (scanning) "Detener" else "Scan", fontWeight = FontWeight.Bold)
+                    Text(if (scanning) stringResource(R.string.ult_stop_scan) else stringResource(R.string.ult_scan), fontWeight = FontWeight.Bold)
                 }
             }
         },
@@ -885,9 +881,9 @@ private fun DeviceCandidateCard(device: DiscoveredDevice, onClick: () -> Unit) {
                     color = palette.onSurfaceVariant,
                 )
                 val badges = buildList {
-                    if (device.bonded) add("Paired")
-                    if (!device.supported) add("No compatible")
-                    if (device.experimental) add("Experimental")
+                    if (device.bonded) add(stringResource(R.string.ult_dev_paired))
+                    if (!device.supported) add(stringResource(R.string.ult_dev_unsupported))
+                    if (device.experimental) add(stringResource(R.string.ult_dev_experimental))
                 }
                 if (badges.isNotEmpty()) {
                     Spacer(Modifier.height(6.dp))
@@ -990,7 +986,7 @@ private fun PermissionPrompt(onRequestPermissions: () -> Unit) {
             contentColor = palette.onPrimary,
             modifier = Modifier.height(52.dp),
         ) {
-            Text("Conceder permisos", fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.ult_grant_permissions), fontWeight = FontWeight.Bold)
         }
     }
 }

@@ -42,6 +42,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import nodomain.freeyourgadget.gadgetbridge.R
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -92,10 +94,10 @@ class UltimateAgnssActivity : AppCompatActivity() {
     private fun refresh() {
         if (busy) return
         if (!HuaweiAgnssHelper.sourceAvailable(this)) {
-            isError = true; message = "Install the UltimateGadget map app to download A-GNSS"
+            isError = true; message = getString(R.string.ult_install_map_app_agnss)
             return
         }
-        busy = true; isError = false; message = "Downloading ephemeris…"
+        busy = true; isError = false; message = getString(R.string.ult_downloading_ephemeris)
         HuaweiAgnssHelper.refresh(this, wifiOnly) { ok, msg ->
             runOnUiThread {
                 busy = false; isError = !ok; message = msg
@@ -116,7 +118,7 @@ class UltimateAgnssActivity : AppCompatActivity() {
             containerColor = palette.background,
             topBar = {
                 TopAppBar(
-                    title = { Text("Update GPS (A-GNSS)", fontWeight = FontWeight.Bold) },
+                    title = { Text(stringResource(R.string.ult_agnss), fontWeight = FontWeight.Bold) },
                     navigationIcon = {
                         IconButton(onClick = { finish() }) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
@@ -132,9 +134,7 @@ class UltimateAgnssActivity : AppCompatActivity() {
         ) { inner ->
             Column(Modifier.padding(inner).fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(
-                    "Downloads satellite data (public ephemeris) through the map app and " +
-                        "prepares it so the watch gets a GPS fix in seconds. The watch picks it up on connect; " +
-                        "nothing is forced onto it.",
+                    stringResource(R.string.ult_agnss_explain),
                     style = MaterialTheme.typography.bodySmall, color = palette.onSurfaceVariant,
                 )
 
@@ -144,22 +144,22 @@ class UltimateAgnssActivity : AppCompatActivity() {
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         if (s != null && s.hasData) {
-                            Text("Paquete listo", color = palette.onSurface, fontWeight = FontWeight.SemiBold)
+                            Text(stringResource(R.string.ult_package_ready), color = palette.onSurface, fontWeight = FontWeight.SemiBold)
                             Text(
                                 "GPS ${s.gps} · GLONASS ${s.glonass} · Galileo ${s.galileo} · BeiDou ${s.beidou}",
                                 style = MaterialTheme.typography.bodySmall, color = palette.onSurfaceVariant,
                             )
-                            Text("Actualizado: ${fmtTime(s.fetchedAt)}", style = MaterialTheme.typography.bodySmall, color = palette.onSurfaceVariant)
+                            Text(stringResource(R.string.ult_updated_at, fmtTime(s.fetchedAt)), style = MaterialTheme.typography.bodySmall, color = palette.onSurfaceVariant)
                             val expired = System.currentTimeMillis() > s.validUntil
                             Text(
-                                if (expired) "Expired — update before you head out" else "Valid until: ${fmtTime(s.validUntil)}",
+                                if (expired) stringResource(R.string.ult_expired_update) else stringResource(R.string.ult_valid_until, fmtTime(s.validUntil)),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = if (expired) palette.error else palette.secondary,
                             )
-                            if (s.source.isNotBlank()) Text("Fuente: ${s.source}", style = MaterialTheme.typography.bodySmall, color = palette.onSurfaceVariant)
+                            if (s.source.isNotBlank()) Text(stringResource(R.string.ult_source_fmt, s.source), style = MaterialTheme.typography.bodySmall, color = palette.onSurfaceVariant)
                         } else {
-                            Text("No data yet", color = palette.onSurface, fontWeight = FontWeight.SemiBold)
-                            Text("Tap \"Update now\" to download.", style = MaterialTheme.typography.bodySmall, color = palette.onSurfaceVariant)
+                            Text(stringResource(R.string.ult_no_data_yet), color = palette.onSurface, fontWeight = FontWeight.SemiBold)
+                            Text(stringResource(R.string.ult_tap_update_now), style = MaterialTheme.typography.bodySmall, color = palette.onSurfaceVariant)
                         }
                     }
                 }
@@ -169,7 +169,7 @@ class UltimateAgnssActivity : AppCompatActivity() {
                         .clickable(enabled = !busy) { refresh() }.padding(vertical = 14.dp),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text(if (busy) "Actualizando…" else "Update now", color = palette.onPrimary, fontWeight = FontWeight.Bold)
+                    Text(if (busy) stringResource(R.string.ult_updating) else stringResource(R.string.ult_update_now), color = palette.onPrimary, fontWeight = FontWeight.Bold)
                 }
 
                 if (message.isNotBlank()) {
@@ -177,10 +177,10 @@ class UltimateAgnssActivity : AppCompatActivity() {
                 }
 
                 // Options
-                ToggleRow("Update when the watch connects", autoOnConnect, palette) {
+                ToggleRow(stringResource(R.string.ult_update_on_connect), autoOnConnect, palette) {
                     autoOnConnect = it; setPref(HuaweiAgnssHelper.PREF_ENABLED, it)
                 }
-                ToggleRow("Download over Wi-Fi only", wifiOnly, palette) {
+                ToggleRow(stringResource(R.string.ult_download_wifi_only), wifiOnly, palette) {
                     wifiOnly = it; setPref(HuaweiAgnssHelper.PREF_WIFI_ONLY, it)
                 }
             }
