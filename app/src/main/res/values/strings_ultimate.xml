@@ -721,4 +721,21 @@
     <!-- Last leftovers -->
     <string name="ult_date">Date</string>
     <string name="ult_rep_steps_day">Steps / day</string>
+    <string name="ult_open_classic">Not available on this screen yet</string>
+    <string name="ult_confirm_yes">Yes</string>
+    <string name="ult_hr_zone_n">Zone %1$d</string>
+    <string name="ult_hr_zone_max">Maximum</string>
+    <string name="ult_calendars">Calendars</string>
+    <string name="ult_calendar_no_permission">Calendar permission not granted. Grant it in the app permissions to choose calendars.</string>
+    <string name="ult_calendar_none">No calendars found on this phone.</string>
+    <string name="ult_contacts">Contacts</string>
+    <string name="ult_add_contact">Add contact</string>
+    <string name="ult_contacts_empty">No contacts yet. Tap + to add one.</string>
+    <string name="ult_contact">Contact</string>
+    <string name="ult_phone_number">Phone number</string>
+    <string name="ult_delete_contact">Delete contact</string>
+    <string name="ult_delete_contact_confirm">Delete \"%1$s\"?</string>
+    <string name="ult_stress_again">Measure again</string>
+    <string name="ult_device_info_missing">Device info missing</string>
+    <string name="ult_help">Help</string>
 </resources>

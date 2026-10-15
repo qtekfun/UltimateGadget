@@ -23,7 +23,6 @@ import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import nodomain.freeyourgadget.gadgetbridge.GBApplication
 import nodomain.freeyourgadget.gadgetbridge.R
-import nodomain.freeyourgadget.gadgetbridge.activities.devicesettings.DeviceSettingsActivity
 import nodomain.freeyourgadget.gadgetbridge.activities.devicesettings.DeviceSpecificSettings
 import nodomain.freeyourgadget.gadgetbridge.activities.devicesettings.DeviceSpecificSettingsScreen
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.theme.UltimateTheme
@@ -36,13 +35,18 @@ import nodomain.freeyourgadget.gadgetbridge.impl.GBDevice
  * per-device SharedPreferences and fires the same {@code onSendConfiguration(key)} event, so the
  * watch receives changes exactly as with the legacy screen (see [DeviceSettingsStore]).
  *
- * Scope of the generic renderer (see [DeviceSettingsParser]): switches, single-choice lists, text
- * / numeric inputs and sliders are rendered natively. Everything it does not model — complex custom
- * pickers, action-only preferences, DSL-model devices, and the programmatic Battery / Developer /
- * Auth / Experimental screens — is handed off to the legacy [DeviceSettingsActivity] so nothing is
- * lost or broken.
+ * Scope: both coordinator models are rendered natively — the preference-XML model through
+ * [DeviceSettingsParser] and the settings DSL (rings, earbuds, scales, …) through
+ * [DslSettingsConverter]. Switches, single/multi-choice and sortable lists, text and numeric
+ * inputs, sliders, time and date pickers, file/folder pickers, info and action rows are all
+ * native; the editors that used to be separate classic screens (heart-rate zones, contacts,
+ * calendars, notification app icons, stress calibration, battery history) open their Compose
+ * counterparts. The classic preference screen is no longer used.
  */
 class UltimateDeviceSettingsActivity : AppCompatActivity() {
+
+    /** Click handlers of DSL action rows, by preference key (empty for XML-based devices). */
+    private var dslActions: Map<String, (android.content.Context, GBDevice?) -> Boolean> = emptyMap()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,19 +59,23 @@ class UltimateDeviceSettingsActivity : AppCompatActivity() {
 
         val coordinator = runCatching { device.deviceCoordinator }.getOrNull()
 
-        // Devices using the newer DSL settings model (getDeviceSettings != null) are not handled by
-        // this generic XML renderer yet — fall back to the legacy screen entirely.
+        // Devices using the settings DSL (getDeviceSettings != null: rings, earbuds, scales, …) are
+        // converted to the same native node tree as the XML-based ones; only a device that exposes
+        // neither model falls back to the legacy screen.
         val modelSpec = runCatching { coordinator?.getDeviceSettings(device) }.getOrNull()
         val settings: DeviceSpecificSettings? =
             if (modelSpec == null) runCatching { coordinator?.getDeviceSpecificSettings(device) }.getOrNull() else null
 
-        if (settings == null) {
-            openClassic(device)
-            finish()
-            return
+        // A device that exposes neither model still gets the generic connection / battery rows.
+        val nodes: List<PrefNode> = when {
+            modelSpec != null -> {
+                val dsl = DslSettingsConverter.convert(this, device, modelSpec)
+                dslActions = dsl.actions
+                appendCommonNodes(device, dsl.nodes.toMutableList())
+            }
+            settings != null -> buildNodes(device, settings)
+            else -> appendCommonNodes(device, mutableListOf())
         }
-
-        val nodes = buildNodes(device, settings)
 
         setContent {
             UltimateTheme {
@@ -77,16 +85,22 @@ class UltimateDeviceSettingsActivity : AppCompatActivity() {
                     store = DeviceSettingsStore(device),
                     hasClassicFallback = false,
                     onBack = { finish() },
-                    onDelegate = { openClassic(device) },
+                    onDelegate = {},
                     onAction = { key -> onAction(key, device) },
+                    initialScreenKey = intent.getStringExtra(EXTRA_OPEN_SCREEN),
                 )
             }
         }
     }
 
     private fun buildNodes(device: GBDevice, settings: DeviceSpecificSettings): List<PrefNode> {
-        val coordinator = runCatching { device.deviceCoordinator }.getOrNull()
         val nodes = DeviceSettingsParser.buildTopLevel(this, settings).toMutableList()
+        return appendCommonNodes(device, nodes)
+    }
+
+    /** Adds the generic connection and battery-polling sub-screens the legacy builder appends. */
+    private fun appendCommonNodes(device: GBDevice, nodes: MutableList<PrefNode>): List<PrefNode> {
+        val coordinator = runCatching { device.deviceCoordinator }.getOrNull()
 
         // The generic connection sub-screen (reconnect / priority / …) is added by the legacy
         // builder, not by the coordinator's own settings, so append it here from the public API.
@@ -153,6 +167,11 @@ class UltimateDeviceSettingsActivity : AppCompatActivity() {
      */
     private fun onAction(key: String?, device: GBDevice) {
         if (key == null) return
+        // DSL action rows carry their own click handler (the settings model's onClick).
+        dslActions[key]?.let { handler ->
+            runCatching { handler(this, device) }
+            return
+        }
         fun open(cls: Class<*>) = startActivity(
             Intent(this, cls).putExtra(GBDevice.EXTRA_DEVICE, device),
         )
@@ -164,41 +183,34 @@ class UltimateDeviceSettingsActivity : AppCompatActivity() {
             "pref_music_management" ->
                 startActivity(nodomain.freeyourgadget.gadgetbridge.activities.ultimate.music.UltimateMusicActivity.intent(this, device))
             "pref_contacts" ->
-                open(nodomain.freeyourgadget.gadgetbridge.activities.ConfigureContacts::class.java)
+                startActivity(nodomain.freeyourgadget.gadgetbridge.activities.ultimate.contacts.UltimateContactsActivity.intent(this, device))
             "pref_perform_heart_rate_settings" ->
-                open(nodomain.freeyourgadget.gadgetbridge.activities.heartratezones.HeartRateSettingsActivity::class.java)
+                startActivity(nodomain.freeyourgadget.gadgetbridge.activities.ultimate.heartrate.UltimateHeartRateZonesActivity.intent(this, device))
             "pref_upload_notifications_app_icon" ->
-                open(nodomain.freeyourgadget.gadgetbridge.activities.NotificationsAppIconUploadActivity::class.java)
+                startActivity(nodomain.freeyourgadget.gadgetbridge.activities.ultimate.appicons.UltimateAppIconUploadActivity.intent(this, device))
             "calendar_blacklist" ->
-                open(nodomain.freeyourgadget.gadgetbridge.activities.CalendarSelectionActivity::class.java)
+                startActivity(nodomain.freeyourgadget.gadgetbridge.activities.ultimate.calendar.UltimateCalendarSelectionActivity.intent(this, device))
             "pref_huawei_stress_perform_calibrate" ->
-                open(nodomain.freeyourgadget.gadgetbridge.devices.huawei.ui.HuaweiStressCalibrationActivity::class.java)
+                startActivity(nodomain.freeyourgadget.gadgetbridge.activities.ultimate.stress.UltimateStressCalibrationActivity.intent(this, device))
             // Command-style actions (send canned messages, debug request, …): fire the same signal
             // the legacy screen's change-handler would, so the device support handles it.
             else -> runCatching { GBApplication.deviceService(device).onSendConfiguration(key) }
         }
     }
 
-    private fun openClassic(device: GBDevice) {
-        startActivity(
-            Intent(this, DeviceSettingsActivity::class.java).apply {
-                putExtra(GBDevice.EXTRA_DEVICE, device)
-                putExtra(
-                    DeviceSettingsActivity.MENU_ENTRY_POINT,
-                    DeviceSettingsActivity.MENU_ENTRY_POINTS.DEVICE_SETTINGS,
-                )
-            },
-        )
-    }
-
     companion object {
         /** Synthetic action key for the native battery-history screen (not a persisted preference). */
         private const val ACTION_BATTERY_HISTORY = "ug_battery_history"
 
+        /** Optional: key of a sub-screen to open straight away (e.g. the authentication screen). */
+        const val EXTRA_OPEN_SCREEN = "ug_open_screen"
+
         @JvmStatic
-        fun intent(context: Context, device: GBDevice): Intent =
+        @JvmOverloads
+        fun intent(context: Context, device: GBDevice, openScreenKey: String? = null): Intent =
             Intent(context, UltimateDeviceSettingsActivity::class.java).apply {
                 putExtra(GBDevice.EXTRA_DEVICE, device)
+                openScreenKey?.let { putExtra(EXTRA_OPEN_SCREEN, it) }
             }
     }
 }
