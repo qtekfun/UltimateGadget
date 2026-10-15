@@ -91,6 +91,21 @@ class UltimateGolfCoursesActivity : AppCompatActivity() {
     private var selected by mutableStateOf<Set<Int>>(emptySet())
     // When set, the next course-list refresh shows this as a confirmation with the resulting count.
     private var pendingAction by mutableStateOf("")
+    // Course id of an in-flight send, so success is only reported when the watch really lists it.
+    private var pendingCourseId: Int? = null
+
+    private val uploadErrorReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            val code = intent.getIntExtra(HuaweiP2PGolfService.EXTRA_GOLF_UPLOAD_ERROR_CODE, -1)
+            val id = intent.getIntExtra(HuaweiP2PGolfService.EXTRA_GOLF_UPLOAD_COURSE_ID, -1)
+            pendingAction = ""
+            pendingCourseId = null
+            status = getString(R.string.ult_golf_upload_failed, labelFor(id), code)
+            Toast.makeText(this@UltimateGolfCoursesActivity, status, Toast.LENGTH_LONG).show()
+            // Drop the optimistic row added when the send started.
+            items = items.filterNot { it.courseId == id }
+        }
+    }
 
     private val listReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -103,13 +118,17 @@ class UltimateGolfCoursesActivity : AppCompatActivity() {
             items = list.sortedBy { it.courseId }
             loaded = true
             if (pendingAction.isNotBlank()) {
-                status = "$pendingAction ✓ · the watch has ${list.size} course(s)"
-                Toast.makeText(
-                    this@UltimateGolfCoursesActivity,
-                    "$pendingAction ✓ · the watch has ${list.size} course(s)",
-                    Toast.LENGTH_LONG,
-                ).show()
+                val sent = pendingCourseId
+                val msg = if (sent != null && list.none { it.courseId == sent }) {
+                    // The upload finished but the watch does not list the course: do not claim success.
+                    getString(R.string.ult_golf_not_on_watch, labelFor(sent), list.size)
+                } else {
+                    getString(R.string.ult_golf_done_count, pendingAction, list.size)
+                }
+                status = msg
+                Toast.makeText(this@UltimateGolfCoursesActivity, msg, Toast.LENGTH_LONG).show()
                 pendingAction = ""
+                pendingCourseId = null
             }
         }
     }
@@ -162,8 +181,9 @@ class UltimateGolfCoursesActivity : AppCompatActivity() {
                 DisposableEffect(Unit) {
                     val lbm = LocalBroadcastManager.getInstance(this@UltimateGolfCoursesActivity)
                     lbm.registerReceiver(listReceiver, IntentFilter(HuaweiP2PGolfService.ACTION_GOLF_COURSE_LIST))
+                    lbm.registerReceiver(uploadErrorReceiver, IntentFilter(HuaweiP2PGolfService.ACTION_GOLF_UPLOAD_ERROR))
                     requestList()
-                    onDispose { lbm.unregisterReceiver(listReceiver) }
+                    onDispose { lbm.unregisterReceiver(listReceiver); lbm.unregisterReceiver(uploadErrorReceiver) }
                 }
                 GolfScreen()
             }
@@ -251,6 +271,7 @@ class UltimateGolfCoursesActivity : AppCompatActivity() {
             )
             status = getString(R.string.ult_golf_sending_status, labelFor(courseId))
             pendingAction = getString(R.string.ult_golf_sent, labelFor(courseId))
+            pendingCourseId = courseId
             // Show it immediately (optimistic); the authoritative refresh reconciles when the upload
             // finishes. Avoids the list looking frozen during the few-second Bluetooth transfer.
             if (items.none { it.courseId == courseId }) {

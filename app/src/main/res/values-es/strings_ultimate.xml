@@ -738,9 +738,15 @@
     <string name="ult_stress_again">Medir de nuevo</string>
     <string name="ult_device_info_missing">Falta la información del dispositivo</string>
     <string name="ult_help">Ayuda</string>
+<<<<<<< HEAD
     <string name="ult_golf_search_countries">Buscar país…</string>
     <string name="ult_golf_search_country">Buscar ciudad o campo…</string>
     <string name="ult_golf_search_courses">Buscar campo…</string>
     <string name="ult_golf_cities">Ciudades</string>
     <string name="ult_no_results">Sin resultados</string>
+=======
+    <string name="ult_golf_upload_failed">No se pudo enviar %1$s al reloj (error de transferencia %2$d)</string>
+    <string name="ult_golf_not_on_watch">%1$s se envió pero el reloj no lo muestra (el reloj tiene %2$d campo(s)). Puede haber rechazado el archivo.</string>
+    <string name="ult_golf_done_count">%1$s ✓ · el reloj tiene %2$d campo(s)</string>
+>>>>>>> c441c996d4 (Golf: report a failed course send instead of a false success)
 </resources>
