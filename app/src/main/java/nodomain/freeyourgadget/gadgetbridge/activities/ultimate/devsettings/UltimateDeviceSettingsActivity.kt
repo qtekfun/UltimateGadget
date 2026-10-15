@@ -186,7 +186,7 @@ class UltimateDeviceSettingsActivity : AppCompatActivity() {
             "pref_contacts" ->
                 open(nodomain.freeyourgadget.gadgetbridge.activities.ConfigureContacts::class.java)
             "pref_perform_heart_rate_settings" ->
-                open(nodomain.freeyourgadget.gadgetbridge.activities.heartratezones.HeartRateSettingsActivity::class.java)
+                startActivity(nodomain.freeyourgadget.gadgetbridge.activities.ultimate.heartrate.UltimateHeartRateZonesActivity.intent(this, device))
             "pref_upload_notifications_app_icon" ->
                 open(nodomain.freeyourgadget.gadgetbridge.activities.NotificationsAppIconUploadActivity::class.java)
             "calendar_blacklist" ->

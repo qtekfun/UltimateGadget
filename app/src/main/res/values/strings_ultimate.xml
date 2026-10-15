@@ -722,4 +722,7 @@
     <string name="ult_date">Date</string>
     <string name="ult_rep_steps_day">Steps / day</string>
     <string name="ult_open_classic">Open in classic settings</string>
+    <string name="ult_confirm_yes">Yes</string>
+    <string name="ult_hr_zone_n">Zone %1$d</string>
+    <string name="ult_hr_zone_max">Maximum</string>
 </resources>
