@@ -218,10 +218,10 @@ data class GolfRound(
                     stats += GolfStat(nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_golf_distance_walked), formatDistance(it))
                 }
                 data.num(ActivitySummaryEntries.STEPS)?.takeIf { it > 0 }?.let {
-                    stats += GolfStat("Steps", "%,d".format(it.toLong()))
+                    stats += GolfStat(nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_wd_steps), "%,d".format(it.toLong()))
                 }
                 data.num(ActivitySummaryEntries.CALORIES_BURNT)?.takeIf { it > 0 }?.let {
-                    stats += GolfStat("Calories", "%,d kcal".format(it.toLong()))
+                    stats += GolfStat(nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_wd_calories), "%,d kcal".format(it.toLong()))
                 }
                 data.num(ActivitySummaryEntries.HR_AVG)?.takeIf { it > 0 }?.let {
                     stats += GolfStat(nodomain.freeyourgadget.gadgetbridge.GBApplication.getContext().getString(R.string.ult_wd_avg_hr), "${it.toInt()} bpm")

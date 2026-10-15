@@ -327,7 +327,7 @@ private fun ReminderEditor(
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text(stringResource(R.string.ult_reminder_text)) },
             )
-            PickerRow("Fecha", dateFmt.format(currentDate())) { showDatePicker = true }
+            PickerRow(stringResource(R.string.ult_date), dateFmt.format(currentDate())) { showDatePicker = true }
             if (hasTime) {
                 PickerRow(stringResource(R.string.ult_time), formatTime(context, hour, minute)) { showTimePicker = true }
             }
