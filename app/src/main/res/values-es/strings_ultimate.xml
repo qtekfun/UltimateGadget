@@ -735,4 +735,5 @@
     <string name="ult_phone_number">Número de teléfono</string>
     <string name="ult_delete_contact">Borrar contacto</string>
     <string name="ult_delete_contact_confirm">¿Borrar \"%1$s\"?</string>
+    <string name="ult_stress_again">Medir de nuevo</string>
 </resources>
