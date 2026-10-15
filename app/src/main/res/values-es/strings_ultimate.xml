@@ -350,4 +350,29 @@
     <string name="ult_factor_rhr">Frecuencia cardiaca en reposo</string>
     <string name="ult_workout_load">Carga de entreno</string>
     <string name="ult_manual_log_desc">Para días sin reloj: introduce las horas de sueño y el entreno del día.</string>
+
+    <!-- Música -->
+    <string name="ult_tracks">Pistas</string>
+    <string name="ult_playlists">Listas</string>
+    <string name="ult_delete_track">Borrar pista</string>
+    <string name="ult_new_playlist">Nueva lista</string>
+    <string name="ult_create">Crear</string>
+    <string name="ult_rename_playlist">Renombrar lista</string>
+    <string name="ult_delete_playlist">Borrar lista</string>
+    <string name="ult_delete_playlist_confirm">¿Borrar la lista \"%1$s\"? Las pistas permanecerán en el reloj.</string>
+    <string name="ult_music_explain">Música guardada en el reloj. Sube pistas desde un archivo de audio del teléfono o bórralas. Todo en local: sin tienda en línea ni Huawei Health.</string>
+    <string name="ult_add_music_btn">"  Añadir música"</string>
+    <string name="ult_on_watch">En el reloj</string>
+    <string name="ult_no_tracks">No hay pistas. Conecta el reloj y toca actualizar, o añade música desde un archivo.</string>
+    <string name="ult_playlists_explain">Listas guardadas en el reloj. Crea listas y añade o quita pistas de las que ya has subido. Todo en local.</string>
+    <string name="ult_create_playlist_btn">"  Crear lista"</string>
+    <string name="ult_playlist_count">%1$d / %2$d listas</string>
+    <string name="ult_no_playlists">No hay listas. Crea una con el botón de arriba.</string>
+    <string name="ult_storage">Almacenamiento</string>
+    <string name="ult_name">Nombre</string>
+    <string name="ult_edit_tracks">Editar pistas</string>
+    <string name="ult_rename">Renombrar</string>
+    <string name="ult_edit_fmt">Editar \"%1$s\"</string>
+    <string name="ult_no_tracks_uploaded">No hay pistas subidas al reloj. Añade música desde la pestaña Pistas primero.</string>
+    <string name="ult_untitled">(sin título)</string>
 </resources>

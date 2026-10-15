@@ -71,6 +71,8 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import nodomain.freeyourgadget.gadgetbridge.R
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -315,15 +317,15 @@ private fun MusicScreen(device: GBDevice, onBack: () -> Unit) {
         containerColor = palette.background,
         topBar = {
             TopAppBar(
-                title = { Text("Music") },
+                title = { Text(stringResource(R.string.ult_music)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.ult_back))
                     }
                 },
                 actions = {
                     IconButton(onClick = { requestList() }) {
-                        Icon(Icons.Filled.Refresh, contentDescription = "Actualizar")
+                        Icon(Icons.Filled.Refresh, contentDescription = stringResource(R.string.ult_refresh))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -347,14 +349,14 @@ private fun MusicScreen(device: GBDevice, onBack: () -> Unit) {
                         onClick = { selectedTab = 0 },
                         selectedContentColor = palette.primary,
                         unselectedContentColor = palette.onSurfaceVariant,
-                        text = { Text("Pistas") },
+                        text = { Text(stringResource(R.string.ult_tracks)) },
                     )
                     Tab(
                         selected = selectedTab == 1,
                         onClick = { selectedTab = 1 },
                         selectedContentColor = palette.primary,
                         unselectedContentColor = palette.onSurfaceVariant,
-                        text = { Text("Listas") },
+                        text = { Text(stringResource(R.string.ult_playlists)) },
                     )
                 }
             }
@@ -390,9 +392,9 @@ private fun MusicScreen(device: GBDevice, onBack: () -> Unit) {
         AlertDialog(
             containerColor = palette.surfaceContainer,
             onDismissRequest = { pendingDelete = null },
-            title = { Text("Delete track", color = palette.onSurface) },
+            title = { Text(stringResource(R.string.ult_delete_track), color = palette.onSurface) },
             text = {
-                Text("Delete \"${toDelete.title}\" from the watch?", color = palette.onSurfaceVariant)
+                Text(stringResource(R.string.ult_delete_confirm, toDelete.title ?: ""), color = palette.onSurfaceVariant)
             },
             confirmButton = {
                 TextButton(onClick = {
@@ -400,11 +402,11 @@ private fun MusicScreen(device: GBDevice, onBack: () -> Unit) {
                     service().onMusicOperation(4, 0, null, arrayListOf(toDelete.id))
                     loading = true
                     pendingDelete = null
-                }) { Text("Delete", color = palette.error) }
+                }) { Text(stringResource(R.string.ult_delete), color = palette.error) }
             },
             dismissButton = {
                 TextButton(onClick = { pendingDelete = null }) {
-                    Text("Cancel", color = palette.onSurfaceVariant)
+                    Text(stringResource(R.string.ult_cancel), color = palette.onSurfaceVariant)
                 }
             },
         )
@@ -412,9 +414,9 @@ private fun MusicScreen(device: GBDevice, onBack: () -> Unit) {
 
     if (showCreatePlaylist) {
         PlaylistNameDialog(
-            title = "New playlist",
+            title = stringResource(R.string.ult_new_playlist),
             initialName = "",
-            confirmLabel = "Create",
+            confirmLabel = stringResource(R.string.ult_create),
             onDismiss = { showCreatePlaylist = false },
             onConfirm = { name ->
                 // operation 0 = create playlist, playlistId -1 = new.
@@ -428,9 +430,9 @@ private fun MusicScreen(device: GBDevice, onBack: () -> Unit) {
     val toRename = renameTarget
     if (toRename != null) {
         PlaylistNameDialog(
-            title = "Rename playlist",
+            title = stringResource(R.string.ult_rename_playlist),
             initialName = toRename.name ?: "",
-            confirmLabel = "Save",
+            confirmLabel = stringResource(R.string.ult_save),
             onDismiss = { renameTarget = null },
             onConfirm = { name ->
                 // operation 2 = rename playlist.
@@ -446,10 +448,10 @@ private fun MusicScreen(device: GBDevice, onBack: () -> Unit) {
         AlertDialog(
             containerColor = palette.surfaceContainer,
             onDismissRequest = { deletePlaylistTarget = null },
-            title = { Text("Delete playlist", color = palette.onSurface) },
+            title = { Text(stringResource(R.string.ult_delete_playlist), color = palette.onSurface) },
             text = {
                 Text(
-                    "Delete the playlist \"${toDeletePlaylist.name}\"? The tracks will stay on the watch.",
+                    stringResource(R.string.ult_delete_playlist_confirm, toDeletePlaylist.name ?: ""),
                     color = palette.onSurfaceVariant,
                 )
             },
@@ -459,11 +461,11 @@ private fun MusicScreen(device: GBDevice, onBack: () -> Unit) {
                     service().onMusicOperation(1, toDeletePlaylist.id, null, null)
                     loading = true
                     deletePlaylistTarget = null
-                }) { Text("Delete", color = palette.error) }
+                }) { Text(stringResource(R.string.ult_delete), color = palette.error) }
             },
             dismissButton = {
                 TextButton(onClick = { deletePlaylistTarget = null }) {
-                    Text("Cancel", color = palette.onSurfaceVariant)
+                    Text(stringResource(R.string.ult_cancel), color = palette.onSurfaceVariant)
                 }
             },
         )
@@ -507,8 +509,7 @@ private fun TracksTab(
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         Text(
-            "Music stored on the watch. Upload tracks from a phone audio file or delete them. " +
-                "All local: no online store or Huawei Health.",
+            stringResource(R.string.ult_music_explain),
             style = MaterialTheme.typography.bodyMedium,
             color = palette.onSurfaceVariant,
         )
@@ -517,10 +518,10 @@ private fun TracksTab(
 
         Button(onClick = onAdd) {
             Icon(Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(18.dp))
-            Text("  Add music")
+            Text(stringResource(R.string.ult_add_music_btn))
         }
 
-        Text("EN EL RELOJ", style = SectionLabelStyle, color = palette.onSurfaceVariant)
+        Text(stringResource(R.string.ult_on_watch).uppercase(), style = SectionLabelStyle, color = palette.onSurfaceVariant)
 
         when {
             loading && tracks.isEmpty() -> {
@@ -531,7 +532,7 @@ private fun TracksTab(
 
             tracks.isEmpty() -> {
                 Text(
-                    "No tracks. Connect the watch and tap refresh, or add music from a file.",
+                    stringResource(R.string.ult_no_tracks),
                     style = MaterialTheme.typography.bodyMedium,
                     color = palette.onSurfaceVariant,
                 )
@@ -568,8 +569,7 @@ private fun PlaylistsTab(
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         Text(
-            "Playlists stored on the watch. Create playlists and add or remove tracks from the " +
-                "que ya has subido. Todo en local.",
+            stringResource(R.string.ult_playlists_explain),
             style = MaterialTheme.typography.bodyMedium,
             color = palette.onSurfaceVariant,
         )
@@ -577,13 +577,13 @@ private fun PlaylistsTab(
         val canCreate = playlists.size < maxPlaylistCount
         Button(onClick = onCreate, enabled = canCreate) {
             Icon(Icons.AutoMirrored.Filled.PlaylistAdd, contentDescription = null, modifier = Modifier.size(18.dp))
-            Text("  Create playlist")
+            Text(stringResource(R.string.ult_create_playlist_btn))
         }
 
-        val countLabel = "${playlists.size} / $maxPlaylistCount playlists"
+        val countLabel = stringResource(R.string.ult_playlist_count, playlists.size, maxPlaylistCount)
         Text(countLabel, style = MaterialTheme.typography.bodySmall, color = palette.onSurfaceVariant)
 
-        Text("EN EL RELOJ", style = SectionLabelStyle, color = palette.onSurfaceVariant)
+        Text(stringResource(R.string.ult_on_watch).uppercase(), style = SectionLabelStyle, color = palette.onSurfaceVariant)
 
         when {
             loading && playlists.isEmpty() -> {
@@ -594,7 +594,7 @@ private fun PlaylistsTab(
 
             playlists.isEmpty() -> {
                 Text(
-                    "No playlists. Create one with the button above.",
+                    stringResource(R.string.ult_no_playlists),
                     style = MaterialTheme.typography.bodyMedium,
                     color = palette.onSurfaceVariant,
                 )
@@ -637,7 +637,7 @@ private fun StorageCard(deviceInfo: String?, trackCount: Int, maxMusicCount: Int
             )
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(
-                    "Almacenamiento",
+                    stringResource(R.string.ult_storage),
                     style = MaterialTheme.typography.titleSmall,
                     color = palette.onSurface,
                 )
@@ -710,7 +710,7 @@ private fun TrackCard(
             }
             if (deleteSupported) {
                 IconButton(onClick = onDelete) {
-                    Icon(Icons.Filled.Delete, contentDescription = "Delete", tint = palette.error)
+                    Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.ult_delete), tint = palette.error)
                 }
             } else {
                 Spacer(Modifier.width(48.dp))
@@ -759,13 +759,13 @@ private fun PlaylistCard(
                 )
             }
             IconButton(onClick = onEdit) {
-                Icon(Icons.AutoMirrored.Filled.PlaylistAdd, contentDescription = "Edit tracks", tint = palette.primary)
+                Icon(Icons.AutoMirrored.Filled.PlaylistAdd, contentDescription = stringResource(R.string.ult_edit_tracks), tint = palette.primary)
             }
             IconButton(onClick = onRename) {
-                Icon(Icons.Filled.Edit, contentDescription = "Rename", tint = palette.onSurfaceVariant)
+                Icon(Icons.Filled.Edit, contentDescription = stringResource(R.string.ult_rename), tint = palette.onSurfaceVariant)
             }
             IconButton(onClick = onDelete) {
-                Icon(Icons.Filled.Delete, contentDescription = "Delete", tint = palette.error)
+                Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.ult_delete), tint = palette.error)
             }
         }
     }
@@ -791,7 +791,7 @@ private fun PlaylistNameDialog(
                 value = name,
                 onValueChange = { name = it },
                 singleLine = true,
-                label = { Text("Nombre") },
+                label = { Text(stringResource(R.string.ult_name)) },
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedTextColor = palette.onSurface,
                     unfocusedTextColor = palette.onSurface,
@@ -811,7 +811,7 @@ private fun PlaylistNameDialog(
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel", color = palette.onSurfaceVariant)
+                Text(stringResource(R.string.ult_cancel), color = palette.onSurfaceVariant)
             }
         },
     )
@@ -831,11 +831,11 @@ private fun PlaylistContentDialog(
     AlertDialog(
         containerColor = palette.surfaceContainer,
         onDismissRequest = onDismiss,
-        title = { Text("Edit \"${playlist.name}\"", color = palette.onSurface) },
+        title = { Text(stringResource(R.string.ult_edit_fmt, playlist.name ?: ""), color = palette.onSurface) },
         text = {
             if (allTracks.isEmpty()) {
                 Text(
-                    "No tracks uploaded to the watch. Add music from the Tracks tab first.",
+                    stringResource(R.string.ult_no_tracks_uploaded),
                     color = palette.onSurfaceVariant,
                 )
             } else {
@@ -864,7 +864,7 @@ private fun PlaylistContentDialog(
                             Column(Modifier.weight(1f)) {
                                 val label = (track.title ?: "").ifBlank { track.fileName ?: "" }
                                 Text(
-                                    label.ifBlank { "(untitled)" },
+                                    label.ifBlank { stringResource(R.string.ult_untitled) },
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = palette.onSurface,
                                     maxLines = 1,
@@ -890,11 +890,11 @@ private fun PlaylistContentDialog(
                 val added = (selected - original).toList()
                 val removed = (original - selected).toList()
                 onConfirm(added, removed)
-            }) { Text("Save", color = palette.primary) }
+            }) { Text(stringResource(R.string.ult_save), color = palette.primary) }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel", color = palette.onSurfaceVariant)
+                Text(stringResource(R.string.ult_cancel), color = palette.onSurfaceVariant)
             }
         },
     )

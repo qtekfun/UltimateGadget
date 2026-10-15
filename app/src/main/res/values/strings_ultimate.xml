@@ -350,4 +350,29 @@
     <string name="ult_factor_rhr">Resting heart rate</string>
     <string name="ult_workout_load">Workout load</string>
     <string name="ult_manual_log_desc">For days without a watch: enter hours of sleep and the day\'s workout.</string>
+
+    <!-- Music -->
+    <string name="ult_tracks">Tracks</string>
+    <string name="ult_playlists">Playlists</string>
+    <string name="ult_delete_track">Delete track</string>
+    <string name="ult_new_playlist">New playlist</string>
+    <string name="ult_create">Create</string>
+    <string name="ult_rename_playlist">Rename playlist</string>
+    <string name="ult_delete_playlist">Delete playlist</string>
+    <string name="ult_delete_playlist_confirm">Delete the playlist \"%1$s\"? The tracks will stay on the watch.</string>
+    <string name="ult_music_explain">Music stored on the watch. Upload tracks from a phone audio file or delete them. All local: no online store or Huawei Health.</string>
+    <string name="ult_add_music_btn">"  Add music"</string>
+    <string name="ult_on_watch">On the watch</string>
+    <string name="ult_no_tracks">No tracks. Connect the watch and tap refresh, or add music from a file.</string>
+    <string name="ult_playlists_explain">Playlists stored on the watch. Create playlists and add or remove tracks from the ones you have already uploaded. All local.</string>
+    <string name="ult_create_playlist_btn">"  Create playlist"</string>
+    <string name="ult_playlist_count">%1$d / %2$d playlists</string>
+    <string name="ult_no_playlists">No playlists. Create one with the button above.</string>
+    <string name="ult_storage">Storage</string>
+    <string name="ult_name">Name</string>
+    <string name="ult_edit_tracks">Edit tracks</string>
+    <string name="ult_rename">Rename</string>
+    <string name="ult_edit_fmt">Edit \"%1$s\"</string>
+    <string name="ult_no_tracks_uploaded">No tracks uploaded to the watch. Add music from the Tracks tab first.</string>
+    <string name="ult_untitled">(untitled)</string>
 </resources>
