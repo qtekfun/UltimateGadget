@@ -193,7 +193,7 @@ class UltimateDeviceSettingsActivity : AppCompatActivity() {
             "calendar_blacklist" ->
                 startActivity(nodomain.freeyourgadget.gadgetbridge.activities.ultimate.calendar.UltimateCalendarSelectionActivity.intent(this, device))
             "pref_huawei_stress_perform_calibrate" ->
-                open(nodomain.freeyourgadget.gadgetbridge.devices.huawei.ui.HuaweiStressCalibrationActivity::class.java)
+                startActivity(nodomain.freeyourgadget.gadgetbridge.activities.ultimate.stress.UltimateStressCalibrationActivity.intent(this, device))
             // Command-style actions (send canned messages, debug request, …): fire the same signal
             // the legacy screen's change-handler would, so the device support handles it.
             else -> runCatching { GBApplication.deviceService(device).onSendConfiguration(key) }
