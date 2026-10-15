@@ -16,6 +16,8 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 package nodomain.freeyourgadget.gadgetbridge.activities.ultimate.ui
 
+import nodomain.freeyourgadget.gadgetbridge.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -112,7 +114,7 @@ fun AddDeviceScreen(
 
             if (!permissionsGranted) {
                 PermissionNote(
-                    text = "We need Bluetooth permission (and location on older versions) to scan for devices.",
+                    text = stringResource(R.string.ult_add_perm_msg),
                 )
                 Spacer(Modifier.height(16.dp))
                 Button(
@@ -126,7 +128,7 @@ fun AddDeviceScreen(
                 ) {
                     Icon(Icons.Filled.Check, contentDescription = null)
                     Spacer(Modifier.size(8.dp))
-                    Text("Conceder permisos", fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.ult_grant_permissions), fontWeight = FontWeight.Bold)
                 }
             } else {
                 Button(
@@ -140,7 +142,7 @@ fun AddDeviceScreen(
                 ) {
                     Icon(Icons.Filled.Search, contentDescription = null)
                     Spacer(Modifier.size(8.dp))
-                    Text("Scan for devices", fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.ult_scan_devices), fontWeight = FontWeight.Bold)
                 }
             }
         }

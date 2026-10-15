@@ -174,7 +174,7 @@ private fun RemindersScreen(device: GBDevice, onBack: () -> Unit) {
     }
 
     ClockScaffold(
-        title = "Reminders",
+        title = stringResource(R.string.ult_reminders),
         onBack = onBack,
         floatingActionButton = {
             val palette = LocalUltimatePalette.current
@@ -263,7 +263,7 @@ private fun ReminderCard(
                 }
             }
             IconButton(onClick = onDelete) {
-                Icon(Icons.Filled.Delete, contentDescription = "Eliminar", tint = palette.error)
+                Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.ult_delete), tint = palette.error)
             }
         }
     }
@@ -300,7 +300,7 @@ private fun ReminderEditor(
     fun currentDate(): Date = GregorianCalendar(year, month, day, hour, minute).time
 
     ClockScaffold(
-        title = "Reminder",
+        title = stringResource(R.string.ult_reminder),
         onBack = onCancel,
         actions = {
             TextButton(onClick = {
@@ -314,7 +314,7 @@ private fun ReminderEditor(
                     reminder.date = noonUtc.time
                 }
                 onSave()
-            }) { Text("Save", color = palette.primary, fontWeight = FontWeight.Bold) }
+            }) { Text(stringResource(R.string.ult_save), color = palette.primary, fontWeight = FontWeight.Bold) }
         },
     ) {
         Column(
@@ -351,7 +351,7 @@ private fun ReminderEditor(
                     showDatePicker = false
                 }) { Text("OK") }
             },
-            dismissButton = { TextButton(onClick = { showDatePicker = false }) { Text("Cancel") } },
+            dismissButton = { TextButton(onClick = { showDatePicker = false }) { Text(stringResource(R.string.ult_cancel)) } },
         ) { DatePicker(state = dpState) }
     }
 
@@ -364,7 +364,7 @@ private fun ReminderEditor(
                     Text("OK")
                 }
             },
-            dismissButton = { TextButton(onClick = { showTimePicker = false }) { Text("Cancel") } },
+            dismissButton = { TextButton(onClick = { showTimePicker = false }) { Text(stringResource(R.string.ult_cancel)) } },
             text = { Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { TimePicker(state = tpState) } },
         )
     }

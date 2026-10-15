@@ -16,6 +16,7 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 package nodomain.freeyourgadget.gadgetbridge.activities.ultimate.pairing
 
+import androidx.compose.ui.res.stringResource
 import android.Manifest
 import android.app.Activity
 import android.bluetooth.BluetoothAdapter
@@ -747,15 +748,15 @@ private fun DiscoveryScreen(
         containerColor = palette.background,
         topBar = {
             TopAppBar(
-                title = { Text("Add device") },
+                title = { Text(stringResource(R.string.ult_add_device)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Filled.ArrowBack, contentDescription = stringResource(R.string.ult_back))
                     }
                 },
                 actions = {
                     IconButton(onClick = onOpenPairingPrefs) {
-                        Icon(Icons.Filled.Tune, contentDescription = "Pairing settings")
+                        Icon(Icons.Filled.Tune, contentDescription = stringResource(R.string.ult_pairing_settings))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -778,7 +779,7 @@ private fun DiscoveryScreen(
                         contentDescription = null,
                     )
                     Spacer(Modifier.size(8.dp))
-                    Text(if (scanning) "Detener" else "Scan", fontWeight = FontWeight.Bold)
+                    Text(if (scanning) stringResource(R.string.ult_stop_scan) else stringResource(R.string.ult_scan), fontWeight = FontWeight.Bold)
                 }
             }
         },
@@ -985,7 +986,7 @@ private fun PermissionPrompt(onRequestPermissions: () -> Unit) {
             contentColor = palette.onPrimary,
             modifier = Modifier.height(52.dp),
         ) {
-            Text("Conceder permisos", fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.ult_grant_permissions), fontWeight = FontWeight.Bold)
         }
     }
 }

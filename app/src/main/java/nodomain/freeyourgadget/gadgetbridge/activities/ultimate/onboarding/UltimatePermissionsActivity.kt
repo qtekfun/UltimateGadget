@@ -16,6 +16,8 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 package nodomain.freeyourgadget.gadgetbridge.activities.ultimate.onboarding
 
+import nodomain.freeyourgadget.gadgetbridge.R
+import androidx.compose.ui.res.stringResource
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -196,11 +198,10 @@ private fun PermissionsScreen(showDoNotAsk: Boolean, returnToHome: Boolean, onDo
         AlertDialog(
             onDismissRequest = { showDoNotAskDialog = false },
             containerColor = palette.surfaceContainer,
-            title = { Text("No volver a preguntar", color = palette.onSurface) },
+            title = { Text(stringResource(R.string.ult_dont_ask_again), color = palette.onSurface) },
             text = {
                 Text(
-                    "UltimateGadget may not work correctly without these permissions. " +
-                        "Are you sure you don't want to be asked again?",
+                    stringResource(R.string.ult_perm_dont_ask_msg),
                     color = palette.onSurfaceVariant,
                 )
             },
@@ -211,11 +212,11 @@ private fun PermissionsScreen(showDoNotAsk: Boolean, returnToHome: Boolean, onDo
                         .apply()
                     showDoNotAskDialog = false
                     onDone()
-                }) { Text("OK", color = palette.primary) }
+                }) { Text(stringResource(R.string.ult_ok), color = palette.primary) }
             },
             dismissButton = {
                 TextButton(onClick = { showDoNotAskDialog = false }) {
-                    Text("Cancel", color = palette.onSurfaceVariant)
+                    Text(stringResource(R.string.ult_cancel), color = palette.onSurfaceVariant)
                 }
             },
         )
@@ -225,7 +226,7 @@ private fun PermissionsScreen(showDoNotAsk: Boolean, returnToHome: Boolean, onDo
         containerColor = palette.background,
         topBar = {
             TopAppBar(
-                title = { Text("Permissions") },
+                title = { Text(stringResource(R.string.ult_permissions)) },
                 navigationIcon = {
                     IconButton(onClick = onDone) {
                         Icon(Icons.Filled.ArrowBack, contentDescription = null)
@@ -244,8 +245,7 @@ private fun PermissionsScreen(showDoNotAsk: Boolean, returnToHome: Boolean, onDo
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text(
-                "UltimateGadget needs these permissions to communicate with your watch and show " +
-                    "notifications, calls, calendar and location. Everything is processed locally.",
+                stringResource(R.string.ult_perm_explain),
                 style = MaterialTheme.typography.bodyMedium,
                 color = palette.onSurfaceVariant,
             )
@@ -264,13 +264,13 @@ private fun PermissionsScreen(showDoNotAsk: Boolean, returnToHome: Boolean, onDo
                     containerColor = palette.primary,
                     contentColor = palette.onPrimary,
                 ),
-            ) { Text("Conceder todos") }
+            ) { Text(stringResource(R.string.ult_grant_all)) }
 
             if (showDoNotAsk) {
                 OutlinedButton(
                     onClick = { showDoNotAskDialog = true },
                     modifier = Modifier.fillMaxWidth(),
-                ) { Text("No volver a preguntar", color = palette.onSurfaceVariant) }
+                ) { Text(stringResource(R.string.ult_dont_ask_again), color = palette.onSurfaceVariant) }
             }
 
             if (returnToHome) {
@@ -278,7 +278,7 @@ private fun PermissionsScreen(showDoNotAsk: Boolean, returnToHome: Boolean, onDo
                 OutlinedButton(
                     onClick = onDone,
                     modifier = Modifier.fillMaxWidth(),
-                ) { Text(if (allGranted) "Continue" else "Continue anyway", color = palette.primary) }
+                ) { Text(if (allGranted) stringResource(R.string.ult_continue) else stringResource(R.string.ult_continue_anyway), color = palette.primary) }
             }
 
             LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -321,7 +321,7 @@ private fun PermissionCard(
             if (granted) {
                 Icon(
                     Icons.Filled.CheckCircle,
-                    contentDescription = "Concedido",
+                    contentDescription = stringResource(R.string.ult_granted),
                     tint = palette.secondary,
                     modifier = Modifier.size(26.dp),
                 )
@@ -332,7 +332,7 @@ private fun PermissionCard(
                         containerColor = palette.primaryContainer,
                         contentColor = palette.onPrimaryContainer,
                     ),
-                ) { Text("Conceder") }
+                ) { Text(stringResource(R.string.ult_grant)) }
             }
         }
     }

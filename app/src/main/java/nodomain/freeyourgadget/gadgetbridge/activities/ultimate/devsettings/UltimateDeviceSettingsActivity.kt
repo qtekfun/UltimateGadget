@@ -134,7 +134,7 @@ class UltimateDeviceSettingsActivity : AppCompatActivity() {
                         // Native battery history chart (replaces the classic BatteryInfoActivity).
                         PrefNode.Action(
                             key = ACTION_BATTERY_HISTORY,
-                            title = "Battery history",
+                            title = getString(R.string.ult_battery_history),
                             summary = "See the battery level over time",
                             iconRes = 0,
                         ),

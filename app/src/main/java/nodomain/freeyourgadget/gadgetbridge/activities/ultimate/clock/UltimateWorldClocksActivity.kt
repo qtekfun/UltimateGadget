@@ -249,7 +249,7 @@ private fun WorldClockCard(
                 fontWeight = FontWeight.Bold,
             )
             IconButton(onClick = onDelete) {
-                Icon(Icons.Filled.Delete, contentDescription = "Eliminar", tint = palette.error)
+                Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.ult_delete), tint = palette.error)
             }
         }
     }
@@ -283,7 +283,7 @@ private fun WorldClockEditor(
                 clock.code = code
                 clock.enabled = enabled
                 onSave()
-            }) { Text("Save", color = palette.primary, fontWeight = FontWeight.Bold) }
+            }) { Text(stringResource(R.string.ult_save), color = palette.primary, fontWeight = FontWeight.Bold) }
         },
     ) {
         Column(
@@ -295,7 +295,7 @@ private fun WorldClockEditor(
                 value = label,
                 onValueChange = { if (labelLimit <= 0 || it.length <= labelLimit) label = it },
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("Etiqueta") },
+                label = { Text(stringResource(R.string.ult_label)) },
                 singleLine = true,
             )
             OutlinedTextField(
@@ -308,7 +308,7 @@ private fun WorldClockEditor(
             if (supportsDisabled) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
-                        Text("Activado", style = MaterialTheme.typography.titleMedium, color = palette.onSurface)
+                        Text(stringResource(R.string.ult_enabled), style = MaterialTheme.typography.titleMedium, color = palette.onSurface)
                         Text(stringResource(R.string.ult_show_clock_on_device), style = MaterialTheme.typography.bodyMedium, color = palette.onSurfaceVariant)
                     }
                     Switch(checked = enabled, onCheckedChange = { enabled = it })
@@ -354,7 +354,7 @@ private fun TimezonePickerDialog(
     androidx.compose.material3.AlertDialog(
         onDismissRequest = onDismiss,
         confirmButton = {},
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.ult_cancel)) } },
         title = { Text(stringResource(R.string.ult_time_zone)) },
         text = {
             Column {
@@ -362,7 +362,7 @@ private fun TimezonePickerDialog(
                     value = query,
                     onValueChange = { query = it },
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Search") },
+                    label = { Text(stringResource(R.string.ult_search)) },
                     singleLine = true,
                 )
                 Spacer(Modifier.height(8.dp))

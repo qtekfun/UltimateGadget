@@ -16,6 +16,8 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 package nodomain.freeyourgadget.gadgetbridge.activities.ultimate.route
 
+import nodomain.freeyourgadget.gadgetbridge.R
+import androidx.compose.ui.res.stringResource
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
@@ -127,7 +129,7 @@ class UltimateRoutePlannerActivity : AppCompatActivity() {
                         IconButton(onClick = { finish() }) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, "back", tint = palette.onSurface)
                         }
-                        Text("Planificar ruta", style = MaterialTheme.typography.titleLarge, color = palette.onSurface)
+                        Text(stringResource(R.string.ult_plan_route), style = MaterialTheme.typography.titleLarge, color = palette.onSurface)
                     }
 
                     MyLocationButton(
@@ -142,7 +144,7 @@ class UltimateRoutePlannerActivity : AppCompatActivity() {
                     )
 
                     if (!this@UltimateRoutePlannerActivity.hasBaseMap()) {
-                        PillButton("Importar mapa base", Icons.Filled.Send, palette.secondaryContainer, palette.onSecondaryContainer, enabled = true, modifier = Modifier.align(Alignment.Center)) {
+                        PillButton(stringResource(R.string.ult_import_basemap), Icons.Filled.Send, palette.secondaryContainer, palette.onSecondaryContainer, enabled = true, modifier = Modifier.align(Alignment.Center)) {
                             startActivity(Intent().setClassName(this@UltimateRoutePlannerActivity, PHONE_MAPS))
                         }
                     }
@@ -157,20 +159,20 @@ class UltimateRoutePlannerActivity : AppCompatActivity() {
                                 .padding(horizontal = 14.dp, vertical = 10.dp),
                         ) {
                             Text(
-                                if (count == 0) "Tap the map to add points"
-                                else "$count puntos · ${"%.2f".format(distanceKm)} km",
+                                if (count == 0) stringResource(R.string.ult_route_tap_hint)
+                                else stringResource(R.string.ult_route_points_km, count, "%.2f".format(distanceKm)),
                                 color = palette.onSurface,
                                 style = MaterialTheme.typography.titleMedium,
                             )
                         }
                         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            PillButton("Deshacer", Icons.Filled.Undo, palette.surfaceHigh, palette.onSurface, enabled = count > 0) {
+                            PillButton(stringResource(R.string.ult_undo), Icons.Filled.Undo, palette.surfaceHigh, palette.onSurface, enabled = count > 0) {
                                 if (waypoints.isNotEmpty()) { waypoints.removeAt(waypoints.lastIndex); pushMap() }
                             }
-                            PillButton("Limpiar", Icons.Filled.Clear, palette.surfaceHigh, palette.onSurface, enabled = count > 0) {
+                            PillButton(stringResource(R.string.ult_clear), Icons.Filled.Clear, palette.surfaceHigh, palette.onSurface, enabled = count > 0) {
                                 waypoints.clear(); pushMap()
                             }
-                            PillButton("Send", Icons.Filled.Send, palette.primary, palette.onPrimary, enabled = count >= 2) {
+                            PillButton(stringResource(R.string.ult_send), Icons.Filled.Send, palette.primary, palette.onPrimary, enabled = count >= 2) {
                                 showName = true
                             }
                         }
@@ -180,10 +182,10 @@ class UltimateRoutePlannerActivity : AppCompatActivity() {
                         AlertDialog(
                             onDismissRequest = { showName = false },
                             confirmButton = {
-                                TextButton(onClick = { showName = false; sendRoute(routeName) }) { Text("Send") }
+                                TextButton(onClick = { showName = false; sendRoute(routeName) }) { Text(stringResource(R.string.ult_send)) }
                             },
-                            dismissButton = { TextButton(onClick = { showName = false }) { Text("Cancel") } },
-                            title = { Text("Route name") },
+                            dismissButton = { TextButton(onClick = { showName = false }) { Text(stringResource(R.string.ult_cancel)) } },
+                            title = { Text(stringResource(R.string.ult_route_name)) },
                             text = {
                                 OutlinedTextField(value = routeName, onValueChange = { routeName = it }, singleLine = true)
                             },
@@ -215,7 +217,7 @@ class UltimateRoutePlannerActivity : AppCompatActivity() {
     private fun sendRoute(name: String) {
         val device = plannerDevice()
         if (device == null) {
-            Toast.makeText(this, "Pair a compatible watch first", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.ult_pair_compatible_first), Toast.LENGTH_SHORT).show()
             return
         }
         try {
@@ -234,7 +236,7 @@ class UltimateRoutePlannerActivity : AppCompatActivity() {
             )
             finish()
         } catch (e: Exception) {
-            Toast.makeText(this, "Could not prepare the route: ${e.message}", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, getString(R.string.ult_route_prepare_error, e.message ?: ""), Toast.LENGTH_LONG).show()
         }
     }
 
