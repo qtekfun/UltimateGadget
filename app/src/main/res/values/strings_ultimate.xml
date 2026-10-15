@@ -717,4 +717,8 @@
     <string name="ult_dev_paired">Paired</string>
     <string name="ult_dev_unsupported">Not compatible</string>
     <string name="ult_dev_experimental">Experimental</string>
+
+    <!-- Last leftovers -->
+    <string name="ult_date">Date</string>
+    <string name="ult_rep_steps_day">Steps / day</string>
 </resources>

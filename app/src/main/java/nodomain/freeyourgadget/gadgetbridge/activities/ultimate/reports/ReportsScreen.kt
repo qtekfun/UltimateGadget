@@ -213,7 +213,7 @@ private fun StatGrid(summary: ReportSummary) {
     val rhr = if (summary.avgRestingHr > 0) "${summary.avgRestingHr} bpm" else "—"
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            StatTile("Steps / day", "%,d".format(summary.avgSteps), Modifier.weight(1f))
+            StatTile(stringResource(R.string.ult_rep_steps_day), "%,d".format(summary.avgSteps), Modifier.weight(1f))
             StatTile(stringResource(R.string.ult_wd_distance), distance, Modifier.weight(1f))
         }
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
