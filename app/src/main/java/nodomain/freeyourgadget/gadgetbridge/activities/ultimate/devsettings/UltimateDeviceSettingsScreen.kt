@@ -80,6 +80,16 @@ import kotlin.math.roundToInt
 
 private data class Level(val title: String, val nodes: List<PrefNode>)
 
+/** Replaces each [PrefNode.Conditional] by its children when its predicate holds, else by nothing. */
+internal fun expandConditional(
+    nodes: List<PrefNode>,
+    prefs: nodomain.freeyourgadget.gadgetbridge.util.Prefs,
+): List<PrefNode> = nodes.flatMap {
+    if (it is PrefNode.Conditional) {
+        if (runCatching { it.visibleWhen(prefs) }.getOrDefault(true)) expandConditional(it.children, prefs) else emptyList()
+    } else listOf(it)
+}
+
 private fun findSubScreen(nodes: List<PrefNode>, key: String): PrefNode.SubScreen? {
     for (n in nodes) {
         if (n is PrefNode.SubScreen) {
@@ -160,7 +170,11 @@ fun UltimateDeviceSettingsScreen(
             if (current.nodes.isEmpty()) {
                 item { EmptyNotice() }
             }
-            items(current.nodes) { node ->
+            // Conditional rows are expanded here, on every recomposition: reading the value map
+            // subscribes this list to changes, so a row appears/disappears as its condition flips.
+            @Suppress("UNUSED_VARIABLE") val tick = states.entries.sumOf { (it.value?.hashCode() ?: 0) }
+            val prefsView = nodomain.freeyourgadget.gadgetbridge.util.Prefs(store.rawPrefs)
+            items(expandConditional(current.nodes, prefsView)) { node ->
                 PrefRow(
                     node = node,
                     store = store,
@@ -230,14 +244,17 @@ private fun PrefRow(
         }
 
         is PrefNode.SingleChoice -> {
-            val enabled = depEnabled(node.dependency, states, store)
+            // Lists the watch fills in after it connects arrive empty: show them, but inert.
+            val noOptions = node.entries.isEmpty()
+            val enabled = depEnabled(node.dependency, states, store) && !noOptions
             val value = stringState(node.key, node.default, states, store)
             var dialog by remember { mutableStateOf(false) }
             val idx = node.values.indexOf(value)
             val label = if (idx >= 0) node.entries[idx] else value
             SimpleRow(
                 title = node.title,
-                summary = if (!label.isNullOrEmpty()) label else node.summary,
+                summary = if (noOptions) stringResource(R.string.ult_options_when_connected)
+                else if (!label.isNullOrEmpty()) label else node.summary,
                 iconRes = node.iconRes,
                 enabled = enabled,
                 onClick = if (enabled) ({ dialog = true }) else null,
@@ -350,7 +367,7 @@ private fun PrefRow(
         }
 
         is PrefNode.MultiChoice -> {
-            val enabled = depEnabled(node.dependency, states, store)
+            val enabled = depEnabled(node.dependency, states, store) && node.entries.isNotEmpty()
             @Suppress("UNCHECKED_CAST")
             val value = (states[node.key] as? Set<String>) ?: node.default
             var open by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
@@ -394,7 +411,7 @@ private fun PrefRow(
         }
 
         is PrefNode.Sortable -> {
-            val enabled = depEnabled(node.dependency, states, store)
+            val enabled = depEnabled(node.dependency, states, store) && node.entries.isNotEmpty()
             val joined = stringState(node.key, node.default.joinToString(","), states, store)
             val current = joined.split(",").filter { it.isNotEmpty() }
             var open by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
@@ -516,6 +533,8 @@ private fun PrefRow(
             )
         }
 
+        is PrefNode.Conditional -> Unit // expanded by the list before rows are drawn
+
         is PrefNode.Info -> SimpleRow(
             title = node.title,
             summary = node.summary,
@@ -553,6 +572,7 @@ private fun seedStates(nodes: List<PrefNode>, states: SnapshotStateMap<String, A
             is PrefNode.DatePicker -> states[node.key] = store.getString(node.key, node.default)
             is PrefNode.FolderPicker -> states[node.key] = store.getString(node.key, "")
             is PrefNode.SubScreen -> seedStates(node.children, states, store)
+            is PrefNode.Conditional -> seedStates(node.children, states, store)
             else -> {}
         }
     }

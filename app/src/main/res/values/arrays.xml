@@ -4427,6 +4427,17 @@
         <item>20.0 kHz</item>
     </string-array>
 
+    <string-array name="soundcore_equalizer_band9_freq_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+    </string-array>
+
     <string-array name="soundcore_equalizer_freq_values">
         <item>0</item>
         <item>1</item>

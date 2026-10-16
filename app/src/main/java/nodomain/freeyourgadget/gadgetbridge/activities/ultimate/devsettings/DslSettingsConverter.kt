@@ -71,9 +71,11 @@ object DslSettingsConverter {
     ): List<PrefNode> {
         val out = mutableListOf<PrefNode>()
         for (item in items) {
-            val visible = runCatching { item.visibleWhen?.invoke(prefs) ?: true }.getOrDefault(true)
-            if (!visible) continue
-            out += convertOne(ctx, prefs, item, actions, device)
+            val converted = convertOne(ctx, prefs, item, actions, device)
+            val predicate = item.visibleWhen
+            // A visibility condition stays live (re-evaluated as values change) instead of being
+            // decided once when the screen opens.
+            out += if (predicate != null) listOf(PrefNode.Conditional(predicate, converted)) else converted
         }
         return out
     }
@@ -211,7 +213,7 @@ object DslSettingsConverter {
             val title = item.titleText ?: str(ctx, item.title).orEmpty()
             val summary = runCatching { item.summaryProvider?.invoke(ctx, prefs)?.toString() }.getOrNull()
                 ?: str(ctx, item.summary)
-            listOf(PrefNode.Info(title = title, summary = summary, iconRes = item.icon))
+            listOf(PrefNode.Info(key = item.key, summary = summary, title = title, iconRes = item.icon))
         }
 
         is ActionSetting -> {
