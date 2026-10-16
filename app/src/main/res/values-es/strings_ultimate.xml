@@ -757,10 +757,13 @@
     <string name="ult_withings_hand_activity">Actividad</string>
     <string name="ult_withings_move_fine">De uno en uno</string>
     <string name="ult_withings_move_coarse">De diez en diez</string>
-    <string name="ult_withings_measurements">Mediciones de ECG</string>
-    <string name="ult_withings_measurements_sub">Registros de ECG hechos en el reloj</string>
-    <string name="ult_withings_no_measurements">Aún no hay mediciones. Haz un ECG en el reloj y sincroniza.</string>
+    <string name="ult_withings_measurements">Mediciones de salud</string>
+    <string name="ult_withings_measurements_sub">Registros de ECG y SpO2 hechos en el reloj</string>
+    <string name="ult_withings_no_measurements">Aún no hay mediciones. Haz un ECG o una medición de SpO2 en el reloj y sincroniza.</string>
     <string name="ult_withings_ecg_title">ECG</string>
+    <string name="ult_withings_spo2_title">Oxígeno en sangre (SpO2)</string>
+    <string name="ult_withings_spo2_inconclusive">Lectura poco concluyente: el reloj no pudo concluir. Inténtalo de nuevo sin moverte</string>
+    <string name="ult_withings_spo2_fmt">%1$d,%2$d %%</string>
     <string name="ult_withings_other_measurement">Medición %1$s</string>
     <string name="ult_withings_ecg_normal">Ritmo sinusal normal</string>
     <string name="ult_withings_ecg_no_result">Sin resultado del reloj</string>
