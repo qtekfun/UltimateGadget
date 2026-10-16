@@ -43,6 +43,7 @@ public final class StoredMeasureCollector {
         long result = -1;
         int heartRate = -1;
         int sampleRate;
+        int signalType;
         int duration;
         final StringBuilder readings = new StringBuilder();
         final ByteArrayOutputStream signal = new ByteArrayOutputStream();
@@ -64,7 +65,8 @@ public final class StoredMeasureCollector {
                 if (current.readings.length() > 0) {
                     current.readings.append(';');
                 }
-                current.readings.append(data.getMeasurementType()).append(':').append(data.getValue());
+                current.readings.append(data.getMeasurementType()).append(':').append(data.getValue())
+                        .append(':').append(data.getExponent());
                 if (data.getMeasurementType() == StoredMeasureData.TYPE_AVERAGE_HEART_RATE) {
                     current.heartRate = data.getValue();
                 } else if (data.getMeasurementType() == StoredMeasureData.TYPE_ECG_RESULT && current.result < 0) {
@@ -72,13 +74,15 @@ public final class StoredMeasureCollector {
                 }
             } else if (structure instanceof StoredMeasureDataExtend) {
                 final StoredMeasureDataExtend extend = (StoredMeasureDataExtend) structure;
-                if (extend.getMeasurementType() == StoredMeasureData.TYPE_ECG_RESULT) {
+                if (extend.getMeasurementType() == StoredMeasureData.TYPE_ECG_RESULT
+                        || extend.getMeasurementType() == StoredMeasureData.TYPE_SPO2) {
                     // The classification lives here; the plain value next to it is usually 0.
                     current.result = extend.getExtraData();
                 }
             } else if (structure instanceof StoredSignalMeta) {
                 final StoredSignalMeta meta = (StoredSignalMeta) structure;
                 current.sampleRate = meta.getSamplingFreq();
+                current.signalType = meta.getSignalType();
                 current.deleteKey = meta.getRawPayload();
             } else if (structure instanceof StoredSignalMetaExtend) {
                 current.duration = (int) ((StoredSignalMetaExtend) structure).getDurationSeconds();
@@ -97,11 +101,24 @@ public final class StoredMeasureCollector {
         return result;
     }
 
+    /** The header type 0x0103 is shared by ECG and on-demand SpO2: the content tells them apart. */
+    private static int kindOf(final Pending p) {
+        final String readings = p.readings.toString();
+        final boolean hasSpo2Value = readings.startsWith("54:") || readings.contains(";54:");
+        if (hasSpo2Value || (p.signalType == 4 && p.type == StoredMeasureMeta.TYPE_ECG)) {
+            return StoredMeasurement.KIND_SPO2;
+        }
+        if (p.signalType == 1 && p.type == StoredMeasureMeta.TYPE_ECG) {
+            return StoredMeasurement.KIND_ECG;
+        }
+        return p.type;
+    }
+
     private void close() {
         if (current == null) {
             return;
         }
-        done.add(new StoredMeasurement(current.timestamp, current.type, current.result, current.heartRate,
+        done.add(new StoredMeasurement(current.timestamp, kindOf(current), current.result, current.heartRate,
                 current.sampleRate, current.duration, current.readings.toString(),
                 current.signal.toByteArray(), current.deleteKey));
         current = null;

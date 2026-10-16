@@ -4,10 +4,10 @@
 
 #### 0.115.26
 
-* Withings ScanWatch: **ECG recordings are now downloaded, saved and shown.** A new "ECG measurements" screen in the device page lists them and draws the 30-second strip (300 Hz) with the watch's own classification (for example "Normal sinus rhythm") and average heart rate. It is informational and not a medical diagnosis. The format was worked out from a real recording and is covered by tests
+* Withings ScanWatch: **ECG and SpO2 recordings are now downloaded, saved and shown.** A new "Health measurements" screen in the device page lists them and draws the 30-second strip (300 Hz) with the watch's own classification (for example "Normal sinus rhythm") and average heart rate. An SpO2 reading the watch called inconclusive is shown as such instead of as a percentage. It is informational and not a medical diagnosis. The formats were worked out from real recordings and are covered by tests
 * Withings ScanWatch: the apps on the watch's small display are now set with the ScanWatch's own list (the Steel HR list was being sent before), so **SpO2** and **ECG** show up when you turn them on in the health settings. Sent exactly like the official app does (the watch rebooted when the two parts of the list were written mixed together)
 * New optional setting "Free the watch after saving": deletes a measurement from the watch once it has been saved and read back from the database. Off by default
-* Known limit: the first steps counted before the first sync cannot be recovered, and SpO2 readings are not downloaded yet
+* Known limits: the first steps counted before the first sync cannot be recovered; a conclusive SpO2 reading has not been seen yet, so it is not fed to the health charts
 
 #### 0.115.25
 

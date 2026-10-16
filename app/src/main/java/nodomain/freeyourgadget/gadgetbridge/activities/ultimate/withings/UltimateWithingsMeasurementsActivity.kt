@@ -221,9 +221,11 @@ class UltimateWithingsMeasurementsActivity : ComponentActivity() {
     }
 
     @Composable
-    private fun title(m: WithingsScanWatchMeasurement): String =
-        if (m.type == 0x0103) stringResource(R.string.ult_withings_ecg_title)
-        else stringResource(R.string.ult_withings_other_measurement, "0x" + Integer.toHexString(m.type))
+    private fun title(m: WithingsScanWatchMeasurement): String = when (m.type) {
+        StoredMeasurement.KIND_ECG -> stringResource(R.string.ult_withings_ecg_title)
+        StoredMeasurement.KIND_SPO2 -> stringResource(R.string.ult_withings_spo2_title)
+        else -> stringResource(R.string.ult_withings_other_measurement, "0x" + Integer.toHexString(m.type))
+    }
 
     @Composable
     private fun whenText(m: WithingsScanWatchMeasurement): String =
@@ -231,10 +233,21 @@ class UltimateWithingsMeasurementsActivity : ComponentActivity() {
 
     @Composable
     private fun resultText(m: WithingsScanWatchMeasurement): String = when {
-        m.type != 0x0103 -> m.readings.orEmpty()
+        m.type == StoredMeasurement.KIND_SPO2 -> spo2Text(m)
+        m.type != StoredMeasurement.KIND_ECG -> m.readings.orEmpty()
         m.result == StoredMeasurement.RESULT_NORMAL_SINUS -> stringResource(R.string.ult_withings_ecg_normal)
         m.result < 0 -> stringResource(R.string.ult_withings_ecg_no_result)
         else -> stringResource(R.string.ult_withings_ecg_unknown, "0x" + java.lang.Long.toHexString(m.result))
+    }
+
+    @Composable
+    private fun spo2Text(m: WithingsScanWatchMeasurement): String {
+        val tenths = StoredMeasurement.spo2TenthsFrom(m.readings)
+        return when {
+            m.result == StoredMeasurement.RESULT_SPO2_INCONCLUSIVE -> stringResource(R.string.ult_withings_spo2_inconclusive)
+            tenths < 0 -> stringResource(R.string.ult_withings_ecg_no_result)
+            else -> stringResource(R.string.ult_withings_spo2_fmt, tenths / 10, tenths % 10)
+        }
     }
 
     companion object {
