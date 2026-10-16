@@ -111,6 +111,20 @@ class AllDeviceSettingsTest : TestBase() {
     }
 
     @Test
+    fun huaweiWatchesOfferTheAccountIdUnderAuthentication() {
+        val missing = allTypes().filter { type ->
+            val coordinator = runCatching { type.deviceCoordinator }.getOrNull()
+            coordinator is nodomain.freeyourgadget.gadgetbridge.devices.huawei.HuaweiCoordinator
+        }.filter { type ->
+            val tree = DeviceSettingsTree.build(ctx, deviceOf(type)).nodes
+            val auth = tree.filterIsInstance<PrefNode.SubScreen>()
+                .firstOrNull { it.key == nodomain.freeyourgadget.gadgetbridge.activities.devicesettings.DeviceSpecificSettingsScreen.AUTHENTICATION.key }
+            auth == null || flatten(auth.children).none { it is PrefNode.Text && it.key == "huawei_account" }
+        }
+        assertTrue("Huawei devices without the account id field: $missing", missing.isEmpty())
+    }
+
+    @Test
     fun noOptionIsLeftAsAHandOffRow() {
         val offenders = buildAll().flatMap { b ->
             flatten(b.nodes.orEmpty()).filterIsInstance<PrefNode.Delegated>().map { "${b.type}: '${it.title}' (${it.key})" }
@@ -150,6 +164,10 @@ class AllDeviceSettingsTest : TestBase() {
                 declared += xmlKeys(s.rootScreens)
                 nodomain.freeyourgadget.gadgetbridge.activities.devicesettings.DeviceSpecificSettingsScreen.values()
                     .forEach { screen -> s.getScreen(screen.key)?.let { declared += xmlKeys(it) } }
+            }
+            // Authentication settings (Huawei account id, auth keys, ...)
+            runCatching { coordinator.supportedDeviceSpecificAuthenticationSettings }.getOrNull()?.let {
+                declared += xmlKeys(it.toList())
             }
             val missing = declared - present
             if (missing.isNotEmpty()) problems += "$type: ${missing.sorted()}"
