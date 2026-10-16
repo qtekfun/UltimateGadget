@@ -50,6 +50,7 @@ public class ActivitySampleHandler extends AbstractResponseHandler {
     private static final Logger logger = LoggerFactory.getLogger(ActivitySampleHandler.class);
     private ActivityEntry activityEntry;
     private List<ActivityEntry> activityEntries = new ArrayList<>();
+    private boolean receivedData = false;
     private List<ActivityEntry> heartrateEntries = new ArrayList<>();
 
     public ActivitySampleHandler(WithingsSteelHRDeviceSupport support) {
@@ -59,9 +60,17 @@ public class ActivitySampleHandler extends AbstractResponseHandler {
     @Override
     public void handleResponse(Message response) {
         List<WithingsStructure> data = response.getDataStructures();
+        if (data != null && !data.isEmpty()) {
+            receivedData = true;
+        }
         if (data != null) {
             handleActivityData(data, response.getType());
         }
+    }
+
+    /** Whether any stored data came back during this sync. */
+    public boolean hasReceivedData() {
+        return receivedData;
     }
 
     public void onSyncFinished() {

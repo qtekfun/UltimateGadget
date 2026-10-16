@@ -145,6 +145,10 @@ class UltimateDeviceActivity : AppCompatActivity() {
             }
         }
 
+        if (coordinator != null && device.isInitialized && cap { coordinator.supportsHeartRateMeasurement(device) }) {
+            options += DeviceOptionUi("measure_hr", getString(R.string.ult_measure_hr), getString(R.string.ult_measure_hr_sub), section = sWatch)
+        }
+
         // --- Maps and navigation ---
         val sNav = getString(R.string.ult_section_nav)
         if (coordinator is HuaweiCoordinator) {
@@ -177,6 +181,10 @@ class UltimateDeviceActivity : AppCompatActivity() {
             "sync" -> {
                 GBApplication.deviceService(device).onFetchRecordedData(RecordedDataTypes.TYPE_SYNC)
                 toast(getString(R.string.ult_syncing_toast))
+            }
+            "measure_hr" -> {
+                GBApplication.deviceService(device).onHeartRateTest()
+                toast(getString(R.string.ult_measure_hr_toast))
             }
             "settings" -> startActivity(
                 nodomain.freeyourgadget.gadgetbridge.activities.ultimate.devsettings.UltimateDeviceSettingsActivity.intent(this, device),

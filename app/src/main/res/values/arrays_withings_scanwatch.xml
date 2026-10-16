@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="withings_scanwatch_wear_entries">
+        <item>Left wrist</item>
+        <item>Right wrist</item>
+    </string-array>
+    <string-array name="withings_scanwatch_wear_values">
+        <item>left</item>
+        <item>right</item>
+    </string-array>
+    <string-array name="withings_scanwatch_shortcut_entries">
+        <item>Nothing</item>
+        <item>ECG measurement</item>
+        <item>SpO2 measurement</item>
+        <item>Start workout</item>
+        <item>Choose workout</item>
+        <item>Breathe</item>
+        <item>Stopwatch</item>
+        <item>Timer</item>
+        <item>Do not disturb</item>
+        <item>Quick look</item>
+        <item>Find my phone</item>
+        <item>Flashlight</item>
+    </string-array>
+    <string-array name="withings_scanwatch_shortcut_values">
+        <item>0</item><item>1</item><item>2</item><item>3</item><item>4</item><item>5</item>
+        <item>6</item><item>7</item><item>8</item><item>9</item><item>10</item><item>11</item>
+    </string-array>
+</resources>
