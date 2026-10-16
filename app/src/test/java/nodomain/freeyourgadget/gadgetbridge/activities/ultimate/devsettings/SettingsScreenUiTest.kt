@@ -16,7 +16,15 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 package nodomain.freeyourgadget.gadgetbridge.activities.ultimate.devsettings
 
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.test.performTextReplacement
+import androidx.compose.ui.test.SemanticsMatcher
+import nodomain.freeyourgadget.gadgetbridge.R
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.theme.UltimateTheme
@@ -93,6 +101,122 @@ class SettingsScreenUiTest {
         show(listOf(PrefNode.SubScreen("sub", "Sub screen", null, 0, listOf(child))), prefs())
         rule.onNodeWithText("Sub screen").performClick()
         rule.onNodeWithText("Inner switch").assertExists()
+    }
+
+    @Test
+    fun textRowEditsThroughItsDialog() {
+        val p = prefs()
+        show(listOf(PrefNode.Text("tx", "Text row", null, 0, "", false, null)), p)
+        rule.onNodeWithText("Text row").performClick()
+        rule.onNode(hasSetTextAction()).performTextReplacement("hello")
+        rule.onNodeWithText("OK").performClick()
+        assertEquals("hello", p.getString("tx", null))
+        assertTrue("tx" in changed)
+        rule.onNodeWithText("hello").assertExists() // the value becomes the summary
+    }
+
+    @Test
+    fun textDialogCancelLeavesTheValue() {
+        val p = prefs()
+        p.edit().putString("tx", "keep").commit()
+        show(listOf(PrefNode.Text("tx", "Text row", null, 0, "", false, null)), p)
+        rule.onNodeWithText("Text row").performClick()
+        rule.onNode(hasSetTextAction()).performTextReplacement("discard")
+        rule.onNodeWithText("Cancel").performClick()
+        assertEquals("keep", p.getString("tx", null))
+    }
+
+    @Test
+    fun sliderMovesWithinItsRange() {
+        val p = prefs()
+        show(listOf(PrefNode.Slider("sl", "Slider row", null, 0, 5, 0, 10, null)), p)
+        val hasProgress = SemanticsMatcher.keyIsDefined(SemanticsProperties.ProgressBarRangeInfo)
+        rule.onNode(hasProgress).performSemanticsAction(SemanticsActions.SetProgress) { it(10f) }
+        assertEquals(10, p.getInt("sl", -1))
+        rule.onNode(hasProgress).performSemanticsAction(SemanticsActions.SetProgress) { it(0f) }
+        assertEquals(0, p.getInt("sl", -1))
+    }
+
+    @Test
+    fun multiChoiceStoresTheTickedSet() {
+        val p = prefs()
+        show(
+            listOf(PrefNode.MultiChoice("mc", "Multi row", null, 0, emptySet(), listOf("One", "Two", "Three"), listOf("1", "2", "3"), null)),
+            p,
+        )
+        rule.onNodeWithText("Multi row").performClick()
+        rule.onNodeWithText("One").performClick()
+        rule.onNodeWithText("Three").performClick()
+        rule.onNodeWithText("Save").performClick()
+        assertEquals(setOf("1", "3"), p.getStringSet("mc", null))
+    }
+
+    @Test
+    fun sortableKeepsAndSavesTheOrder() {
+        val p = prefs()
+        show(
+            listOf(PrefNode.Sortable("so", "Sort row", null, 0, listOf("b", "a"), listOf("Alpha", "Beta"), listOf("a", "b"), null)),
+            p,
+        )
+        rule.onNodeWithText("Sort row").performClick()
+        rule.onNodeWithText("Save").performClick()
+        assertEquals("b,a", p.getString("so", null))
+    }
+
+    @Test
+    fun conditionalRowsFollowTheirPreference() {
+        val p = prefs()
+        show(
+            listOf(
+                PrefNode.Switch("gate", "Gate", null, 0, false, null),
+                PrefNode.Conditional({ it.getBoolean("gate", false) }, listOf(PrefNode.Info(null, "x", "Revealed", 0))),
+            ),
+            p,
+        )
+        rule.onNodeWithText("Revealed").assertDoesNotExist()
+        rule.onNodeWithText("Gate").performClick()
+        rule.onNodeWithText("Revealed").assertExists()
+        rule.onNodeWithText("Gate").performClick()
+        rule.onNodeWithText("Revealed").assertDoesNotExist()
+    }
+
+    @Test
+    fun rowsDependingOnADisabledSwitchStayInert() {
+        val p = prefs()
+        show(
+            listOf(
+                PrefNode.Switch("parent", "Parent", null, 0, false, null),
+                PrefNode.Switch("child", "Child", null, 0, false, "parent"),
+            ),
+            p,
+        )
+        rule.onNodeWithText("Child").performClick()
+        assertTrue(!p.getBoolean("child", false))
+        rule.onNodeWithText("Parent").performClick()
+        rule.onNodeWithText("Child").performClick()
+        assertTrue(p.getBoolean("child", false))
+    }
+
+    @Test
+    fun emptyListIsInertAndSaysWhy() {
+        val p = prefs()
+        show(listOf(PrefNode.SingleChoice("el", "Empty list", null, 0, "", emptyList(), emptyList(), null)), p)
+        rule.onNodeWithText("Empty list").performClick()
+        assertTrue(!p.contains("el"))
+        rule.onNodeWithText(
+            org.robolectric.RuntimeEnvironment.getApplication().getString(R.string.ult_options_when_connected),
+        ).assertExists()
+    }
+
+    @Test
+    fun infoRowShowsTheStoredValueLive() {
+        val p = prefs()
+        p.edit().putString("addr", "10.0.0.1").commit()
+        show(listOf(PrefNode.Info("addr", "fallback", "Address", 0)), p)
+        rule.onNodeWithText("10.0.0.1").assertExists()
+        p.edit().putString("addr", "10.0.0.2").commit()
+        rule.waitForIdle()
+        rule.onNodeWithText("10.0.0.2").assertExists()
     }
 
     @Test

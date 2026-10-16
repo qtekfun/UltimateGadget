@@ -2,6 +2,10 @@
 
 <!-- For contributors: do not modify this file - the project maintainers will update it as needed -->
 
+#### 0.115.22
+
+* Devices: the search button on the device list now works; it filters your devices by name or type
+
 #### 0.115.21
 
 * Device settings: options a brand hides for unsupported features (for example vibration patterns a watch lacks) are now really hidden; before they were shown anyway

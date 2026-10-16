@@ -37,6 +37,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.BatteryFull
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Watch
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -91,20 +92,43 @@ fun UltimateHomeScreen(
 ) {
     val palette = LocalUltimatePalette.current
     val connected = devices.firstOrNull { it.connected }
+    var searching by remember { mutableStateOf(false) }
+    var query by remember { mutableStateOf("") }
+    val shown = if (searching && query.isNotBlank()) {
+        devices.filter { it.name.contains(query.trim(), ignoreCase = true) || it.typeName.contains(query.trim(), ignoreCase = true) }
+    } else devices
 
     Scaffold(
         containerColor = palette.background,
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        "UltimateGadget",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                    )
+                    if (searching) {
+                        androidx.compose.material3.TextField(
+                            value = query,
+                            onValueChange = { query = it },
+                            singleLine = true,
+                            placeholder = { Text(stringResource(R.string.ult_search)) },
+                            colors = androidx.compose.material3.TextFieldDefaults.colors(
+                                focusedContainerColor = palette.background,
+                                unfocusedContainerColor = palette.background,
+                            ),
+                        )
+                    } else {
+                        Text(
+                            "UltimateGadget",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
                 },
                 actions = {
-                    IconButton(onClick = {}) { Icon(Icons.Filled.Search, contentDescription = stringResource(R.string.ult_search)) }
+                    IconButton(onClick = { if (searching) query = ""; searching = !searching }) {
+                        Icon(
+                            if (searching) Icons.Filled.Close else Icons.Filled.Search,
+                            contentDescription = stringResource(R.string.ult_search),
+                        )
+                    }
                     UltimateOverflowMenu(
                         onSortCards = onSortCards,
                         onExportImport = onExportImport,
@@ -153,7 +177,8 @@ fun UltimateHomeScreen(
                 }
             }
             item { SectionHeader(stringResource(R.string.ult_your_devices)) }
-            items(devices, key = { it.address }) { d ->
+            if (shown.isEmpty()) item { Text(stringResource(R.string.ult_no_results), color = palette.onSurfaceVariant) }
+            items(shown, key = { it.address }) { d ->
                 DeviceCard(d, onClick = { onOpenDevice(d) })
             }
         }
