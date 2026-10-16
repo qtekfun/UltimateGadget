@@ -2,6 +2,11 @@
 
 <!-- For contributors: do not modify this file - the project maintainers will update it as needed -->
 
+#### 0.115.23
+
+* Fixed a crash when opening the FTP file browser while the watch has no FTP session yet (it now closes with its "device not ready" message), and the same crash in the workout template list on a device without template support
+* New tests open every screen a settings row leads to, check that tapping the row starts it, and that the canned-message buttons send their messages
+
 #### 0.115.22
 
 * Devices: the search button on the device list now works; it filters your devices by name or type
