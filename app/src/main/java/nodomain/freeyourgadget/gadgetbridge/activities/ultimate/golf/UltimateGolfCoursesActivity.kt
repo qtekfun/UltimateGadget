@@ -43,11 +43,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -87,6 +89,43 @@ class UltimateGolfCoursesActivity : AppCompatActivity() {
     // The GBDevice mutates in place, so bump this on each ACTION_DEVICE_CHANGED to recompose and
     // re-read the live connection state (the copy from the launch intent goes stale).
     private var deviceRefresh by mutableStateOf(0)
+
+    // Manual refresh and bulk-delete progress. The watch only reports its list, so a delete is
+    // followed by polling that list until none of the requested courses remain.
+    private var refreshing by mutableStateOf(false)
+    private var deleteIds by mutableStateOf<Set<Int>>(emptySet())
+    private var deleteTotal by mutableStateOf(0)
+    private var deleteRemaining by mutableStateOf(0)
+    private var deleteDeadline = 0L
+    private val uiHandler = android.os.Handler(android.os.Looper.getMainLooper())
+
+    private fun startDeleteTracking(ids: Set<Int>) {
+        deleteIds = ids
+        deleteTotal = ids.size
+        deleteRemaining = ids.size
+        deleteDeadline = System.currentTimeMillis() + 180_000
+        uiHandler.postDelayed({ pollDelete() }, 4000)
+    }
+
+    private fun pollDelete() {
+        if (deleteIds.isEmpty()) return
+        if (System.currentTimeMillis() > deleteDeadline) {
+            val left = deleteRemaining
+            deleteIds = emptySet()
+            pendingAction = ""
+            status = getString(R.string.ult_golf_delete_stalled, left)
+            return
+        }
+        requestList()
+        uiHandler.postDelayed({ pollDelete() }, 4000)
+    }
+
+    private fun refreshNow() {
+        refreshing = true
+        status = getString(R.string.ult_golf_refreshing)
+        requestList()
+        uiHandler.postDelayed({ refreshing = false }, 10_000)
+    }
 
     private val deviceReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -144,6 +183,16 @@ class UltimateGolfCoursesActivity : AppCompatActivity() {
             }
             items = list.sortedBy { it.courseId }
             loaded = true
+            refreshing = false
+            if (deleteIds.isNotEmpty()) {
+                val left = list.count { it.courseId in deleteIds }
+                deleteRemaining = left
+                if (left > 0) {
+                    status = getString(R.string.ult_golf_delete_progress, deleteTotal - left, deleteTotal)
+                    return
+                }
+                deleteIds = emptySet()
+            }
             if (pendingAction.isNotBlank()) {
                 val sent = pendingCourseId
                 val msg = if (sent != null && list.none { it.courseId == sent }) {
@@ -235,9 +284,8 @@ class UltimateGolfCoursesActivity : AppCompatActivity() {
         )
         status = getString(R.string.ult_golf_deleting_one, labelFor(item.courseId))
         pendingAction = getString(R.string.ult_golf_deleted_one)
-        items = items.filterNot { it.courseId == item.courseId }
-        // Re-query shortly so the list reflects the watch's authoritative state.
-        d.let { requestListDelayed() }
+        // Keep the row until the watch stops listing it.
+        startDeleteTracking(setOf(item.courseId))
     }
 
     private fun requestListDelayed(delayMs: Long = 2500) {
@@ -258,10 +306,10 @@ class UltimateGolfCoursesActivity : AppCompatActivity() {
         )
         status = getString(R.string.ult_golf_deleting_n, ids.size)
         pendingAction = getString(R.string.ult_golf_deleted_n, ids.size)
-        items = items.filterNot { it.courseId in selected }
+        // Keep the rows: they disappear as the watch removes them, which shows the progress.
+        startDeleteTracking(ids.toSet())
         selected = emptySet()
         selectMode = false
-        requestListDelayed()
     }
 
     /** Copy the picked .bin to a local file and send it, parsing courseId + version from the name. */
@@ -342,6 +390,14 @@ class UltimateGolfCoursesActivity : AppCompatActivity() {
                         }
                     },
                     actions = {
+                        if (!selectMode) {
+                            IconButton(
+                                enabled = deviceRefresh >= 0 && device?.isInitialized == true,
+                                onClick = { refreshNow() },
+                            ) {
+                                Icon(Icons.Filled.Refresh, contentDescription = stringResource(R.string.ult_golf_refresh))
+                            }
+                        }
                         if (items.isNotEmpty()) {
                             if (selectMode) {
                                 TextButton(onClick = { selected = items.map { it.courseId }.toSet() }) { Text(stringResource(R.string.ult_all)) }
@@ -399,9 +455,21 @@ class UltimateGolfCoursesActivity : AppCompatActivity() {
                 if (status.isNotBlank()) {
                     Text(status, style = MaterialTheme.typography.bodySmall, color = palette.secondary)
                 }
+                if (deleteIds.isNotEmpty() && deleteTotal > 0) {
+                    LinearProgressIndicator(
+                        progress = { (deleteTotal - deleteRemaining).toFloat() / deleteTotal },
+                        modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+                        color = palette.primary,
+                    )
+                } else if (refreshing) {
+                    LinearProgressIndicator(
+                        modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+                        color = palette.primary,
+                    )
+                }
 
                 Text(
-                    "EN EL RELOJ",
+                    stringResource(R.string.ult_golf_on_watch),
                     style = MaterialTheme.typography.labelMedium,
                     color = palette.secondary,
                     modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
