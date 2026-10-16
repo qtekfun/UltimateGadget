@@ -21,11 +21,14 @@ import android.content.SharedPreferences;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.function.Consumer;
 
 import nodomain.freeyourgadget.gadgetbridge.GBApplication;
+import nodomain.freeyourgadget.gadgetbridge.database.DBHandler;
 import nodomain.freeyourgadget.gadgetbridge.service.devices.withingssteelhr.WithingsSteelHRDeviceSupport;
 import nodomain.freeyourgadget.gadgetbridge.service.devices.withingssteelhr.communication.conversation.AbstractResponseHandler;
+import nodomain.freeyourgadget.gadgetbridge.service.devices.withingssteelhr.communication.datastructures.FeatureTagsUserId;
 import nodomain.freeyourgadget.gadgetbridge.service.devices.withingssteelhr.communication.datastructures.GlanceStatus;
 import nodomain.freeyourgadget.gadgetbridge.service.devices.withingssteelhr.communication.datastructures.LuminosityLevel;
 import nodomain.freeyourgadget.gadgetbridge.service.devices.withingssteelhr.communication.datastructures.ShortcutAction;
@@ -61,8 +64,52 @@ public class WithingsScanWatchDeviceSupport extends WithingsSteelHRDeviceSupport
     public static final String PREF_AFIB_DAY = "withings_scanwatch_afib_day";
     public static final String PREF_AFIB_NIGHT = "withings_scanwatch_afib_night";
 
+    private final StoredMeasureCollector measureCollector = new StoredMeasureCollector();
+    private int deleteRequestId;
+
+    public static final String PREF_DELETE_AFTER_SAVE = "withings_scanwatch_delete_after_save";
+
     private SharedPreferences prefs() {
         return GBApplication.getDeviceSpecificSharedPrefs(getDevice().getAddress());
+    }
+
+    @Override
+    public void finishSync() {
+        super.finishSync();
+        saveMeasurements();
+    }
+
+    /**
+     * Saves what the watch sent for its stored measurements. Only when the optional setting is on,
+     * and only for measurements that were read back from the database, are they deleted from the
+     * watch (the official app always does; here a lost database must not mean a lost ECG).
+     */
+    private void saveMeasurements() {
+        final List<StoredMeasurement> received = measureCollector.finish();
+        if (received.isEmpty()) {
+            return;
+        }
+        final List<StoredMeasurement> verified;
+        try (DBHandler db = GBApplication.acquireDB()) {
+            verified = ScanWatchMeasurementStore.save(db, getDevice(), received);
+        } catch (final Exception e) {
+            LOG.warn("Could not save the stored measurements", e);
+            return;
+        }
+        LOG.info("Saved {} of {} stored measurement(s) from the watch", verified.size(), received.size());
+        if (!prefs().getBoolean(PREF_DELETE_AFTER_SAVE, false)) {
+            return;
+        }
+        for (final StoredMeasurement m : verified) {
+            if (m.deleteKey == null) {
+                continue;
+            }
+            final WithingsMessage delete = new WithingsMessage(WithingsMessageType.DELETE_STORED_MEASURE_SIGNAL, ExpectedResponse.SIMPLE);
+            delete.addDataStructure(new FeatureTagsUserId(deleteRequestId++));
+            delete.addDataStructure(StoredSignalMeta.fromRaw(m.deleteKey));
+            addSimpleConversationToQueue(delete);
+        }
+        sendQueue();
     }
 
     /** Reads one structure out of a response and hands it to {@code consumer} (null-safe). */
@@ -154,7 +201,22 @@ public class WithingsScanWatchDeviceSupport extends WithingsSteelHRDeviceSupport
         addSimpleConversationToQueue(new WithingsMessage(WithingsMessageType.COMMIT_FEATURE_TAGS));
         addSimpleConversationToQueue(new WithingsMessage(WithingsMessageType.COMMIT_NOTIFICATION_CONFIG));
         addSimpleConversationToQueue(ScanWatchHealthFeatures.localNotificationsMessage(ecg && afibDay, ecg && afibNight, false, false));
+        // ECG and SpO2 show up on the watch only when they are in the screen list.
+        addScreenListCommands();
         sendQueue();
+    }
+
+    /** The ScanWatch screens, not the Steel HR ones (see {@link ScanWatchScreens}). */
+    @Override
+    protected void addScreenListCommands() {
+        final SharedPreferences p = prefs();
+        // The official app writes the messages one after the other, each starting a fresh write; the
+        // watch reboots if one write mixes the end of a message with the start of the next. They go
+        // straight out in order (a queued one would be lost when a sync clears the queue).
+        for (final WithingsMessage message : ScanWatchScreens.messages(
+                ScanWatchScreens.USER_ID, p.getBoolean(PREF_ECG, false), p.getBoolean(PREF_SPO2, false))) {
+            sendToDevice(message);
+        }
     }
 
     private void conversationSend(final WithingsMessage message) {
@@ -197,7 +259,12 @@ public class WithingsScanWatchDeviceSupport extends WithingsSteelHRDeviceSupport
         for (final WithingsMessage request : ScanWatchRequests.sync(fromSeconds)) {
             // The data requests feed the activity handler; the stored-signal ones are only fetched for now.
             if (request.getType() == WithingsMessageType.GET_STORED_MEASURE_SIGNAL) {
-                addSimpleConversationToQueue(request);
+                addSimpleConversationToQueue(request, new AbstractResponseHandler(this) {
+                    @Override
+                    public void handleResponse(final Message response) {
+                        measureCollector.accept(response.getDataStructures());
+                    }
+                });
             } else {
                 addSimpleConversationToQueue(request, getActivitySampleHandler());
             }
