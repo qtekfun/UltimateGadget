@@ -37,6 +37,8 @@ object DeviceSettingsTree {
         val nodes: List<PrefNode>,
         /** Click handlers of DSL action rows, by preference key (empty for XML-based devices). */
         val dslActions: Map<String, (Context, GBDevice?) -> Boolean>,
+        /** Keys the brand's customizer hid for this device (unsupported features). */
+        val hidden: Set<String> = emptySet(),
     )
 
     fun build(context: Context, device: GBDevice): Built {
@@ -55,7 +57,43 @@ object DeviceSettingsTree {
         // Runtime-filled lists, hidden rows, ranges and summaries come from the brand's customizer,
         // and "connect when another device connects" lists the phone's paired devices.
         val customized = CustomizerBridge.customize(context, device, built.nodes)
-        return Built(resolveBuiltIns(context, device, customized), built.dslActions)
+        val resolved = resolveBuiltIns(context, device, customized.nodes)
+        return Built(resolved, launchHandlers(resolved) + customized.clicks + built.dslActions, customized.hidden)
+    }
+
+    /** Click handlers for XML rows that carry an `<intent>` (open an activity or view a link). */
+    private fun launchHandlers(nodes: List<PrefNode>): Map<String, (Context, GBDevice?) -> Boolean> {
+        val out = LinkedHashMap<String, (Context, GBDevice?) -> Boolean>()
+        fun walk(list: List<PrefNode>) {
+            for (n in list) when (n) {
+                is PrefNode.SubScreen -> walk(n.children)
+                is PrefNode.Conditional -> walk(n.children)
+                is PrefNode.Action -> {
+                    val spec = n.launch
+                    val key = n.key
+                    if (spec != null && key != null) out[key] = { ctx, device -> launch(ctx, device, spec) }
+                }
+                else -> {}
+            }
+        }
+        walk(nodes)
+        return out
+    }
+
+    private fun launch(ctx: Context, device: GBDevice?, spec: LaunchSpec): Boolean {
+        val intent = if (spec.targetClass != null) {
+            android.content.Intent().setClassName(ctx.packageName, spec.targetClass)
+        } else {
+            android.content.Intent(spec.action ?: android.content.Intent.ACTION_VIEW, spec.data?.let(android.net.Uri::parse))
+        }
+        if (spec.targetClass != null) {
+            spec.action?.let { intent.action = it }
+            spec.data?.let { intent.data = android.net.Uri.parse(it) }
+        }
+        device?.let { intent.putExtra(GBDevice.EXTRA_DEVICE, it) }
+        if (ctx !is android.app.Activity) intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+        ctx.startActivity(intent)
+        return true
     }
 
     private fun buildNodes(context: Context, device: GBDevice, settings: DeviceSpecificSettings): List<PrefNode> {

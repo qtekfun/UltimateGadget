@@ -47,4 +47,16 @@ object ActionRouting {
     /** Canned-message "send to watch" rows: key -> (slot-key prefix, spec type). */
     const val CANNED_DISMISS_CALL = "canned_messages_dismisscall_send"
     const val CANNED_GENERIC = "canned_messages_generic_send"
+
+    /** Keys [UltimateDeviceSettingsActivity] opens a native Compose screen for. */
+    val nativeScreens: Set<String> = setOf(
+        DeviceSettingsTree.ACTION_BATTERY_HISTORY,
+        "pref_huawei_offline_maps_manage",
+        "pref_music_management",
+        "pref_contacts",
+        "pref_perform_heart_rate_settings",
+        "pref_upload_notifications_app_icon",
+        "calendar_blacklist",
+        "pref_huawei_stress_perform_calibrate",
+    )
 }
