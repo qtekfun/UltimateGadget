@@ -62,6 +62,8 @@ public class HuaweiP2PGolfService extends HuaweiBaseP2PService {
     private static final String PKG_PREF_HARMONY = "harmony";
     private String activePackage = PACKAGE_SPORT_WATCH;
     private boolean packageFallbackTried = false;
+    // Set once the watch has answered under the current package: never switch away from it after that.
+    private boolean packageConfirmed = false;
     private final android.os.Handler handler = new android.os.Handler(android.os.Looper.getMainLooper());
 
     private void loadActivePackage() {
@@ -77,6 +79,7 @@ public class HuaweiP2PGolfService extends HuaweiBaseP2PService {
     }
 
     private void rememberActivePackage() {
+        packageConfirmed = true;
         try {
             nodomain.freeyourgadget.gadgetbridge.GBApplication
                     .getDeviceSpecificSharedPrefs(manager.getSupportProvider().getDeviceMac())
@@ -90,7 +93,7 @@ public class HuaweiP2PGolfService extends HuaweiBaseP2PService {
 
     /** Switches to the other golf package once; returns false if that was already tried. */
     private boolean switchPackageOnce() {
-        if (packageFallbackTried) return false;
+        if (packageFallbackTried || packageConfirmed) return false;
         packageFallbackTried = true;
         activePackage = PACKAGE_SPORT_WATCH.equals(activePackage) ? PACKAGE_HARMONY_WATCH : PACKAGE_SPORT_WATCH;
         currentPackage = activePackage;
@@ -149,7 +152,7 @@ public class HuaweiP2PGolfService extends HuaweiBaseP2PService {
     /** Read-only: asks the watch which courses it has downloaded. */
     private void requestLocalCourseList(final Runnable next) {
         currentPackage = activePackage;
-        final byte[] msg = buildMessage(TYPE_LOCAL_COURSE_LIST, 1, new byte[]{1, 0, 0, 0});
+        final byte[] msg = buildMessage(TYPE_LOCAL_COURSE_LIST, nextMsgId(), new byte[]{1, 0, 0, 0});
         LOG.info("Golf probe: sending local course list request ({} bytes)", msg.length);
         sendCommand(msg, (code, data) -> {
             LOG.info("Golf probe: course list request ack code {} data {}", code,
@@ -218,6 +221,30 @@ public class HuaweiP2PGolfService extends HuaweiBaseP2PService {
                 collectingList = false;
                 broadcastCourseList();
             }
+        } else if (type == TYPE_COURSE_FILE) {
+            final int state = data.length >= HEADER_SIZE + 4
+                    ? ByteBuffer.wrap(data, HEADER_SIZE, 4).order(ByteOrder.LITTLE_ENDIAN).getInt()
+                    : 0;
+            final int courseId = awaitingFileReplyFor;
+            LOG.info("Golf: file reply for course {} (msgId {}): state {}", courseId, msgId, state);
+            rememberActivePackage();
+            awaitingFileReplyFor = -1;
+            if (state == 0) {
+                requestCourseListAndBroadcast();
+            } else {
+                pendingSendId = -1;
+                pendingSendData = null;
+                final Intent err = new Intent(ACTION_GOLF_UPLOAD_ERROR);
+                err.putExtra(EXTRA_GOLF_UPLOAD_ERROR_CODE, GOLF_FILE_ERROR_BASE + state);
+                err.putExtra(EXTRA_GOLF_UPLOAD_COURSE_ID, courseId);
+                LocalBroadcastManager.getInstance(manager.getSupportProvider().getContext()).sendBroadcast(err);
+            }
+        } else if (type == TYPE_COURSE_PUSH_SHAKE) {
+            final int state = data.length >= HEADER_SIZE + 4
+                    ? ByteBuffer.wrap(data, HEADER_SIZE, 4).order(ByteOrder.LITTLE_ENDIAN).getInt()
+                    : SHAKE_STATE_OK;
+            rememberActivePackage();
+            handleShakeReply(msgId, state);
         } else if (type == TYPE_GPS_INFO_SEND && data.length >= HEADER_SIZE + 20) {
             final ByteBuffer payload = ByteBuffer.wrap(data, HEADER_SIZE, data.length - HEADER_SIZE).order(ByteOrder.LITTLE_ENDIAN);
             payload.getInt(); // reserved (sport watch convention)
@@ -234,7 +261,6 @@ public class HuaweiP2PGolfService extends HuaweiBaseP2PService {
     private static final int TYPE_COURSE_FILE = 11;
     private static final int TYPE_COURSE_DELETE = 15;
     private static final int MAP_STYLE_VECTOR = 1;
-    private static final int PUSH_MSG_ID = 100;
     // Fresh message id per request, like Huawei Health's GolfMsgHeader.newMsgId() (a fixed id can be
     // de-duplicated by the watch, which is likely why repeated deletes appeared to do nothing).
     private static final java.util.concurrent.atomic.AtomicInteger MSG_ID = new java.util.concurrent.atomic.AtomicInteger(1000);
@@ -275,7 +301,7 @@ public class HuaweiP2PGolfService extends HuaweiBaseP2PService {
         currentPackage = activePackage;
         listCollector.clear();
         collectingList = true;
-        final byte[] msg = buildMessage(TYPE_LOCAL_COURSE_LIST, 1, new byte[]{1, 0, 0, 0});
+        final byte[] msg = buildMessage(TYPE_LOCAL_COURSE_LIST, nextMsgId(), new byte[]{1, 0, 0, 0});
         LOG.info("Golf: requesting course list for UI (package {})", activePackage);
         sendCommand(msg, (code, data) -> LOG.info("Golf: course list request ack {}", code));
         // No reply in time under this package: try the other one once.
@@ -330,8 +356,8 @@ public class HuaweiP2PGolfService extends HuaweiBaseP2PService {
     }
 
     /**
-     * Add flow (from HH's GolfDeviceProxy): PUSH_SHAKE(14) carrying courseId + the file's msgId,
-     * then send the map as a GOLF_COURSE_FILE(11) whose CONTENT is a wrapped blob:
+     * Add flow (from HH's GolfDeviceProxy): PUSH_SHAKE(14) carrying courseId + version, wait for the
+     * watch's reply (state), then send the map, reusing the handshake msgId, as a GOLF_COURSE_FILE(11) whose CONTENT is a wrapped blob:
      *   [36B golf header type11, bizHeadLen=8, dataLen=binLen, mapStyle=1, msgId] + [courseId+version] + [raw .bin]
      * uploaded as "<courseId>.bin". The wrapped type-11 file both delivers and registers the course
      * (no separate type-12). Vector maps need no key.
@@ -340,32 +366,92 @@ public class HuaweiP2PGolfService extends HuaweiBaseP2PService {
         pendingSendId = courseId;
         pendingSendVersion = version;
         pendingSendData = data;
-        sendPushShake(courseId, PUSH_MSG_ID, () -> uploadCourseFile(courseId, version, data));
+        final int msgId = nextMsgId();
+        sendPushShake(courseId, version, msgId, () -> uploadCourseFile(courseId, version, data, msgId));
     }
 
-    /** Announce the incoming course: type 14, payload = courseId + the upcoming file's msgId. */
-    private void sendPushShake(int courseId, int fileMsgId, Runnable next) {
+    // The watch answers the handshake with a state (first payload int) and Huawei Health uploads the
+    // file only on STATE_OK, reusing the handshake's msgId (seen in its log: shake -> watch reply
+    // type 14 -> file transfer). A reply of STATE_DUP means the course is already there.
+    private static final int SHAKE_STATE_OK = 0;
+    private static final int SHAKE_STATE_DUP = 1;
+    private static final int SHAKE_STATE_NO_SPACE = 2;
+    private static final int SHAKE_STATE_ERR = 3;
+    private static final int SHAKE_STATE_ON_USE = 4;
+    private static final int SHAKE_STATE_INVALID_DEVICE = 5;
+    /** Upload error codes reported for a handshake refusal: base + the watch's state. */
+    public static final int GOLF_SHAKE_ERROR_BASE = 1000;
+
+    /** Upload error codes for a refused file: base + the watch's state (1 error, 2 course limit reached). */
+    public static final int GOLF_FILE_ERROR_BASE = 1100;
+    private int awaitingFileReplyFor = -1;
+
+    private int shakeMsgId = -1;
+    private int shakeCourseId = -1;
+    private Runnable shakeNext;
+
+    /** Announce the incoming course: type 14, payload = courseId + the course version. */
+    private void sendPushShake(int courseId, int version, int msgId, Runnable next) {
         currentPackage = activePackage;
         final ByteBuffer payload = ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN);
         payload.putInt(courseId);
-        payload.putInt(fileMsgId);
-        final byte[] msg = buildGolfMessage(TYPE_COURSE_PUSH_SHAKE, fileMsgId, 0, 0, payload.array());
-        LOG.info("Golf: PUSH_SHAKE course {} fileMsgId {} ({} bytes)", courseId, fileMsgId, msg.length);
-        sendCommand(msg, (code, dataResp) -> {
-            LOG.info("Golf: push shake ack code {} data {}", code, dataResp == null ? "null" : StringUtils.bytesToHex(dataResp));
-            if (next != null) next.run();
-        });
+        payload.putInt(version);
+        final byte[] msg = buildGolfMessage(TYPE_COURSE_PUSH_SHAKE, msgId, 0, 0, payload.array());
+        LOG.info("Golf: PUSH_SHAKE course {} version {} msgId {} ({} bytes)", courseId, version, msgId, msg.length);
+        shakeMsgId = msgId;
+        shakeCourseId = courseId;
+        shakeNext = next;
+        sendCommand(msg, (code, dataResp) ->
+                LOG.info("Golf: push shake ack code {} data {}", code, dataResp == null ? "null" : StringUtils.bytesToHex(dataResp)));
+        // Huawei Health waits for the watch's reply; if none comes, try the upload anyway.
+        handler.postDelayed(() -> {
+            if (shakeMsgId == msgId && shakeNext != null) {
+                LOG.warn("Golf: no push shake reply for course {} after 10 s; uploading anyway", courseId);
+                final Runnable go = shakeNext;
+                shakeNext = null;
+                shakeMsgId = -1;
+                go.run();
+            }
+        }, 10000);
+    }
+
+    private void handleShakeReply(int msgId, int state) {
+        if (shakeNext == null) {
+            LOG.info("Golf: push shake reply (msgId {}, state {}) with nothing pending", msgId, state);
+            return;
+        }
+        LOG.info("Golf: push shake reply for course {} msgId {} (expected {}): state {}", shakeCourseId, msgId, shakeMsgId, state);
+        final Runnable go = shakeNext;
+        final int courseId = shakeCourseId;
+        shakeNext = null;
+        shakeMsgId = -1;
+        if (state == SHAKE_STATE_DUP) {
+            // Already on the watch: nothing to send, just refresh the list.
+            pendingSendId = -1;
+            pendingSendData = null;
+            requestCourseListAndBroadcast();
+        } else if (state == SHAKE_STATE_NO_SPACE || state == SHAKE_STATE_ERR
+                || state == SHAKE_STATE_ON_USE || state == SHAKE_STATE_INVALID_DEVICE) {
+            pendingSendId = -1;
+            pendingSendData = null;
+            final Intent err = new Intent(ACTION_GOLF_UPLOAD_ERROR);
+            err.putExtra(EXTRA_GOLF_UPLOAD_ERROR_CODE, GOLF_SHAKE_ERROR_BASE + state);
+            err.putExtra(EXTRA_GOLF_UPLOAD_COURSE_ID, courseId);
+            LocalBroadcastManager.getInstance(manager.getSupportProvider().getContext()).sendBroadcast(err);
+        } else {
+            go.run();
+        }
     }
 
     /** Upload the wrapped type-11 course file as "<courseId>.bin". */
-    private void uploadCourseFile(int courseId, int version, byte[] data) {
+    private void uploadCourseFile(int courseId, int version, byte[] data, int msgId) {
         currentPackage = activePackage;
         // business head = courseId(4) + version(4); payload = businessHead + raw map bytes
         final ByteBuffer payload = ByteBuffer.allocate(8 + data.length).order(ByteOrder.LITTLE_ENDIAN);
         payload.putInt(courseId);
         payload.putInt(version);
         payload.put(data);
-        final byte[] wrapped = buildGolfMessage(TYPE_COURSE_FILE, PUSH_MSG_ID, MAP_STYLE_VECTOR, 8, payload.array());
+        final byte[] wrapped = buildGolfMessage(TYPE_COURSE_FILE, msgId, MAP_STYLE_VECTOR, 8, payload.array());
 
         final HuaweiUploadManager.FileUploadInfo fileInfo = new HuaweiUploadManager.FileUploadInfo();
         fileInfo.setFileType((byte) 7);
@@ -380,9 +466,17 @@ public class HuaweiP2PGolfService extends HuaweiBaseP2PService {
             @Override public void onUploadProgress(int progress) { LOG.info("Golf course file upload: progress {}", progress); }
             @Override public void onUploadComplete() {
                 LOG.info("Golf course file upload: COMPLETE for course {}", courseId);
-                // Re-query AND broadcast, so the UI list refreshes exactly when the course is
-                // actually registered on the watch (the upload takes a few seconds).
-                requestCourseListAndBroadcast();
+                // The watch registers the course after the transfer and then sends a type-11 reply
+                // (Huawei Health waits for it). Refresh the list on that reply; if it never comes,
+                // refresh anyway after a while.
+                awaitingFileReplyFor = courseId;
+                handler.postDelayed(() -> {
+                    if (awaitingFileReplyFor == courseId) {
+                        LOG.warn("Golf: no file reply for course {} after 8 s; refreshing the list", courseId);
+                        awaitingFileReplyFor = -1;
+                        requestCourseListAndBroadcast();
+                    }
+                }, 8000);
             }
             @Override public void onError(int code) {
                 LOG.warn("Golf course file upload: ERROR {} for course {}", code, courseId);

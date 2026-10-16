@@ -744,6 +744,15 @@
     <string name="ult_golf_cities">Ciudades</string>
     <string name="ult_no_results">Sin resultados</string>
     <string name="ult_golf_upload_failed">No se pudo enviar %1$s al reloj (error de transferencia %2$d)</string>
+    <string name="ult_golf_shake_no_space">El reloj no tiene espacio para %1$s</string>
+    <string name="ult_golf_shake_in_use">%1$s está en uso en el reloj ahora mismo</string>
+    <string name="ult_golf_shake_refused">El reloj rechazó %1$s (código %2$d)</string>
+    <string name="ult_golf_max_courses">El reloj no admite más campos; borra alguno antes de enviar %1$s</string>
+    <string name="ult_golf_on_watch">EN EL RELOJ</string>
+    <string name="ult_golf_refresh">Actualizar los campos del reloj</string>
+    <string name="ult_golf_refreshing">Leyendo la lista de campos del reloj…</string>
+    <string name="ult_golf_delete_progress">Borrando… %1$d de %2$d eliminados</string>
+    <string name="ult_golf_delete_stalled">Aún quedan %1$d campos en el reloj. Actualiza para volver a comprobar</string>
     <string name="ult_golf_not_on_watch">%1$s se envió pero el reloj no lo muestra (el reloj tiene %2$d campo(s)). Puede haber rechazado el archivo.</string>
     <string name="ult_golf_done_count">%1$s ✓ · el reloj tiene %2$d campo(s)</string>
     <string name="ult_options_when_connected">Las opciones aparecen cuando el dispositivo está conectado</string>
