@@ -163,10 +163,20 @@ sealed interface PrefNode {
         val dependency: String?,
     ) : PrefNode
 
+    /**
+     * Rows shown only while [visibleWhen] holds for the device's current preferences (the settings
+     * DSL's `visibleWhen`). Re-evaluated whenever a value changes, like the classic screen did.
+     */
+    data class Conditional(
+        val visibleWhen: (nodomain.freeyourgadget.gadgetbridge.util.Prefs) -> Boolean,
+        val children: List<PrefNode>,
+    ) : PrefNode
+
     /** A read-only information row (title + current value); not interactive and never persisted. */
     data class Info(
-        val title: String,
+        val key: String?,
         val summary: String?,
+        val title: String,
         val iconRes: Int,
     ) : PrefNode
 
@@ -214,6 +224,9 @@ class DeviceSettingsStore private constructor(
         fun forApp(prefs: android.content.SharedPreferences, onChanged: (String) -> Unit = {}) =
             DeviceSettingsStore(prefs, onChanged)
     }
+
+    /** The underlying preferences, for evaluating visibility predicates. */
+    val rawPrefs: android.content.SharedPreferences get() = prefs
 
     fun getBoolean(key: String, def: Boolean): Boolean =
         runCatching { prefs.getBoolean(key, def) }.getOrElse {
@@ -379,6 +392,22 @@ object DeviceSettingsParser {
         val icon = parser.getAttributeResourceValue(ANDROID_NS, "icon", 0)
         val dependency = parser.getAttributeValue(ANDROID_NS, "dependency")
 
+        // Every attribute must be read BEFORE the subtree is consumed below: once parseContainer
+        // has advanced to the element's END_TAG its attributes are gone and these would all fall
+        // back to their defaults (which left lists empty and rendered them as "not available").
+        val entries = attrArray(parser, res, "entries")
+        val entryValues = attrArray(parser, res, "entryValues")
+        val defaultString = attrDefaultString(parser, res)
+        val defaultBool = parser.getAttributeBooleanValue(ANDROID_NS, "defaultValue", false)
+        val inputType = parser.getAttributeValue(ANDROID_NS, "inputType") ?: ""
+        var min = parser.getAttributeIntValue(APP_NS, "min", Int.MIN_VALUE)
+        if (min == Int.MIN_VALUE) min = parser.getAttributeIntValue(ANDROID_NS, "min", 0)
+        val max = parser.getAttributeIntValue(ANDROID_NS, "max", 100)
+        val defaultInt = parser.getAttributeIntValue(ANDROID_NS, "defaultValue", min)
+        val defaultArray: List<String> = parser.getAttributeResourceValue(ANDROID_NS, "defaultValue", 0).let { rid ->
+            if (rid == 0) emptyList() else runCatching { res.getStringArray(rid).toList() }.getOrDefault(emptyList())
+        }
+
         // Consume (and parse) this element's subtree now; leaves yield an empty list.
         val children = parseContainer(parser, res)
 
@@ -397,7 +426,7 @@ object DeviceSettingsParser {
                 if (key == null) emptyList() else listOf(
                     PrefNode.Switch(
                         key, title, summary, icon,
-                        default = parser.getAttributeBooleanValue(ANDROID_NS, "defaultValue", false),
+                        default = defaultBool,
                         dependency = dependency,
                     ),
                 )
@@ -405,17 +434,15 @@ object DeviceSettingsParser {
 
             // Simple single-choice lists. Custom list subclasses with extra chrome fall through to
             // Delegated below; only plain ListPreference is rendered generically.
-            simple == "ListPreference" -> {
-                val entries = attrArray(parser, res, "entries")
-                val values = attrArray(parser, res, "entryValues")
-                if (key == null || entries.isEmpty() || entries.size != values.size) {
+            simple == "ListPreference" || simple == "SubtitleListPreference" -> {
+                if (key == null) {
                     delegated(key, title, summary, icon)
                 } else {
                     listOf(
                         PrefNode.SingleChoice(
                             key, title, summary, icon,
-                            default = attrDefaultString(parser, res),
-                            entries = entries, values = values,
+                            default = defaultString,
+                            entries = entries, values = entryValues,
                             dependency = dependency,
                         ),
                     )
@@ -424,11 +451,10 @@ object DeviceSettingsParser {
 
             simple == "EditTextPreference" -> {
                 if (key == null) emptyList() else {
-                    val inputType = parser.getAttributeValue(ANDROID_NS, "inputType") ?: ""
                     listOf(
                         PrefNode.Text(
                             key, title, summary, icon,
-                            default = attrDefaultString(parser, res),
+                            default = defaultString,
                             numeric = inputType.contains("number"),
                             dependency = dependency,
                         ),
@@ -438,13 +464,10 @@ object DeviceSettingsParser {
 
             simple == "SeekBarPreference" -> {
                 if (key == null) emptyList() else {
-                    var min = parser.getAttributeIntValue(APP_NS, "min", Int.MIN_VALUE)
-                    if (min == Int.MIN_VALUE) min = parser.getAttributeIntValue(ANDROID_NS, "min", 0)
-                    val max = parser.getAttributeIntValue(ANDROID_NS, "max", 100)
                     listOf(
                         PrefNode.Slider(
                             key, title, summary, icon,
-                            default = parser.getAttributeIntValue(ANDROID_NS, "defaultValue", min),
+                            default = defaultInt,
                             min = min, max = max,
                             dependency = dependency,
                         ),
@@ -457,16 +480,32 @@ object DeviceSettingsParser {
                 if (key == null) emptyList() else listOf(
                     PrefNode.TimePicker(
                         key, title, summary, icon,
-                        default = attrDefaultString(parser, res).ifEmpty { "00:00" },
+                        default = defaultString.ifEmpty { "00:00" },
                         dependency = dependency,
                     ),
                 )
             }
 
+            // Multi-select list: persisted as a string set.
+            simple == "MultiSelectListPreference" -> {
+                if (key == null) delegated(key, title, summary, icon)
+                else listOf(PrefNode.MultiChoice(key, title, summary, icon, defaultArray.toSet(), entries, entryValues, dependency))
+            }
+
+            // Drag-to-sort list: persisted as the comma-joined value order.
+            simple == "DragSortListPreference" -> {
+                if (key == null) delegated(key, title, summary, icon)
+                else listOf(PrefNode.Sortable(key, title, summary, icon, defaultArray, entries, entryValues, dependency))
+            }
+
             // Plain <Preference>: a click-action row (opens an editor activity or fires a command).
             simple == "Preference" -> {
-                if (title.isEmpty()) emptyList()
-                else listOf(PrefNode.Action(key, title, summary, icon))
+                when {
+                    // A title-less row that only carries a summary is an informational note.
+                    title.isEmpty() && !summary.isNullOrEmpty() -> listOf(PrefNode.Info(key, summary, "", icon))
+                    title.isEmpty() -> emptyList()
+                    else -> listOf(PrefNode.Action(key, title, summary, icon))
+                }
             }
 
             // Any other custom preference class we do not model.
