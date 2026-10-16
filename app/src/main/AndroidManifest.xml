@@ -1144,6 +1144,10 @@
             android:label="@string/qhybrid_title_calibration"
             android:parentActivityName=".devices.qhybrid.HRConfigActivity" />
         <activity
+            android:name=".activities.ultimate.withings.UltimateWithingsCalibrationActivity"
+            android:exported="false"
+            android:label="@string/ult_withings_calibration_title" />
+        <activity
             android:name=".devices.withingssteelhr.WithingsCalibrationActivity"
             android:label="@string/qhybrid_title_calibration"
             android:parentActivityName=".devices.withingssteelhr.WithingsCalibrationActivity" />
