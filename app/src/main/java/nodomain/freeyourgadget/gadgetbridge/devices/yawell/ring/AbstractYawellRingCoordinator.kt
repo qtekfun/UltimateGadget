@@ -272,7 +272,7 @@ abstract class AbstractYawellRingCoordinator : AbstractBLEDeviceCoordinator() {
                 defaultValue = "left",
                 icon = R.drawable.ic_switch_left,
                 entriesRes = R.array.wearside,
-                entryValuesRes = R.array.wearmode_values,
+                entryValuesRes = R.array.wearside_values,
             )
             seekbar(
                 key = "screen_brightness",
