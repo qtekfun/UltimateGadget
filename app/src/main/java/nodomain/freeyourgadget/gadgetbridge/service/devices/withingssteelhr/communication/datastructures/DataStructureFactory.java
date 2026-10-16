@@ -128,6 +128,21 @@ public class DataStructureFactory {
                 case WithingsStructureType.NOTIFICATION_APP_ID:
                     structure = new GlyphId();
                     break;
+                case WithingsStructureType.STORED_MEASURE_META:
+                    structure = new StoredMeasureMeta();
+                    break;
+                case WithingsStructureType.STORED_MEASURE_DATA:
+                    structure = new StoredMeasureData();
+                    break;
+                case WithingsStructureType.STORED_MEASURE_DATA_EXTEND:
+                    structure = new StoredMeasureDataExtend();
+                    break;
+                case WithingsStructureType.STORED_SIGNAL_DATA:
+                    structure = new StoredSignalData();
+                    break;
+                case WithingsStructureType.STORED_SIGNAL_META_EXTEND:
+                    structure = new StoredSignalMetaExtend();
+                    break;
                 case WithingsStructureType.STORED_SIGNAL_META:
                     structure = new StoredSignalMeta();
                     break;

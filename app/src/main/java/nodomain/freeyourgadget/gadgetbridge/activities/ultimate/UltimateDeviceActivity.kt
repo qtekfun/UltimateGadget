@@ -41,6 +41,7 @@ import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.ui.UltimateDevic
 import nodomain.freeyourgadget.gadgetbridge.devices.huawei.HuaweiCoordinator
 import nodomain.freeyourgadget.gadgetbridge.devices.huawei.ui.HuaweiMapManagementActivity
 import nodomain.freeyourgadget.gadgetbridge.impl.GBDevice
+import nodomain.freeyourgadget.gadgetbridge.model.DeviceType
 import nodomain.freeyourgadget.gadgetbridge.model.RecordedDataTypes
 
 class UltimateDeviceActivity : AppCompatActivity() {
@@ -149,6 +150,10 @@ class UltimateDeviceActivity : AppCompatActivity() {
             options += DeviceOptionUi("measure_hr", getString(R.string.ult_measure_hr), getString(R.string.ult_measure_hr_sub), section = sWatch)
         }
 
+        if (device.type == DeviceType.WITHINGS_SCANWATCH) {
+            options += DeviceOptionUi("withings_measurements", getString(R.string.ult_withings_measurements), getString(R.string.ult_withings_measurements_sub), section = sWatch)
+        }
+
         // --- Maps and navigation ---
         val sNav = getString(R.string.ult_section_nav)
         if (coordinator is HuaweiCoordinator) {
@@ -182,6 +187,9 @@ class UltimateDeviceActivity : AppCompatActivity() {
                 GBApplication.deviceService(device).onFetchRecordedData(RecordedDataTypes.TYPE_SYNC)
                 toast(getString(R.string.ult_syncing_toast))
             }
+            "withings_measurements" -> startActivity(
+                nodomain.freeyourgadget.gadgetbridge.activities.ultimate.withings.UltimateWithingsMeasurementsActivity.intent(this, device),
+            )
             "measure_hr" -> {
                 GBApplication.deviceService(device).onHeartRateTest()
                 toast(getString(R.string.ult_measure_hr_toast))

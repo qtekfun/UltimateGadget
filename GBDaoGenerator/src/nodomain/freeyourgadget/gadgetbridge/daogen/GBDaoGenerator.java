@@ -110,7 +110,7 @@ public class GBDaoGenerator {
             outputDir.mkdirs();
         }
 
-        final Schema schema = new Schema(152, MAIN_PACKAGE + ".entities");
+        final Schema schema = new Schema(153, MAIN_PACKAGE + ".entities");
 
         final List<Entity> sampleProvidersToGenerate = new LinkedList<>();
         final List<Entity> batterySampleProvidersToGenerate = new LinkedList<>();
@@ -188,6 +188,7 @@ public class GBDaoGenerator {
         addPineTimeActivitySample(schema, user, device);
         addPolarH10ActivitySample(schema, user, device);
         addWithingsSteelHRActivitySample(schema, user, device);
+        addWithingsScanWatchMeasurement(schema, user, device);
         addGenericBloodPressureSample(schema, user, device);
         addHybridHRActivitySample(schema, user, device);
         sampleProvidersToGenerate.add(addHybridHRSpo2Sample(schema, user, device));
@@ -2587,6 +2588,24 @@ public class GBDaoGenerator {
         workoutSectionsSample.addIntProperty("golfSwingTempo");    // tag 0x15
 
         return workoutSectionsSample;
+    }
+
+    private static Entity addWithingsScanWatchMeasurement(Schema schema, Entity user, Entity device) {
+        Entity measurement = addEntity(schema, "WithingsScanWatchMeasurement");
+        measurement.setJavaDoc("A measurement kept by a Withings ScanWatch (an ECG, a SpO2 reading...), with its raw signal");
+        measurement.addLongProperty("timestamp").notNull().primaryKey();
+        Property deviceId = measurement.addLongProperty("deviceId").primaryKey().notNull().getProperty();
+        measurement.addToOne(device, deviceId);
+        measurement.addIntProperty("type").notNull().primaryKey();
+        Property userId = measurement.addLongProperty("userId").notNull().getProperty();
+        measurement.addToOne(user, userId);
+        measurement.addLongProperty("result").notNull();
+        measurement.addIntProperty("heartRate").notNull();
+        measurement.addIntProperty("sampleRate").notNull();
+        measurement.addIntProperty("duration").notNull();
+        measurement.addStringProperty("readings");
+        measurement.addByteArrayProperty("signal");
+        return measurement;
     }
 
     private static Entity addHuaweiEcgSummarySample(Schema schema, Entity user, Entity device) {

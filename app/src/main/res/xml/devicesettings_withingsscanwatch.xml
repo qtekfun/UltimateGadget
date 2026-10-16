@@ -71,6 +71,11 @@
             android:key="withings_scanwatch_spo2_sleep"
             android:title="@string/withings_scanwatch_spo2_sleep" />
     </PreferenceCategory>
+    <SwitchPreferenceCompat
+        android:defaultValue="false"
+        android:key="withings_scanwatch_delete_after_save"
+        android:summary="@string/withings_scanwatch_delete_after_save_summary"
+        android:title="@string/withings_scanwatch_delete_after_save" />
     <Preference
         android:icon="@drawable/ic_sensor_calibration"
         android:key="hands_calibration"
