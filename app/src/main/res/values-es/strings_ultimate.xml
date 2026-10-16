@@ -462,6 +462,8 @@
     <string name="ult_close">Cerrar</string>
     <string name="ult_forget_fmt">Olvidar “%1$s”</string>
     <string name="ult_forget_msg">El dispositivo se quitará de UltimateGadget, se desemparejará de Bluetooth y se borrarán sus datos sincronizados. Esta acción no se puede deshacer.</string>
+    <string name="ult_forget_resets">El reloj también se restablecerá, para que pueda emparejarse con otro teléfono.</string>
+    <string name="ult_forget_offline">El reloj no está conectado, así que ahora no se puede restablecer. Conéctalo antes, o restablécelo a mano antes de emparejarlo con otro teléfono.</string>
     <string name="ult_forget">Olvidar</string>
     <string name="ult_deleting">Eliminando…</string>
 

@@ -60,7 +60,9 @@ import kotlinx.coroutines.withContext
 import nodomain.freeyourgadget.gadgetbridge.R
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.theme.LocalUltimatePalette
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.theme.UltimateTheme
+import nodomain.freeyourgadget.gadgetbridge.GBApplication
 import nodomain.freeyourgadget.gadgetbridge.devices.DeviceManager
+import nodomain.freeyourgadget.gadgetbridge.devices.ResettableOnRemove
 import nodomain.freeyourgadget.gadgetbridge.impl.GBDevice
 import nodomain.freeyourgadget.gadgetbridge.util.BondingUtil
 import nodomain.freeyourgadget.gadgetbridge.util.GB
@@ -84,6 +86,14 @@ class UltimateRemoveDeviceActivity : AppCompatActivity() {
     private lateinit var device: GBDevice
     private var deleteFiles = true
 
+    /** The watch is told to forget its pairing too, so it can be paired with another phone. */
+    private val resetsWatch: Boolean
+        get() = supportsReset() && device.isInitialized
+
+    private fun supportsReset(): Boolean = runCatching {
+        (device.deviceCoordinator as? ResettableOnRemove)?.supportsResetOnRemove(device) == true
+    }.getOrDefault(false)
+
     private var state by mutableStateOf<RemoveState>(RemoveState.Confirm)
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -100,6 +110,11 @@ class UltimateRemoveDeviceActivity : AppCompatActivity() {
             UltimateTheme {
                 RemoveDeviceScreen(
                     name = device.aliasOrName,
+                    note = when {
+                        resetsWatch -> getString(R.string.ult_forget_resets)
+                        supportsReset() -> getString(R.string.ult_forget_offline)
+                        else -> null
+                    },
                     state = state,
                     onConfirm = { startDelete() },
                     onCancel = { finish() },
@@ -134,6 +149,12 @@ class UltimateRemoveDeviceActivity : AppCompatActivity() {
     private suspend fun performDelete(): Exception? = withContext(Dispatchers.IO) {
         val start = System.currentTimeMillis()
         try {
+            if (resetsWatch) {
+                // The watch must forget its pairing too, or it cannot be paired with another phone
+                // without a reset by hand. Give it time to take the commands before the link goes.
+                GBApplication.deviceService(device).onFactoryReset()
+                delay(4000)
+            }
             device.deviceCoordinator.deleteDevice(device, deleteFiles)
             BondingUtil.Unpair(this@UltimateRemoveDeviceActivity, device.address)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -174,6 +195,7 @@ private sealed interface RemoveState {
 @Composable
 private fun RemoveDeviceScreen(
     name: String,
+    note: String?,
     state: RemoveState,
     onConfirm: () -> Unit,
     onCancel: () -> Unit,
@@ -213,6 +235,9 @@ private fun RemoveDeviceScreen(
                             style = MaterialTheme.typography.bodyMedium,
                             color = palette.onSurfaceVariant,
                         )
+                        if (note != null) {
+                            Text(note, style = MaterialTheme.typography.bodyMedium, color = palette.secondary)
+                        }
                         Row(
                             Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(12.dp),
