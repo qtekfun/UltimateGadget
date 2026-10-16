@@ -19,6 +19,7 @@ package nodomain.freeyourgadget.gadgetbridge.activities.ultimate.devsettings
 import android.content.Context
 import nodomain.freeyourgadget.gadgetbridge.R
 import nodomain.freeyourgadget.gadgetbridge.activities.devicesettings.DeviceSpecificSettings
+import nodomain.freeyourgadget.gadgetbridge.GBApplication
 import nodomain.freeyourgadget.gadgetbridge.activities.devicesettings.DeviceSpecificSettingsScreen
 import nodomain.freeyourgadget.gadgetbridge.impl.GBDevice
 import nodomain.freeyourgadget.gadgetbridge.util.GBPrefs
@@ -182,13 +183,95 @@ object DeviceSettingsTree {
                         PrefNode.Action(
                             key = ACTION_BATTERY_HISTORY,
                             title = context.getString(R.string.ult_battery_history),
-                            summary = "See the battery level over time",
+                            summary = context.getString(R.string.ult_battery_history_sub),
                             iconRes = 0,
                         ),
                     ),
                 ),
             )
         }
+        appendGenericScreens(context, device, coordinator, nodes)
         return nodes
+    }
+
+    /**
+     * The generic sub-screens the classic fragment added to every device on top of the brand's own
+     * settings: authentication (Huawei account id, auth keys), activity info, developer options and
+     * the experimental ones. Merged into a screen of the same key when the brand already has one.
+     */
+    private fun appendGenericScreens(
+        context: Context,
+        device: GBDevice,
+        coordinator: nodomain.freeyourgadget.gadgetbridge.devices.DeviceCoordinator?,
+        nodes: MutableList<PrefNode>,
+    ) {
+        coordinator ?: return
+        fun add(screen: DeviceSpecificSettingsScreen, xmls: List<Int>) {
+            val children = xmls.flatMap { DeviceSettingsParser.parseResource(context.resources, it) }
+            if (children.isEmpty()) return
+            val at = nodes.indexOfFirst { it is PrefNode.SubScreen && it.key == screen.key }
+            if (at >= 0) {
+                val existing = nodes[at] as PrefNode.SubScreen
+                val known = existing.children.mapNotNull { nodeKey(it) }.toSet()
+                nodes[at] = existing.copy(children = existing.children + children.filter { nodeKey(it) == null || nodeKey(it) !in known })
+            } else {
+                nodes.add(PrefNode.SubScreen(screen.key, context.getString(screen.title), null, 0, children))
+            }
+        }
+
+        val auth = runCatching { coordinator.supportedDeviceSpecificAuthenticationSettings }.getOrNull()
+        if (auth != null && auth.isNotEmpty()) add(DeviceSpecificSettingsScreen.AUTHENTICATION, auth.toList())
+
+        if (runCatching { coordinator.supportsCharts(device) }.getOrDefault(false)) {
+            add(DeviceSpecificSettingsScreen.ACTIVITY_INFO, listOf(R.xml.devicesettings_chartstabs))
+        }
+        if (runCatching { coordinator.supportsActivityTracking(device) }.getOrDefault(false)) {
+            add(DeviceSpecificSettingsScreen.ACTIVITY_INFO, listOf(R.xml.devicesettings_device_card_activity_card_preferences))
+        }
+
+        val developer = mutableListOf<Int>()
+        if (coordinator.connectionType != nodomain.freeyourgadget.gadgetbridge.devices.DeviceCoordinator.ConnectionType.USB) {
+            developer += R.xml.devicesettings_device_support_can_reconnect
+        }
+        developer += R.xml.devicesettings_header_intent_api
+        developer += R.xml.devicesettings_settings_third_party_apps
+        if (runCatching { coordinator.getAlarmSlotCount(device) }.getOrDefault(0) > 0) {
+            developer += R.xml.devicesettings_alarms_third_party_apps
+        }
+        if (coordinator.connectionType.usesBluetoothLE()) {
+            developer += R.xml.devicesettings_ble_api
+            developer += R.xml.devicesettings_gatt_synchronous_writes
+            developer += R.xml.devicesettings_connection_force_legacy_gatt
+        }
+        if (nodomain.freeyourgadget.gadgetbridge.BuildConfig.DEBUG) {
+            val debug = runCatching { coordinator.getSupportedDebugSettings(device) }.getOrNull()
+            if (debug != null && debug.isNotEmpty()) {
+                developer += R.xml.devicesettings_header_debug
+                developer += debug.toList()
+            }
+        }
+        add(DeviceSpecificSettingsScreen.DEVELOPER, developer)
+
+        if (GBApplication.getPrefs().experimentalSettings()) {
+            val exp = runCatching { coordinator.getSupportedDeviceSpecificExperimentalSettings(device) }.getOrNull()
+            if (exp != null && exp.isNotEmpty()) {
+                add(DeviceSpecificSettingsScreen.EXPERIMENTAL, listOf(R.xml.devicesettings_experimental_warning) + exp.toList())
+            }
+        }
+    }
+
+    private fun nodeKey(n: PrefNode): String? = when (n) {
+        is PrefNode.Switch -> n.key
+        is PrefNode.SingleChoice -> n.key
+        is PrefNode.Text -> n.key
+        is PrefNode.Slider -> n.key
+        is PrefNode.TimePicker -> n.key
+        is PrefNode.MultiChoice -> n.key
+        is PrefNode.Sortable -> n.key
+        is PrefNode.DatePicker -> n.key
+        is PrefNode.Action -> n.key
+        is PrefNode.SubScreen -> n.key
+        is PrefNode.Info -> n.key
+        else -> null
     }
 }
