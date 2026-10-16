@@ -64,6 +64,10 @@ public final class WithingsMessageType {
     public static final short GET_NOTIFICATION = 2404;
     public static final short GET_UNICODE_GLYPH = 2403;
 
+    /** Asks for the measurements (ECG, SpO2...) the watch has stored; the signal kind is in the request. */
+    public static final short GET_STORED_MEASURE_SIGNAL = 327;
+    public static final short DELETE_STORED_MEASURE_SIGNAL = 328;
+
     // ScanWatch health features
     public static final short SET_FEATURE_TAGS = 0x0987;
     public static final short COMMIT_FEATURE_TAGS = 0x0993;

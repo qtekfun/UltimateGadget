@@ -78,5 +78,7 @@ public class WithingsStructureType {
     public static final short FEATURE_TAGS_USER_ID = (short) 0x0145;
     public static final short LOCAL_NOTIFICATION = (short) 0x09A8;
 
+    public static final short STORED_SIGNAL_META = 323;
+
     private WithingsStructureType() {}
 }

@@ -128,6 +128,9 @@ public class DataStructureFactory {
                 case WithingsStructureType.NOTIFICATION_APP_ID:
                     structure = new GlyphId();
                     break;
+                case WithingsStructureType.STORED_SIGNAL_META:
+                    structure = new StoredSignalMeta();
+                    break;
                 case WithingsStructureType.SHORTCUT_ACTION:
                     structure = new ShortcutAction();
                     break;
