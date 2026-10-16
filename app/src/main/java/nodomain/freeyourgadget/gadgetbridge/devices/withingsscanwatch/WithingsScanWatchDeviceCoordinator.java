@@ -27,6 +27,7 @@ import de.greenrobot.dao.Property;
 
 import nodomain.freeyourgadget.gadgetbridge.R;
 import nodomain.freeyourgadget.gadgetbridge.devices.GenericSpo2SampleProvider;
+import nodomain.freeyourgadget.gadgetbridge.devices.ResettableOnRemove;
 import nodomain.freeyourgadget.gadgetbridge.devices.TimeSampleProvider;
 import nodomain.freeyourgadget.gadgetbridge.devices.withingssteelhr.WithingsSteelHRDeviceCoordinator;
 import nodomain.freeyourgadget.gadgetbridge.entities.DaoSession;
@@ -39,7 +40,7 @@ import nodomain.freeyourgadget.gadgetbridge.service.DeviceSupport;
 import nodomain.freeyourgadget.gadgetbridge.service.devices.withingsscanwatch.WithingsScanWatchDeviceSupport;
 
 /** Withings ScanWatch (2020): the Steel HR protocol on a different BLE UUID family. */
-public class WithingsScanWatchDeviceCoordinator extends WithingsSteelHRDeviceCoordinator {
+public class WithingsScanWatchDeviceCoordinator extends WithingsSteelHRDeviceCoordinator implements ResettableOnRemove {
     // "ScanWatch C6": the model name plus the last bytes of the address. The Light and the 2 use
     // other UUID families and are not handled here.
     private static final Pattern NAME = Pattern.compile("(?i)^ScanWatch(?! ?(2|Light|Nova)).*");
@@ -61,6 +62,11 @@ public class WithingsScanWatchDeviceCoordinator extends WithingsSteelHRDeviceCoo
         map.put(session.getGenericSpo2SampleDao(), GenericSpo2SampleDao.Properties.DeviceId);
         map.put(session.getWithingsScanWatchMeasurementDao(), WithingsScanWatchMeasurementDao.Properties.DeviceId);
         return map;
+    }
+
+    @Override
+    public boolean supportsResetOnRemove(final GBDevice device) {
+        return true;
     }
 
     @Override
