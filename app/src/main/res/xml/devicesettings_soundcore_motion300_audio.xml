@@ -184,7 +184,7 @@
                 <ListPreference
                     android:defaultValue="1"
                     android:entries="@array/soundcore_equalizer_band9_freq_names"
-                    android:entryValues="@array/soundcore_equalizer_freq_values"
+                    android:entryValues="@array/soundcore_equalizer_band9_freq_values"
                     android:icon="@drawable/ic_hearing"
                     android:key="pref_soundcore_equalizer_band9_freq"
                     app:useSimpleSummaryProvider="true"

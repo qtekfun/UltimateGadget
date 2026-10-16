@@ -746,4 +746,5 @@
     <string name="ult_golf_upload_failed">No se pudo enviar %1$s al reloj (error de transferencia %2$d)</string>
     <string name="ult_golf_not_on_watch">%1$s se envió pero el reloj no lo muestra (el reloj tiene %2$d campo(s)). Puede haber rechazado el archivo.</string>
     <string name="ult_golf_done_count">%1$s ✓ · el reloj tiene %2$d campo(s)</string>
+    <string name="ult_options_when_connected">Las opciones aparecen cuando el dispositivo está conectado</string>
 </resources>
