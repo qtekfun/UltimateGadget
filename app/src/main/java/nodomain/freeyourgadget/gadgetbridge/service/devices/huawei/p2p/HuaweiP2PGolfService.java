@@ -62,6 +62,8 @@ public class HuaweiP2PGolfService extends HuaweiBaseP2PService {
     private static final String PKG_PREF_HARMONY = "harmony";
     private String activePackage = PACKAGE_SPORT_WATCH;
     private boolean packageFallbackTried = false;
+    // Set once the watch has answered under the current package: never switch away from it after that.
+    private boolean packageConfirmed = false;
     private final android.os.Handler handler = new android.os.Handler(android.os.Looper.getMainLooper());
 
     private void loadActivePackage() {
@@ -77,6 +79,7 @@ public class HuaweiP2PGolfService extends HuaweiBaseP2PService {
     }
 
     private void rememberActivePackage() {
+        packageConfirmed = true;
         try {
             nodomain.freeyourgadget.gadgetbridge.GBApplication
                     .getDeviceSpecificSharedPrefs(manager.getSupportProvider().getDeviceMac())
@@ -90,7 +93,7 @@ public class HuaweiP2PGolfService extends HuaweiBaseP2PService {
 
     /** Switches to the other golf package once; returns false if that was already tried. */
     private boolean switchPackageOnce() {
-        if (packageFallbackTried) return false;
+        if (packageFallbackTried || packageConfirmed) return false;
         packageFallbackTried = true;
         activePackage = PACKAGE_SPORT_WATCH.equals(activePackage) ? PACKAGE_HARMONY_WATCH : PACKAGE_SPORT_WATCH;
         currentPackage = activePackage;
@@ -217,6 +220,24 @@ public class HuaweiP2PGolfService extends HuaweiBaseP2PService {
             if (collectingList && listCollector.size() >= courseCount) {
                 collectingList = false;
                 broadcastCourseList();
+            }
+        } else if (type == TYPE_COURSE_FILE) {
+            final int state = data.length >= HEADER_SIZE + 4
+                    ? ByteBuffer.wrap(data, HEADER_SIZE, 4).order(ByteOrder.LITTLE_ENDIAN).getInt()
+                    : 0;
+            final int courseId = awaitingFileReplyFor;
+            LOG.info("Golf: file reply for course {} (msgId {}): state {}", courseId, msgId, state);
+            rememberActivePackage();
+            awaitingFileReplyFor = -1;
+            if (state == 0) {
+                requestCourseListAndBroadcast();
+            } else {
+                pendingSendId = -1;
+                pendingSendData = null;
+                final Intent err = new Intent(ACTION_GOLF_UPLOAD_ERROR);
+                err.putExtra(EXTRA_GOLF_UPLOAD_ERROR_CODE, GOLF_FILE_ERROR_BASE + state);
+                err.putExtra(EXTRA_GOLF_UPLOAD_COURSE_ID, courseId);
+                LocalBroadcastManager.getInstance(manager.getSupportProvider().getContext()).sendBroadcast(err);
             }
         } else if (type == TYPE_COURSE_PUSH_SHAKE) {
             final int state = data.length >= HEADER_SIZE + 4
@@ -361,6 +382,10 @@ public class HuaweiP2PGolfService extends HuaweiBaseP2PService {
     /** Upload error codes reported for a handshake refusal: base + the watch's state. */
     public static final int GOLF_SHAKE_ERROR_BASE = 1000;
 
+    /** Upload error codes for a refused file: base + the watch's state (1 error, 2 course limit reached). */
+    public static final int GOLF_FILE_ERROR_BASE = 1100;
+    private int awaitingFileReplyFor = -1;
+
     private int shakeMsgId = -1;
     private int shakeCourseId = -1;
     private Runnable shakeNext;
@@ -441,9 +466,17 @@ public class HuaweiP2PGolfService extends HuaweiBaseP2PService {
             @Override public void onUploadProgress(int progress) { LOG.info("Golf course file upload: progress {}", progress); }
             @Override public void onUploadComplete() {
                 LOG.info("Golf course file upload: COMPLETE for course {}", courseId);
-                // Re-query AND broadcast, so the UI list refreshes exactly when the course is
-                // actually registered on the watch (the upload takes a few seconds).
-                requestCourseListAndBroadcast();
+                // The watch registers the course after the transfer and then sends a type-11 reply
+                // (Huawei Health waits for it). Refresh the list on that reply; if it never comes,
+                // refresh anyway after a while.
+                awaitingFileReplyFor = courseId;
+                handler.postDelayed(() -> {
+                    if (awaitingFileReplyFor == courseId) {
+                        LOG.warn("Golf: no file reply for course {} after 8 s; refreshing the list", courseId);
+                        awaitingFileReplyFor = -1;
+                        requestCourseListAndBroadcast();
+                    }
+                }, 8000);
             }
             @Override public void onError(int code) {
                 LOG.warn("Golf course file upload: ERROR {} for course {}", code, courseId);

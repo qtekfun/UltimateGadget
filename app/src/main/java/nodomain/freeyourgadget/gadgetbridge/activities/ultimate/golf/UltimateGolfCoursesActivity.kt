@@ -101,11 +101,16 @@ class UltimateGolfCoursesActivity : AppCompatActivity() {
             pendingAction = ""
             pendingCourseId = null
             val shake = code - HuaweiP2PGolfService.GOLF_SHAKE_ERROR_BASE
-            status = when (shake) {
-                2 -> getString(R.string.ult_golf_shake_no_space, labelFor(id))
-                4 -> getString(R.string.ult_golf_shake_in_use, labelFor(id))
-                3, 5 -> getString(R.string.ult_golf_shake_refused, labelFor(id), shake)
-                else -> getString(R.string.ult_golf_upload_failed, labelFor(id), code)
+            val file = code - HuaweiP2PGolfService.GOLF_FILE_ERROR_BASE
+            status = when {
+                file == 2 -> getString(R.string.ult_golf_max_courses, labelFor(id))
+                file == 1 -> getString(R.string.ult_golf_shake_refused, labelFor(id), file)
+                else -> when (shake) {
+                    2 -> getString(R.string.ult_golf_shake_no_space, labelFor(id))
+                    4 -> getString(R.string.ult_golf_shake_in_use, labelFor(id))
+                    3, 5 -> getString(R.string.ult_golf_shake_refused, labelFor(id), shake)
+                    else -> getString(R.string.ult_golf_upload_failed, labelFor(id), code)
+                }
             }
             Toast.makeText(this@UltimateGolfCoursesActivity, status, Toast.LENGTH_LONG).show()
             // Drop the optimistic row added when the send started.
