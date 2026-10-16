@@ -757,6 +757,10 @@
     <string name="ult_withings_hand_activity">Activity</string>
     <string name="ult_withings_move_fine">One step at a time</string>
     <string name="ult_withings_move_coarse">Ten steps</string>
+    <string name="ult_withings_back_1" translatable="false">‹  −1</string>
+    <string name="ult_withings_forward_1" translatable="false">+1  ›</string>
+    <string name="ult_withings_back_10" translatable="false">‹‹  −10</string>
+    <string name="ult_withings_forward_10" translatable="false">+10  ››</string>
     <string name="withings_scanwatch_wear_location">Wrist</string>
     <string name="withings_scanwatch_quicklook">Quick look</string>
     <string name="withings_scanwatch_quicklook_summary">Light up the screen when you raise your wrist</string>
