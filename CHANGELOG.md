@@ -2,6 +2,10 @@
 
 <!-- For contributors: do not modify this file - the project maintainers will update it as needed -->
 
+#### 0.115.20
+
+* Spanish translation of the offline maps and routes screens and of some Huawei settings headers that were still in English
+
 #### 0.115.19
 
 * Device settings: fixed the bug behind the many "Not available on this screen" rows. The preference parser read each list's entries and defaults after skipping its content, so lists came out empty; every list, multi-choice and sortable option now shows its real choices and default
