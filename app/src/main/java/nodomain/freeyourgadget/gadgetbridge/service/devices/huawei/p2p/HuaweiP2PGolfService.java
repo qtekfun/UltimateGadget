@@ -52,6 +52,12 @@ public class HuaweiP2PGolfService extends HuaweiBaseP2PService {
     public static final String PACKAGE_SPORT_WATCH = "com.huawei.health.wear.golf";
     public static final String PACKAGE_HARMONY_WATCH = "com.huawei.sport.workout";
 
+    // Identity of the watch-side app. Sport watches use the system app; HarmonyOS-family watches
+    // want the fingerprint of the sport workout app (an app identifier, not a credential).
+    public static final String FINGERPRINT_SPORT_WATCH = "SystemApp";
+    public static final String FINGERPRINT_HARMONY_WATCH =
+            "com.huawei.sport.workout_BO2t/bvVsvJi32wxoQnpxZwLsOp31g7NVRM5bgxjEyD+7UzFWoNcyB8VkMgg0fABbknE4tU+Y34vfAzpSD8TJ5g=";
+
     private String currentPackage = PACKAGE_SPORT_WATCH;
 
     // Golf runs under a different package on sport watches (GT family) and on HarmonyOS-family
@@ -119,7 +125,7 @@ public class HuaweiP2PGolfService extends HuaweiBaseP2PService {
 
     @Override
     public String getFingerprint() {
-        return "SystemApp";
+        return PACKAGE_HARMONY_WATCH.equals(currentPackage) ? FINGERPRINT_HARMONY_WATCH : FINGERPRINT_SPORT_WATCH;
     }
 
     @Override
