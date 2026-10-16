@@ -84,6 +84,22 @@ class UltimateGolfCoursesActivity : AppCompatActivity() {
     data class CourseItem(val courseId: Int, val version: Int)
 
     private var device: GBDevice? = null
+    // The GBDevice mutates in place, so bump this on each ACTION_DEVICE_CHANGED to recompose and
+    // re-read the live connection state (the copy from the launch intent goes stale).
+    private var deviceRefresh by mutableStateOf(0)
+
+    private val deviceReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            val addr = device?.address ?: return
+            val live = (application as GBApplication).deviceManager.devices.firstOrNull { it.address == addr }
+            if (live != null) {
+                val wasInitialized = device?.isInitialized == true
+                device = live
+                deviceRefresh++
+                if (!wasInitialized && live.isInitialized) requestList()
+            }
+        }
+    }
     private var items by mutableStateOf<List<CourseItem>>(emptyList())
     private var loaded by mutableStateOf(false)
     private var status by mutableStateOf("")
@@ -185,16 +201,18 @@ class UltimateGolfCoursesActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        device = intent.getParcelableExtra(GBDevice.EXTRA_DEVICE)
+        val extra = intent.getParcelableExtra<GBDevice>(GBDevice.EXTRA_DEVICE)
+        device = extra?.let { e -> (application as GBApplication).deviceManager.devices.firstOrNull { it.address == e.address } ?: e }
         loadNames()
         setContent {
             UltimateTheme {
                 DisposableEffect(Unit) {
                     val lbm = LocalBroadcastManager.getInstance(this@UltimateGolfCoursesActivity)
                     lbm.registerReceiver(listReceiver, IntentFilter(HuaweiP2PGolfService.ACTION_GOLF_COURSE_LIST))
+                    lbm.registerReceiver(deviceReceiver, IntentFilter(GBDevice.ACTION_DEVICE_CHANGED))
                     lbm.registerReceiver(uploadErrorReceiver, IntentFilter(HuaweiP2PGolfService.ACTION_GOLF_UPLOAD_ERROR))
                     requestList()
-                    onDispose { lbm.unregisterReceiver(listReceiver); lbm.unregisterReceiver(uploadErrorReceiver) }
+                    onDispose { lbm.unregisterReceiver(listReceiver); lbm.unregisterReceiver(uploadErrorReceiver); lbm.unregisterReceiver(deviceReceiver) }
                 }
                 GolfScreen()
             }
@@ -350,7 +368,7 @@ class UltimateGolfCoursesActivity : AppCompatActivity() {
                         Modifier
                             .fillMaxWidth()
                             .background(palette.primary, RoundedCornerShape(16.dp))
-                            .clickable(enabled = device?.isInitialized == true) { pickBin.launch(arrayOf("*/*")) }
+                            .clickable(enabled = deviceRefresh >= 0 && device?.isInitialized == true) { pickBin.launch(arrayOf("*/*")) }
                             .padding(vertical = 14.dp),
                         contentAlignment = Alignment.Center,
                     ) {
@@ -362,7 +380,7 @@ class UltimateGolfCoursesActivity : AppCompatActivity() {
                                 .fillMaxWidth()
                                 .padding(top = 8.dp)
                                 .background(palette.surfaceContainer, RoundedCornerShape(16.dp))
-                                .clickable(enabled = device?.isInitialized == true) {
+                                .clickable(enabled = deviceRefresh >= 0 && device?.isInitialized == true) {
                                     pickFromCatalog.launch(Intent(this@UltimateGolfCoursesActivity, UltimateGolfCatalogActivity::class.java))
                                 }
                                 .padding(vertical = 14.dp),
@@ -392,7 +410,7 @@ class UltimateGolfCoursesActivity : AppCompatActivity() {
                     Box(Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
                         Text(
                             if (!loaded) stringResource(R.string.ult_loading)
-                            else if (device?.isInitialized != true) stringResource(R.string.ult_watch_not_connected)
+                            else if (deviceRefresh >= 0 && device?.isInitialized != true) stringResource(R.string.ult_watch_not_connected)
                             else stringResource(R.string.ult_golf_no_courses),
                             color = palette.onSurfaceVariant,
                         )
