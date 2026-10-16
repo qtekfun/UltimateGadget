@@ -220,7 +220,10 @@ object DslSettingsConverter {
             val title = item.titleText ?: str(ctx, item.title).orEmpty()
             val summary = runCatching { item.summaryProvider?.invoke(ctx, prefs)?.toString() }.getOrNull()
                 ?: str(ctx, item.summary)
-            item.onClick?.let { actions[item.key] = it }
+            // An action with nothing to run is a help or warning line, not a button.
+            if (item.onClick == null && title.isBlank() && summary == null) return emptyList() // separator
+            if (item.onClick == null) return listOf(PrefNode.Info(item.key, summary, title, item.icon))
+            actions[item.key] = item.onClick
             listOf(PrefNode.Action(key = item.key, title = title, summary = summary, iconRes = item.icon))
         }
 

@@ -36,6 +36,9 @@ import org.slf4j.LoggerFactory
  * {@code onSendConfiguration(key)} event. No preference key, default or change-handling path is
  * reinvented here.
  */
+/** What an XML `<intent>` child of a preference asks to launch. */
+data class LaunchSpec(val targetClass: String?, val action: String?, val data: String?)
+
 sealed interface PrefNode {
     /** A section header (maps to an androidx {@code PreferenceCategory}). */
     data class Category(val title: String) : PrefNode
@@ -104,6 +107,8 @@ sealed interface PrefNode {
         val title: String,
         val summary: String?,
         val iconRes: Int,
+        /** The `<intent>` the XML row carries, if any: an activity to open or a link to view. */
+        val launch: LaunchSpec? = null,
     ) : PrefNode
 
     /** A multi-choice list (MultiSelectListPreference); persisted as a string set. */
@@ -370,6 +375,9 @@ object DeviceSettingsParser {
      * Reads all direct children of the element the parser is currently positioned on (a START_TAG),
      * stopping at that element's matching END_TAG.
      */
+    /** The `<intent>` last seen inside the element being parsed (read right after its subtree). */
+    private var lastIntent: LaunchSpec? = null
+
     private fun parseContainer(parser: XmlResourceParser, res: Resources): List<PrefNode> {
         val out = ArrayList<PrefNode>()
         val depth = parser.depth
@@ -377,7 +385,13 @@ object DeviceSettingsParser {
             val ev = parser.next()
             if (ev == XmlPullParser.END_DOCUMENT) break
             if (ev == XmlPullParser.END_TAG && parser.depth == depth) break
-            if (ev == XmlPullParser.START_TAG) {
+            if (ev == XmlPullParser.START_TAG && parser.name == "intent") {
+                lastIntent = LaunchSpec(
+                    parser.getAttributeValue(ANDROID_NS, "targetClass"),
+                    parser.getAttributeValue(ANDROID_NS, "action"),
+                    parser.getAttributeValue(ANDROID_NS, "data"),
+                )
+            } else if (ev == XmlPullParser.START_TAG) {
                 out.addAll(parseElement(parser, res))
             }
         }
@@ -409,7 +423,10 @@ object DeviceSettingsParser {
         }
 
         // Consume (and parse) this element's subtree now; leaves yield an empty list.
+        lastIntent = null
         val children = parseContainer(parser, res)
+        val launch = lastIntent
+        lastIntent = null
 
         return when {
             simple == "PreferenceScreen" ->
@@ -502,9 +519,9 @@ object DeviceSettingsParser {
             simple == "Preference" -> {
                 when {
                     // A title-less row that only carries a summary is an informational note.
-                    title.isEmpty() && !summary.isNullOrEmpty() -> listOf(PrefNode.Info(key, summary, "", icon))
-                    title.isEmpty() -> emptyList()
-                    else -> listOf(PrefNode.Action(key, title, summary, icon))
+                    title.isEmpty() && !summary.isNullOrEmpty() && launch == null -> listOf(PrefNode.Info(key, summary, "", icon))
+                    title.isEmpty() && launch == null -> emptyList()
+                    else -> listOf(PrefNode.Action(key, title.ifEmpty { summary.orEmpty() }, if (title.isEmpty()) null else summary, icon, launch))
                 }
             }
 
