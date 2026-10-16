@@ -115,6 +115,8 @@ class FtpFileBrowserActivity : AbstractGBActivity(), MenuProvider {
 
     override fun onStart() {
         super.onStart()
+        // onCreate finishes early (and never sets this up) when the watch has no FTP session yet.
+        if (!::sessionScreen.isInitialized) return
         sessionScreen.runWhenReady({ list(path) }, { finish() })
     }
 
