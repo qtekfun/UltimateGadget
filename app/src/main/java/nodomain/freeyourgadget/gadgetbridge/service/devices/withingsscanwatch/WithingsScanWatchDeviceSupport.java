@@ -64,6 +64,19 @@ public class WithingsScanWatchDeviceSupport extends WithingsSteelHRDeviceSupport
     public static final String PREF_AFIB_DAY = "withings_scanwatch_afib_day";
     public static final String PREF_AFIB_NIGHT = "withings_scanwatch_afib_night";
 
+    /**
+     * Makes the watch forget its pairing, as the official app's "dissociate" does, so it can be paired
+     * with another phone. The commands are sent at once, in order and with no answer expected, and
+     * the link is closed a moment later.
+     */
+    @Override
+    public void onFactoryReset() {
+        for (final WithingsMessage message : ScanWatchDissociation.messages()) {
+            sendToDevice(message);
+        }
+        new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(this::disconnect, 2000);
+    }
+
     private final StoredMeasureCollector measureCollector = new StoredMeasureCollector();
     private int deleteRequestId;
 

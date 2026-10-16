@@ -462,6 +462,8 @@
     <string name="ult_close">Close</string>
     <string name="ult_forget_fmt">Forget “%1$s”</string>
     <string name="ult_forget_msg">The device will be removed from UltimateGadget, unpaired from Bluetooth and its synced data will be deleted. This action cannot be undone.</string>
+    <string name="ult_forget_resets">The watch will also be reset, so it can be paired with another phone.</string>
+    <string name="ult_forget_offline">The watch is not connected, so it cannot be reset now. Connect it first, or reset it by hand before pairing it with another phone.</string>
     <string name="ult_forget">Forget</string>
     <string name="ult_deleting">Deleting…</string>
 

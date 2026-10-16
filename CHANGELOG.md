@@ -2,6 +2,10 @@
 
 <!-- For contributors: do not modify this file - the project maintainers will update it as needed -->
 
+#### 0.115.28
+
+* Withings ScanWatch: **forgetting the watch in the app now resets it too**, with the same two commands the official app sends when it dissociates the product (checked on a capture), so the watch is ready to be paired with another phone and no reset by hand is needed. The confirmation says so; if the watch is not connected it says it cannot be reset now. As before, the Bluetooth pairing of the phone is removed too
+
 #### 0.115.27
 
 * **One format for the ECGs and SpO2 readings of every watch.** The app now has its own common record for them: each brand's sensor is adapted to it, and one **Health measurements** screen lists them all, newest first, with the ECG strip, the average heart rate and what the watch itself concluded. Withings ScanWatch and Huawei are connected (Huawei ECGs are listed once a watch has stored some; their result codes are shown as codes until they are verified on real recordings). Another brand only needs a small adapter
