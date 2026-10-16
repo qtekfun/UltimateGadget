@@ -6,6 +6,9 @@
 
 * Device settings: brought back the **Authentication** screen (Huawei account id, authentication keys), which the new settings screen had dropped, together with the other generic screens: activity info, developer options and the experimental ones
 * The battery-history row summary is now translated
+* Golf: **sending courses to the HUAWEI WATCH Ultimate 2 now works**. The app follows the same steps as Huawei Health: the handshake carries the course version, it waits for the watch's answer (and shows a clear message if the watch has no space, the course is in use or the course limit is reached), uploads the file, and waits for the watch to confirm before reading the list back. Course-list requests use fresh message ids, which fixes the list never loading
+* Golf: once a watch has answered under a golf package the app never switches to the other one, which used to leave every later request stuck after a successful send
+* Golf courses screen: new **refresh** button, a **progress bar while deleting** courses (it reads the watch's list until they are gone), and it follows the real connection state instead of showing "watch not connected" until reopened
 
 #### 0.115.23
 
