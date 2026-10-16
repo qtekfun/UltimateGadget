@@ -80,5 +80,11 @@ public class WithingsStructureType {
 
     public static final short STORED_SIGNAL_META = 323;
 
+    public static final short STORED_MEASURE_META = 278;
+    public static final short STORED_MEASURE_DATA = 279;
+    public static final short STORED_SIGNAL_DATA = 324;
+    public static final short STORED_SIGNAL_META_EXTEND = 326;
+    public static final short STORED_MEASURE_DATA_EXTEND = 329;
+
     private WithingsStructureType() {}
 }

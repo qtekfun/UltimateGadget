@@ -29,12 +29,24 @@ public class StoredSignalMeta extends WithingsStructure {
     private int size;
     private int resolution;
     private int channel;
+    private byte[] rawPayload;
 
     public StoredSignalMeta() {
     }
 
     public StoredSignalMeta(final int type) {
         this.type = type;
+    }
+
+    /** The exact bytes the watch sent; echoed back to delete the measurement it belongs to. */
+    public byte[] getRawPayload() {
+        return rawPayload;
+    }
+
+    public static StoredSignalMeta fromRaw(final byte[] payload) {
+        final StoredSignalMeta meta = new StoredSignalMeta();
+        meta.fillFromRawData(payload);
+        return meta;
     }
 
     public int getSignalType() {
@@ -68,6 +80,10 @@ public class StoredSignalMeta extends WithingsStructure {
 
     @Override
     protected void fillinTypeSpecificData(ByteBuffer buffer) {
+        if (rawPayload != null) {
+            buffer.put(rawPayload);
+            return;
+        }
         buffer.putShort((short) type);
         buffer.putShort((short) samplingFreq);
         buffer.put((byte) format);
@@ -81,6 +97,8 @@ public class StoredSignalMeta extends WithingsStructure {
         if (buffer.remaining() < 8) {
             return;
         }
+        rawPayload = new byte[8];
+        buffer.duplicate().get(rawPayload);
         type = buffer.getShort() & 0xffff;
         samplingFreq = buffer.getShort() & 0xffff;
         format = buffer.get() & 0xff;
