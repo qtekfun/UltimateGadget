@@ -162,13 +162,13 @@ class UltimateWithingsCalibrationActivity : ComponentActivity() {
                 ) {
                     Text(stringResource(R.string.ult_withings_move_fine), color = palette.secondary, style = MaterialTheme.typography.labelMedium)
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        FilledTonalButton(enabled = connected, onClick = { move(hand, -1) }) { Text("‹  −1") }
-                        FilledTonalButton(enabled = connected, onClick = { move(hand, 1) }) { Text("+1  ›") }
+                        FilledTonalButton(enabled = connected, onClick = { move(hand, -1) }) { Text(stringResource(R.string.ult_withings_back_1)) }
+                        FilledTonalButton(enabled = connected, onClick = { move(hand, 1) }) { Text(stringResource(R.string.ult_withings_forward_1)) }
                     }
                     Text(stringResource(R.string.ult_withings_move_coarse), color = palette.secondary, style = MaterialTheme.typography.labelMedium)
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        FilledTonalButton(enabled = connected, onClick = { move(hand, -10) }) { Text("‹‹  −10") }
-                        FilledTonalButton(enabled = connected, onClick = { move(hand, 10) }) { Text("+10  ››") }
+                        FilledTonalButton(enabled = connected, onClick = { move(hand, -10) }) { Text(stringResource(R.string.ult_withings_back_10)) }
+                        FilledTonalButton(enabled = connected, onClick = { move(hand, 10) }) { Text(stringResource(R.string.ult_withings_forward_10)) }
                     }
                 }
                 Button(onClick = { finish() }, modifier = Modifier.fillMaxWidth()) {
