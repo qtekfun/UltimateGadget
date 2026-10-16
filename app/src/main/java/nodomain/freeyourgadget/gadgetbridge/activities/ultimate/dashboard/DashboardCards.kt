@@ -19,6 +19,7 @@ package nodomain.freeyourgadget.gadgetbridge.activities.ultimate.dashboard
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.theme.MetricValueStyle
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -158,15 +159,33 @@ fun HeartCard(data: HeartData?, onClick: () -> Unit) {
                     Spacer(Modifier.width(6.dp))
                     Text(stringResource(R.string.ult_bpm), style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 4.dp))
                 }
-                Text(stringResource(R.string.ult_resting_bpm, data.restingBpm), style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
+                if (data.restingBpm > 0) {
+                    Text(stringResource(R.string.ult_resting_bpm, data.restingBpm), style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
+                }
             }
             Column(horizontalAlignment = Alignment.End) {
-                Text("${data.spo2}%", style = MaterialTheme.typography.headlineSmall, color = scheme.secondary, fontWeight = FontWeight.Bold)
+                Text(if (data.spo2 > 0) "${data.spo2}%" else "--", style = MaterialTheme.typography.headlineSmall, color = scheme.secondary, fontWeight = FontWeight.Bold)
                 Text(stringResource(R.string.ult_spo2), style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
             }
         }
         Spacer(Modifier.height(10.dp))
         Sparkline(values = data.recent.map { it.toFloat() }, color = scheme.error)
+        data.ecg?.let { ecg ->
+            val context = androidx.compose.ui.platform.LocalContext.current
+            Spacer(Modifier.height(10.dp))
+            Text(
+                stringResource(
+                    R.string.ult_health_last_ecg,
+                    nodomain.freeyourgadget.gadgetbridge.activities.ultimate.health.UltimateHealthMeasurementsActivity.ecgLabel(ecg.classification, ecg.rawCode),
+                    java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.SHORT, java.text.DateFormat.SHORT).format(java.util.Date(ecg.timestampSec * 1000)),
+                ),
+                style = MaterialTheme.typography.bodyMedium,
+                color = scheme.secondary,
+                modifier = Modifier.clickable {
+                    context.startActivity(nodomain.freeyourgadget.gadgetbridge.activities.ultimate.health.UltimateHealthMeasurementsActivity.intent(context))
+                },
+            )
+        }
     }
 }
 

@@ -56,6 +56,15 @@ data class HeartData(
     val spo2: Int,
     /** Recent readings for the mini chart. */
     val recent: List<Int>,
+    /** The newest ECG of any watch that makes them, for the line under the metrics. */
+    val ecg: EcgTile? = null,
+)
+
+/** What the home tile needs of an ECG: when, and what the watch concluded. */
+data class EcgTile(
+    val timestampSec: Long,
+    val classification: nodomain.freeyourgadget.gadgetbridge.activities.ultimate.health.EcgClassification,
+    val rawCode: Long?,
 )
 
 data class SleepStressData(

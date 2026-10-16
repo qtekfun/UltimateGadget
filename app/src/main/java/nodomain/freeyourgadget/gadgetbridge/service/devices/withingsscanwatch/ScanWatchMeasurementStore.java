@@ -21,6 +21,8 @@ import java.util.List;
 
 import nodomain.freeyourgadget.gadgetbridge.database.DBHandler;
 import nodomain.freeyourgadget.gadgetbridge.database.DBHelper;
+import nodomain.freeyourgadget.gadgetbridge.devices.GenericSpo2SampleProvider;
+import nodomain.freeyourgadget.gadgetbridge.entities.GenericSpo2Sample;
 import nodomain.freeyourgadget.gadgetbridge.entities.DaoSession;
 import nodomain.freeyourgadget.gadgetbridge.entities.Device;
 import nodomain.freeyourgadget.gadgetbridge.entities.WithingsScanWatchMeasurement;
@@ -53,7 +55,34 @@ public final class ScanWatchMeasurementStore {
                 verified.add(m);
             }
         }
+        feedSpo2(session, gbDevice, device, userId, measurements);
         return verified;
+    }
+
+    /**
+     * Whether an SpO2 reading may be shown as a value in the health charts: the watch must not have
+     * called it inconclusive, and the value must be one a sensor measured. A reading of exactly 100 %
+     * is how an unusable one looked on a real watch (a placeholder), so it is left out.
+     */
+    public static boolean isChartableSpo2(final StoredMeasurement m) {
+        if (!m.isSpo2() || m.isInconclusiveSpo2()) {
+            return false;
+        }
+        final int tenths = m.spo2Tenths();
+        return tenths >= 700 && tenths < 1000;
+    }
+
+    private static void feedSpo2(final DaoSession session, final GBDevice gbDevice, final Device device, final long userId,
+                                 final List<StoredMeasurement> measurements) {
+        final List<GenericSpo2Sample> samples = new ArrayList<>();
+        for (final StoredMeasurement m : measurements) {
+            if (isChartableSpo2(m)) {
+                samples.add(new GenericSpo2Sample(m.timestamp * 1000L, device.getId(), userId, Math.round(m.spo2Tenths() / 10f)));
+            }
+        }
+        if (!samples.isEmpty()) {
+            new GenericSpo2SampleProvider(gbDevice, session).addSamples(samples);
+        }
     }
 
     public static List<WithingsScanWatchMeasurement> load(final DBHandler db, final GBDevice gbDevice) {
