@@ -29,6 +29,7 @@ import nodomain.freeyourgadget.gadgetbridge.service.devices.withingssteelhr.comm
 import nodomain.freeyourgadget.gadgetbridge.service.devices.withingssteelhr.communication.datastructures.GlanceStatus;
 import nodomain.freeyourgadget.gadgetbridge.service.devices.withingssteelhr.communication.datastructures.LuminosityLevel;
 import nodomain.freeyourgadget.gadgetbridge.service.devices.withingssteelhr.communication.datastructures.ShortcutAction;
+import nodomain.freeyourgadget.gadgetbridge.service.devices.withingssteelhr.communication.datastructures.StoredSignalMeta;
 import nodomain.freeyourgadget.gadgetbridge.service.devices.withingssteelhr.communication.datastructures.TrackerMoveHands;
 import nodomain.freeyourgadget.gadgetbridge.service.devices.withingssteelhr.communication.datastructures.TrackerWearPos;
 import nodomain.freeyourgadget.gadgetbridge.service.devices.withingssteelhr.communication.datastructures.WithingsStructure;
@@ -193,23 +194,13 @@ public class WithingsScanWatchDeviceSupport extends WithingsSteelHRDeviceSupport
      */
     @Override
     protected void addSampleRequests(final long fromSeconds) {
-        for (final int kind : new int[]{6, 5, 9, 8}) {
-            final WithingsMessage message = new WithingsMessage(WithingsMessageType.GET_ACTIVITY_SAMPLES, ExpectedResponse.EOT);
-            message.addDataStructure(new GetActivitySamples(fromSeconds, (short) 0));
-            message.addDataStructure(new VasistasType(kind));
-            addSimpleConversationToQueue(message, getActivitySampleHandler());
+        for (final WithingsMessage request : ScanWatchRequests.sync(fromSeconds)) {
+            // The data requests feed the activity handler; the stored-signal ones are only fetched for now.
+            if (request.getType() == WithingsMessageType.GET_STORED_MEASURE_SIGNAL) {
+                addSimpleConversationToQueue(request);
+            } else {
+                addSimpleConversationToQueue(request, getActivitySampleHandler());
+            }
         }
-        WithingsMessage message = new WithingsMessage(WithingsMessageType.GET_MOVEMENT_SAMPLES, ExpectedResponse.EOT);
-        message.addDataStructure(new GetActivitySamples(fromSeconds, (short) 0));
-        message.addDataStructure(new TypeVersion((byte) 3));
-        addSimpleConversationToQueue(message, getActivitySampleHandler());
-        message = new WithingsMessage(WithingsMessageType.GET_MOVEMENT_SAMPLES, ExpectedResponse.EOT);
-        message.addDataStructure(new GetActivitySamples(fromSeconds, (short) 0));
-        message.addDataStructure(new VasistasType(4));
-        addSimpleConversationToQueue(message, getActivitySampleHandler());
-        message = new WithingsMessage(WithingsMessageType.GET_HEARTRATE_SAMPLES, ExpectedResponse.EOT);
-        message.addDataStructure(new GetActivitySamples(fromSeconds, (short) 0));
-        message.addDataStructure(new TypeVersion());
-        addSimpleConversationToQueue(message, getActivitySampleHandler());
     }
 }
