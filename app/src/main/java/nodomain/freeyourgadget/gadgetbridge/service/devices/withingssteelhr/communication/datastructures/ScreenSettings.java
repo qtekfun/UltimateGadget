@@ -37,6 +37,15 @@ public class ScreenSettings extends WithingsStructure {
         this.id = id;
     }
 
+    public void setUserId(final int userId) {
+        this.userId = userId;
+    }
+
+    /** The last byte of the entry; 1 for every screen except one of the ScanWatch's. */
+    public void setScreenType(final byte type) {
+        this.yetUnkown3 = type;
+    }
+
     public byte getIdOnDevice() {
         return idOnDevice;
     }

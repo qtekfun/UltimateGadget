@@ -757,6 +757,22 @@
     <string name="ult_withings_hand_activity">Activity</string>
     <string name="ult_withings_move_fine">One step at a time</string>
     <string name="ult_withings_move_coarse">Ten steps</string>
+    <string name="ult_withings_measurements">Health measurements</string>
+    <string name="ult_withings_measurements_sub">ECG and SpO2 recordings made on the watch</string>
+    <string name="ult_withings_no_measurements">No measurements yet. Make an ECG or a SpO2 measurement on the watch, then sync.</string>
+    <string name="ult_withings_ecg_title">ECG</string>
+    <string name="ult_withings_spo2_title">Blood oxygen (SpO2)</string>
+    <string name="ult_withings_spo2_inconclusive">Inconclusive reading: the watch could not conclude. Try again, keeping still</string>
+    <string name="ult_withings_spo2_fmt">%1$d.%2$d %%</string>
+    <string name="ult_withings_other_measurement">Measurement %1$s</string>
+    <string name="ult_withings_ecg_normal">Normal sinus rhythm</string>
+    <string name="ult_withings_ecg_no_result">No result from the watch</string>
+    <string name="ult_withings_ecg_unknown">Result code %1$s</string>
+    <string name="ult_withings_hr_fmt">%1$d bpm</string>
+    <string name="ult_withings_signal_fmt">%1$d s at %2$d Hz</string>
+    <string name="ult_withings_not_diagnosis">Informational only. This is not a medical diagnosis.</string>
+    <string name="withings_scanwatch_delete_after_save">Free the watch after saving</string>
+    <string name="withings_scanwatch_delete_after_save_summary">Delete a measurement from the watch once it has been saved and read back here</string>
     <string name="ult_withings_back_1" translatable="false">‹  −1</string>
     <string name="ult_withings_forward_1" translatable="false">+1  ›</string>
     <string name="ult_withings_back_10" translatable="false">‹‹  −10</string>

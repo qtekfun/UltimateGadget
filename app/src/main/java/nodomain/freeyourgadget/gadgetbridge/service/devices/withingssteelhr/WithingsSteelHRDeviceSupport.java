@@ -671,7 +671,7 @@ public class WithingsSteelHRDeviceSupport extends AbstractBTLESingleDeviceSuppor
         return user;
     }
 
-    private void addScreenListCommands() {
+    protected void addScreenListCommands() {
         // TODO: this needs to be more reworked, at the moment for example the notification screen is always on and this is full of magic numbers that need to be identified properly:
         Message message = new WithingsMessage(WithingsMessageType.SET_SCREEN_LIST);
         ScreenSettings settings = new ScreenSettings();
