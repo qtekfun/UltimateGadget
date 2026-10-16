@@ -2,6 +2,11 @@
 
 <!-- For contributors: do not modify this file - the project maintainers will update it as needed -->
 
+#### 0.115.24
+
+* Device settings: brought back the **Authentication** screen (Huawei account id, authentication keys), which the new settings screen had dropped, together with the other generic screens: activity info, developer options and the experimental ones
+* The battery-history row summary is now translated
+
 #### 0.115.23
 
 * Fixed a crash when opening the FTP file browser while the watch has no FTP session yet (it now closes with its "device not ready" message), and the same crash in the workout template list on a device without template support
