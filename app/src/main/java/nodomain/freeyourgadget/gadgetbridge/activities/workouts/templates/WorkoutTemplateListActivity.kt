@@ -103,6 +103,8 @@ class WorkoutTemplateListActivity : AbstractGBActivity() {
 
     override fun onResume() {
         super.onResume()
+        // onCreate finishes early, leaving everything unset, when the device has no template support.
+        if (!::device.isInitialized) return
         LocalBroadcastManager.getInstance(this).registerReceiver(
             syncStateReceiver,
             IntentFilter(WorkoutTemplateRepository.ACTION_SYNC_STATE_CHANGED)
@@ -111,6 +113,7 @@ class WorkoutTemplateListActivity : AbstractGBActivity() {
     }
 
     override fun onPause() {
+        if (!::device.isInitialized) { super.onPause(); return }
         LocalBroadcastManager.getInstance(this).unregisterReceiver(syncStateReceiver)
         super.onPause()
     }
