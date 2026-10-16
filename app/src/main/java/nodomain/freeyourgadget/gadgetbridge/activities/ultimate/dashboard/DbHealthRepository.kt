@@ -53,7 +53,7 @@ class DbHealthRepository(private val app: Application) : HealthRepository {
         return DashboardData(
             steps = runCatching { loadSteps(device) }.getOrNull(),
             lastWorkout = runCatching { loadLastWorkout(device) }.getOrNull(),
-            heart = runCatching { loadHeart(device) }.getOrNull(),
+            heart = runCatching { loadHeartAcrossDevices(device) }.onFailure { android.util.Log.w("DbHealthRepository", "heart tile failed", it) }.getOrNull(),
             sleepStress = runCatching { loadSleepStress(device) }.getOrNull(),
             readiness = runCatching { ReadinessRepository(app).load(device) }.getOrNull(),
             isSample = false,
@@ -100,6 +100,23 @@ class DbHealthRepository(private val app: Application) : HealthRepository {
 
     // ---- Heart rate / SpO2 ------------------------------------------------------------------
 
+    /**
+     * The heart tile is not about one watch: the pulse comes from the first watch that has one, and the
+     * ECG and SpO2 lines from the measurements of every watch (in the app's common format).
+     */
+    private fun loadHeartAcrossDevices(picked: GBDevice): HeartData? {
+        val devices = (app as GBApplication).deviceManager.devices
+        val ordered = listOf(picked) + devices.filter { it !== picked }.sortedByDescending { it.isInitialized }
+        val core = ordered.firstNotNullOfOrNull { d -> runCatching { loadHeart(d) }.getOrNull() }
+        val measured = runCatching {
+            nodomain.freeyourgadget.gadgetbridge.activities.ultimate.health.HealthMeasurements.summary(
+                nodomain.freeyourgadget.gadgetbridge.activities.ultimate.health.HealthMeasurements.loadAll(app),
+            )
+        }.getOrNull()
+        return mergeMeasurements(core, measured)
+    }
+
+
     private fun loadHeart(device: GBDevice): HeartData? {
         GBApplication.acquireDB().use { db ->
             val session = db.daoSession
@@ -117,7 +134,7 @@ class DbHealthRepository(private val app: Application) : HealthRepository {
                 coordinator.getHeartRateRestingSampleProvider(device, session)?.latestSample?.heartRate
             }.getOrNull()?.takeIf { it in 1..250 }
 
-            val spo2 = runCatching {
+            val providerSpo2 = runCatching {
                 coordinator.getSpo2SampleProvider(device, session)?.latestSample?.spo2
             }.getOrNull()?.takeIf { it in 1..100 }
 
@@ -133,6 +150,7 @@ class DbHealthRepository(private val app: Application) : HealthRepository {
             }.getOrNull()
 
             val current = lastKnownHr ?: resting
+            val spo2 = providerSpo2
             if (current == null && resting == null && spo2 == null) return null
             return HeartData(
                 currentBpm = current ?: 0,
@@ -225,4 +243,18 @@ class DbHealthRepository(private val app: Application) : HealthRepository {
     companion object {
         private val DATE_FMT = SimpleDateFormat("d MMM HH:mm", Locale.getDefault())
     }
+}
+
+/**
+ * Puts the on-demand readings of every watch (ECG, SpO2) on the heart tile: the SpO2 of the pulse watch
+ * wins; otherwise the newest SpO2 reading that has a value (in whole percent) is used.
+ */
+internal fun mergeMeasurements(
+    core: HeartData?,
+    measured: nodomain.freeyourgadget.gadgetbridge.activities.ultimate.health.HealthSummary?,
+): HeartData? {
+    val spo2 = core?.spo2?.takeIf { it > 0 } ?: measured?.lastSpo2?.tenthsOfPercent?.let { (it + 5) / 10 }
+    val ecg = measured?.lastEcg?.let { EcgTile(it.timestampSec, it.classification, it.rawCode) }
+    if (core == null && spo2 == null && ecg == null) return null
+    return (core ?: HeartData(0, 0, 0, emptyList())).copy(spo2 = spo2 ?: 0, ecg = ecg)
 }

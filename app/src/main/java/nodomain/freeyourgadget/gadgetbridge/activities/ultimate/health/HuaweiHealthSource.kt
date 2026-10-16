@@ -30,7 +30,18 @@ import nodomain.freeyourgadget.gadgetbridge.impl.GBDevice
  * mapping of Huawei's codes to names has been verified against real recordings yet.
  */
 object HuaweiHealthSource : HealthMeasurementSource {
-    override fun supports(device: GBDevice): Boolean = device.deviceCoordinator is HuaweiCoordinator
+    /** Only watches that have stored an ECG: there is no flag that says a Huawei watch can make one. */
+    override fun supports(device: GBDevice): Boolean {
+        if (device.deviceCoordinator !is HuaweiCoordinator) return false
+        return runCatching {
+            nodomain.freeyourgadget.gadgetbridge.GBApplication.acquireDB().use { db ->
+                val dev = DBHelper.findDevice(device, db.daoSession) ?: return@use false
+                db.daoSession.huaweiEcgSummarySampleDao.queryBuilder()
+                    .where(HuaweiEcgSummarySampleDao.Properties.DeviceId.eq(dev.id))
+                    .limit(1).count() > 0
+            }
+        }.getOrDefault(false)
+    }
 
     override fun load(db: DBHandler, device: GBDevice): List<HealthMeasurement> {
         val session = db.daoSession

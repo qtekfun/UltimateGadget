@@ -225,14 +225,17 @@ class UltimateHealthMeasurementsActivity : ComponentActivity() {
     companion object {
         /** The app-wide wording for what a watch concluded; also used on the home tile. */
         @Composable
-        fun ecgLabel(m: EcgRecord): String = when (m.classification) {
+        fun ecgLabel(m: EcgRecord): String = ecgLabel(m.classification, m.rawCode)
+
+        @Composable
+        fun ecgLabel(classification: EcgClassification, rawCode: Long?): String = when (classification) {
             EcgClassification.NORMAL -> stringResource(R.string.ult_health_ecg_normal)
             EcgClassification.ATRIAL_FIBRILLATION -> stringResource(R.string.ult_health_ecg_afib)
             EcgClassification.OTHER -> stringResource(R.string.ult_health_ecg_other)
             EcgClassification.INCONCLUSIVE -> stringResource(R.string.ult_health_ecg_inconclusive)
             EcgClassification.UNKNOWN ->
-                if (m.rawCode == null) stringResource(R.string.ult_health_no_result)
-                else stringResource(R.string.ult_health_ecg_unknown, "0x" + java.lang.Long.toHexString(m.rawCode))
+                if (rawCode == null) stringResource(R.string.ult_health_no_result)
+                else stringResource(R.string.ult_health_ecg_unknown, "0x" + java.lang.Long.toHexString(rawCode))
         }
 
         @Composable
