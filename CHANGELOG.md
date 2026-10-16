@@ -5,7 +5,6 @@
 #### 0.115.24
 
 * Device settings: brought back the **Authentication** screen (Huawei account id, authentication keys), which the new settings screen had dropped, together with the other generic screens: activity info, developer options and the experimental ones
-* Golf: when a HarmonyOS-family watch (such as the HUAWEI WATCH Ultimate 2) is addressed under the sport-workout package, the matching app fingerprint is now sent too, as Huawei Health does. Not yet confirmed on a real watch
 * The battery-history row summary is now translated
 
 #### 0.115.23
