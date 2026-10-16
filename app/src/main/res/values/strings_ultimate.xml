@@ -744,6 +744,9 @@
     <string name="ult_golf_cities">Cities</string>
     <string name="ult_no_results">No results</string>
     <string name="ult_golf_upload_failed">Could not send %1$s to the watch (transfer error %2$d)</string>
+    <string name="ult_golf_shake_no_space">The watch has no space left for %1$s</string>
+    <string name="ult_golf_shake_in_use">%1$s is in use on the watch right now</string>
+    <string name="ult_golf_shake_refused">The watch refused %1$s (code %2$d)</string>
     <string name="ult_golf_not_on_watch">%1$s was sent but the watch does not list it (the watch has %2$d course(s)). It may have rejected the file.</string>
     <string name="ult_golf_done_count">%1$s ✓ · the watch has %2$d course(s)</string>
     <string name="ult_options_when_connected">Options appear once the device is connected</string>
