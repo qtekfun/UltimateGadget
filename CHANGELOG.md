@@ -2,6 +2,18 @@
 
 <!-- For contributors: do not modify this file - the project maintainers will update it as needed -->
 
+#### 0.115.25
+
+* **New device: Withings ScanWatch (2020).** It speaks the same protocol as the Steel HR over its own Bluetooth service, so it is recognised as "ScanWatch xx", pairs, sets the time and reads the battery
+* Steps, per-minute activity and heart-rate readings are downloaded with each sync and shown in the app. The ScanWatch only returns stored data when each kind is requested explicitly, as the official app does; the requests were checked byte by byte against a capture of the official app
+* Watch settings: wrist, quick look, automatic or manual brightness, move the hands away, and the long-press shortcut. The app reads them back from the watch on every sync
+* Hands alignment is now a screen of the new interface: pick the hand and move it with the arrows (the watch turns its own hands)
+* Alarms from the app reach the watch, and **Measure heart rate** fetches the readings the watch has stored
+* Health switches: **ECG**, irregular-rhythm alerts, **SpO2** and SpO2 during sleep. The watch accepts them; they are informational and not a medical diagnosis. Downloading and showing the ECG waveform and SpO2 readings is not part of this release yet
+* Notifications reach the watch through the same service the Steel HR uses (the watch subscribes to it); not yet confirmed end to end on a real watch
+* To pair a watch that was used with the official app, first dissociate it there and forget its old pairing in the Android Bluetooth settings
+* The first steps counted before the first sync are not recovered: the watch reports no daily total, only per-minute samples
+
 #### 0.115.24
 
 * Device settings: brought back the **Authentication** screen (Huawei account id, authentication keys), which the new settings screen had dropped, together with the other generic screens: activity info, developer options and the experimental ones
