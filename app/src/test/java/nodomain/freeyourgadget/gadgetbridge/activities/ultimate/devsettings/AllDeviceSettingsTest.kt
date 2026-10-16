@@ -20,6 +20,7 @@ import android.content.Context
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import nodomain.freeyourgadget.gadgetbridge.activities.devicesettings.dsl.ActionSetting
 import nodomain.freeyourgadget.gadgetbridge.activities.devicesettings.dsl.CategorySetting
 import nodomain.freeyourgadget.gadgetbridge.activities.devicesettings.dsl.DeviceSetting
 import nodomain.freeyourgadget.gadgetbridge.activities.devicesettings.dsl.GroupSetting
@@ -94,6 +95,22 @@ class AllDeviceSettingsTest : TestBase() {
     }
 
     @Test
+    fun everyActionRowHasAHandler() {
+        val unhandled = sortedSetOf<String>()
+        for (type in allTypes()) {
+            val built = runCatching { DeviceSettingsTree.build(ctx, deviceOf(type)) }.getOrNull() ?: continue
+            for (a in flatten(built.nodes).filterIsInstance<PrefNode.Action>()) {
+                val k = a.key ?: continue
+                if (k in ActionRouting.editors || k in ActionRouting.nativeScreens || k in built.dslActions ||
+                    k in ActionRouting.CANNED_GENERIC || k == ActionRouting.CANNED_DISMISS_CALL || k in COMMAND_KEYS
+                ) continue
+                unhandled += "$k ($type)"
+            }
+        }
+        assertTrue("Action rows with no handler:\n" + unhandled.joinToString("\n"), unhandled.isEmpty())
+    }
+
+    @Test
     fun noOptionIsLeftAsAHandOffRow() {
         val offenders = buildAll().flatMap { b ->
             flatten(b.nodes.orEmpty()).filterIsInstance<PrefNode.Delegated>().map { "${b.type}: '${it.title}' (${it.key})" }
@@ -107,15 +124,19 @@ class AllDeviceSettingsTest : TestBase() {
         for (type in allTypes()) {
             val device = deviceOf(type)
             val coordinator = runCatching { type.deviceCoordinator }.getOrNull() ?: continue
-            val built = runCatching { DeviceSettingsTree.build(ctx, device).nodes }.getOrNull() ?: continue
-            val present = flatten(built).mapNotNull { keyOf(it) }.toSet()
+            val tree = runCatching { DeviceSettingsTree.build(ctx, device) }.getOrNull() ?: continue
+            // Rows the brand's customizer hides on purpose (unsupported features) are not missing.
+            val present = flatten(tree.nodes).mapNotNull { keyOf(it) }.toSet() + tree.hidden
 
             val declared = mutableSetOf<String>()
             // Settings DSL
             runCatching { coordinator.getDeviceSettings(device) }.getOrNull()?.let { spec ->
                 fun walk(items: List<DeviceSetting>) {
                     for (i in items) {
-                        val skip = i is CategorySetting || i is InfoSetting || i is XmlScreenSetting
+                        // An action with no title, summary or click is only a visual separator.
+                        val separator = i is ActionSetting && i.title == 0 && i.titleText == null &&
+                            i.summary == 0 && i.summaryProvider == null && i.onClick == null
+                        val skip = i is CategorySetting || i is InfoSetting || i is XmlScreenSetting || separator
                         if (!skip && i.key.isNotEmpty()) declared += i.key
                         if (i is XmlScreenSetting) declared += xmlKeys(i.subScreens)
                         if (i is ScreenSetting) declared += xmlKeys(i.xmlSubScreens)
@@ -215,6 +236,12 @@ class AllDeviceSettingsTest : TestBase() {
     }
 
     private companion object {
+        val COMMAND_KEYS = setOf(
+            // Handled by the device support's onSendConfiguration(key).
+            "battery_discharge_intervals_set",
+            // Upstream declares this row but no support code reacts to it (a no-op there as well).
+            "pref_even_realities_g1_screen_calibrate_angle",
+        )
         /**
          * Lists whose options only exist once the watch/headset has connected and reported them
          * (stored in the device preferences). They are shown inert until then, by design.

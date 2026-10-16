@@ -2,6 +2,13 @@
 
 <!-- For contributors: do not modify this file - the project maintainers will update it as needed -->
 
+#### 0.115.21
+
+* Device settings: options a brand hides for unsupported features (for example vibration patterns a watch lacks) are now really hidden; before they were shown anyway
+* Device settings: buttons that the brand's own code wires up (vibration tests and similar) now work, and read-only lines (FTP status and address, Sony and AAWireless help text) show as information, with the FTP values updating live
+* Device settings: rows that open another screen from the XML definition (Withings hands calibration, Fossil configuration and file manager, the Mi Band 6 explanation link) now open it
+* A new test checks that every action row of every device has a handler
+
 #### 0.115.20
 
 * Spanish translation of the offline maps and routes screens and of some Huawei settings headers that were still in English
