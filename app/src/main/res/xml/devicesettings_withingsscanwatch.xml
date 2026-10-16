@@ -40,6 +40,37 @@
         android:key="withings_scanwatch_shortcut_action"
         android:title="@string/withings_scanwatch_shortcut"
         app:useSimpleSummaryProvider="true" />
+    <PreferenceCategory android:title="@string/withings_scanwatch_health_category">
+        <SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:icon="@drawable/ic_heartrate"
+            android:key="withings_scanwatch_ecg"
+            android:summary="@string/withings_scanwatch_ecg_summary"
+            android:title="@string/withings_scanwatch_ecg" />
+        <SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:dependency="withings_scanwatch_ecg"
+            android:key="withings_scanwatch_afib_day"
+            android:summary="@string/withings_scanwatch_afib_summary"
+            android:title="@string/withings_scanwatch_afib_day" />
+        <SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:dependency="withings_scanwatch_ecg"
+            android:key="withings_scanwatch_afib_night"
+            android:summary="@string/withings_scanwatch_afib_summary"
+            android:title="@string/withings_scanwatch_afib_night" />
+        <SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:icon="@drawable/ic_heartrate"
+            android:key="withings_scanwatch_spo2"
+            android:summary="@string/withings_scanwatch_spo2_summary"
+            android:title="@string/withings_scanwatch_spo2" />
+        <SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:dependency="withings_scanwatch_spo2"
+            android:key="withings_scanwatch_spo2_sleep"
+            android:title="@string/withings_scanwatch_spo2_sleep" />
+    </PreferenceCategory>
     <Preference
         android:icon="@drawable/ic_sensor_calibration"
         android:key="hands_calibration"

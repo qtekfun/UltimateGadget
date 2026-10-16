@@ -54,6 +54,11 @@ public class WithingsScanWatchDeviceSupport extends WithingsSteelHRDeviceSupport
     public static final String PREF_BRIGHTNESS_LEVEL = "withings_scanwatch_brightness_level";
     public static final String PREF_MOVE_HANDS = "withings_scanwatch_move_hands";
     public static final String PREF_SHORTCUT_ACTION = "withings_scanwatch_shortcut_action";
+    public static final String PREF_ECG = "withings_scanwatch_ecg";
+    public static final String PREF_SPO2 = "withings_scanwatch_spo2";
+    public static final String PREF_SPO2_SLEEP = "withings_scanwatch_spo2_sleep";
+    public static final String PREF_AFIB_DAY = "withings_scanwatch_afib_day";
+    public static final String PREF_AFIB_NIGHT = "withings_scanwatch_afib_night";
 
     private SharedPreferences prefs() {
         return GBApplication.getDeviceSpecificSharedPrefs(getDevice().getAddress());
@@ -123,11 +128,32 @@ public class WithingsScanWatchDeviceSupport extends WithingsSteelHRDeviceSupport
                 message = new WithingsMessage(WithingsMessageType.SET_SHORTCUT, new ShortcutAction(action));
                 break;
             }
+            case PREF_ECG:
+            case PREF_SPO2:
+            case PREF_SPO2_SLEEP:
+            case PREF_AFIB_DAY:
+            case PREF_AFIB_NIGHT:
+                sendHealthFeatures(p);
+                return true;
             default:
                 return false;
         }
         conversationSend(message);
         return true;
+    }
+
+    /** Sends the whole health configuration: the tag list, its two commits and the alerts. */
+    private void sendHealthFeatures(final SharedPreferences p) {
+        final boolean ecg = p.getBoolean(PREF_ECG, false);
+        final boolean spo2 = p.getBoolean(PREF_SPO2, false);
+        final boolean spo2Sleep = p.getBoolean(PREF_SPO2_SLEEP, false);
+        final boolean afibDay = p.getBoolean(PREF_AFIB_DAY, false);
+        final boolean afibNight = p.getBoolean(PREF_AFIB_NIGHT, false);
+        addSimpleConversationToQueue(ScanWatchHealthFeatures.featureTagsMessage(ecg, spo2, spo2Sleep, afibDay, afibNight));
+        addSimpleConversationToQueue(new WithingsMessage(WithingsMessageType.COMMIT_FEATURE_TAGS));
+        addSimpleConversationToQueue(new WithingsMessage(WithingsMessageType.COMMIT_NOTIFICATION_CONFIG));
+        addSimpleConversationToQueue(ScanWatchHealthFeatures.localNotificationsMessage(ecg && afibDay, ecg && afibNight, false, false));
+        sendQueue();
     }
 
     private void conversationSend(final WithingsMessage message) {

@@ -765,6 +765,15 @@
     <string name="withings_scanwatch_move_hands">Move the hands away</string>
     <string name="withings_scanwatch_move_hands_summary">Move the hands to 10:10 when the screen turns on</string>
     <string name="withings_scanwatch_shortcut">Long-press shortcut</string>
+    <string name="withings_scanwatch_health_category">Health</string>
+    <string name="withings_scanwatch_ecg">ECG</string>
+    <string name="withings_scanwatch_ecg_summary">Turns on the ECG app of the watch. Readings are informational and are not a medical diagnosis</string>
+    <string name="withings_scanwatch_afib_day">Irregular rhythm alerts (day)</string>
+    <string name="withings_scanwatch_afib_night">Irregular rhythm alerts (night)</string>
+    <string name="withings_scanwatch_afib_summary">Needs the ECG to be turned on</string>
+    <string name="withings_scanwatch_spo2">Blood oxygen (SpO2)</string>
+    <string name="withings_scanwatch_spo2_summary">Turns on SpO2 measurements on the watch</string>
+    <string name="withings_scanwatch_spo2_sleep">Also measure SpO2 during sleep</string>
     <string name="ult_golf_on_watch">ON THE WATCH</string>
     <string name="ult_golf_refresh">Refresh the watch\'s courses</string>
     <string name="ult_golf_refreshing">Reading the course list from the watch…</string>
