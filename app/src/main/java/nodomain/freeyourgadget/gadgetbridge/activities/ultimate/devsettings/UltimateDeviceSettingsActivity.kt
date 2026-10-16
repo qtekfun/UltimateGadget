@@ -109,10 +109,23 @@ class UltimateDeviceSettingsActivity : AppCompatActivity() {
                 startActivity(nodomain.freeyourgadget.gadgetbridge.activities.ultimate.calendar.UltimateCalendarSelectionActivity.intent(this, device))
             "pref_huawei_stress_perform_calibrate" ->
                 startActivity(nodomain.freeyourgadget.gadgetbridge.activities.ultimate.stress.UltimateStressCalibrationActivity.intent(this, device))
+            ActionRouting.CANNED_DISMISS_CALL -> sendCannedMessages(device, "canned_message_dismisscall_", nodomain.freeyourgadget.gadgetbridge.model.CannedMessagesSpec.TYPE_REJECTEDCALLS)
+            ActionRouting.CANNED_GENERIC -> sendCannedMessages(device, "canned_reply_", nodomain.freeyourgadget.gadgetbridge.model.CannedMessagesSpec.TYPE_GENERIC)
+            in ActionRouting.editors -> open(ActionRouting.editors.getValue(key))
             // Command-style actions (send canned messages, debug request, …): fire the same signal
             // the legacy screen's change-handler would, so the device support handles it.
             else -> runCatching { GBApplication.deviceService(device).onSendConfiguration(key) }
         }
+    }
+
+    private fun sendCannedMessages(device: GBDevice, prefix: String, type: Int) {
+        val prefs = GBApplication.getDeviceSpecificSharedPrefs(device.address)
+        val slots = device.deviceCoordinator.getCannedRepliesSlotCount(device)
+        val messages = (1..slots).mapNotNull { prefs.getString(prefix + it, null) }.filter { it.isNotEmpty() }
+        val spec = nodomain.freeyourgadget.gadgetbridge.model.CannedMessagesSpec()
+        spec.type = type
+        spec.cannedMessages = messages.toTypedArray()
+        GBApplication.deviceService(device).onSetCannedMessages(spec)
     }
 
     companion object {

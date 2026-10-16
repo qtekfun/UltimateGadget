@@ -2,6 +2,13 @@
 
 <!-- For contributors: do not modify this file - the project maintainers will update it as needed -->
 
+#### 0.115.19
+
+* Device settings: fixed the bug behind the many "Not available on this screen" rows. The preference parser read each list's entries and defaults after skipping its content, so lists came out empty; every list, multi-choice and sortable option now shows its real choices and default
+* Device settings: world clocks, workout templates, widgets, loyalty cards, internet firewall, multipoint, audio recordings, FTP browser, per-app notifications and the canned-message "send" buttons now work from the new screen
+* Fixed two wrong option lists (wear side on Yawell/Colmi rings, band 9 frequency on Soundcore Motion 300)
+* New tests cover the settings of every supported device: the tree builds, no option is left unhandled, every declared key has a row and every option can be changed and read back; plus Compose UI tests of the settings screen
+
 #### 0.115.18
 
 * Golf: courses could fail to reach HarmonyOS-family watches such as the **HUAWEI WATCH Ultimate 2**, because the golf service always spoke to the sport-watch package. It now remembers which package a watch answers to and, if the watch does not answer or accepts a course without listing it, retries once under the other one. Not yet confirmed on a real Ultimate 2 — if it still fails, the courses screen now shows the reason
