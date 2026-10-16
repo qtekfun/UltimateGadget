@@ -64,5 +64,17 @@ public final class WithingsMessageType {
     public static final short GET_NOTIFICATION = 2404;
     public static final short GET_UNICODE_GLYPH = 2403;
 
+    // ScanWatch settings
+    public static final short SET_TRACKER_WEAR_POS = 0x014F;
+    public static final short GET_TRACKER_WEAR_POS = 0x0150;
+    public static final short SET_SHORTCUT = 0x0989;
+    public static final short GET_SHORTCUT = 0x0992;
+    public static final short GLANCE_SET = 0x0971;
+    public static final short GLANCE_GET = 0x097B;
+    public static final short SET_LUMINOSITY_LEVEL = 0x0941;
+    public static final short GET_LUMINOSITY_LEVEL = 0x0942;
+    public static final short SET_TRACKER_MOVE_HANDS = 0x09AB;
+    public static final short GET_TRACKER_MOVE_HANDS = 0x09AC;
+
     private WithingsMessageType() {}
 }

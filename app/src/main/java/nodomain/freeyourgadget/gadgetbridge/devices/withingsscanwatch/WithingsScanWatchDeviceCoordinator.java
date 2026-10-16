@@ -44,6 +44,11 @@ public class WithingsScanWatchDeviceCoordinator extends WithingsSteelHRDeviceCoo
         return name != null && NAME.matcher(name).matches();
     }
 
+    @Override
+    public int[] getSupportedDeviceSpecificSettings(final GBDevice device) {
+        return new int[]{R.xml.devicesettings_withingsscanwatch};
+    }
+
     @NonNull
     @Override
     public Class<? extends DeviceSupport> getDeviceSupportClass(final GBDevice device) {

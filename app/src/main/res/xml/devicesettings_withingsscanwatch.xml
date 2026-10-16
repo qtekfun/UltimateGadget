@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <ListPreference
+        android:defaultValue="left"
+        android:entries="@array/withings_scanwatch_wear_entries"
+        android:entryValues="@array/withings_scanwatch_wear_values"
+        android:icon="@drawable/ic_watch"
+        android:key="withings_scanwatch_wear_location"
+        android:title="@string/withings_scanwatch_wear_location"
+        app:useSimpleSummaryProvider="true" />
+    <SwitchPreferenceCompat
+        android:defaultValue="false"
+        android:icon="@drawable/ic_touch"
+        android:key="withings_scanwatch_quicklook"
+        android:summary="@string/withings_scanwatch_quicklook_summary"
+        android:title="@string/withings_scanwatch_quicklook" />
+    <SwitchPreferenceCompat
+        android:defaultValue="true"
+        android:icon="@drawable/ic_brightness_auto"
+        android:key="withings_scanwatch_auto_brightness"
+        android:title="@string/withings_scanwatch_auto_brightness" />
+    <SeekBarPreference
+        android:defaultValue="100"
+        android:icon="@drawable/ic_brightness_medium"
+        android:key="withings_scanwatch_brightness_level"
+        android:max="100"
+        android:title="@string/withings_scanwatch_brightness_level" />
+    <SwitchPreferenceCompat
+        android:defaultValue="false"
+        android:icon="@drawable/ic_watch"
+        android:key="withings_scanwatch_move_hands"
+        android:summary="@string/withings_scanwatch_move_hands_summary"
+        android:title="@string/withings_scanwatch_move_hands" />
+    <ListPreference
+        android:defaultValue="0"
+        android:entries="@array/withings_scanwatch_shortcut_entries"
+        android:entryValues="@array/withings_scanwatch_shortcut_values"
+        android:icon="@drawable/ic_touch"
+        android:key="withings_scanwatch_shortcut_action"
+        android:title="@string/withings_scanwatch_shortcut"
+        app:useSimpleSummaryProvider="true" />
+    <Preference
+        android:icon="@drawable/ic_sensor_calibration"
+        android:key="hands_calibration"
+        android:summary="@string/qhybrid_summary_calibration"
+        android:title="@string/qhybrid_title_calibration">
+        <intent
+            android:targetClass="nodomain.freeyourgadget.gadgetbridge.activities.ultimate.withings.UltimateWithingsCalibrationActivity"
+            android:targetPackage="@string/applicationId" />
+    </Preference>
+</androidx.preference.PreferenceScreen>

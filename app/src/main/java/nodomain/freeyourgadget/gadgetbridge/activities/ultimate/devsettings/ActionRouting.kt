@@ -33,6 +33,7 @@ import nodomain.freeyourgadget.gadgetbridge.activities.workouts.templates.Workou
 object ActionRouting {
     /** Preference key -> editor activity, launched with the device as an extra. */
     val editors: Map<String, Class<*>> = mapOf(
+        "hands_calibration" to nodomain.freeyourgadget.gadgetbridge.activities.ultimate.withings.UltimateWithingsCalibrationActivity::class.java,
         "pref_world_clocks" to UltimateWorldClocksActivity::class.java,
         "pref_workout_templates" to WorkoutTemplateListActivity::class.java,
         "pref_widgets" to WidgetScreensListActivity::class.java,

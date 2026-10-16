@@ -68,5 +68,11 @@ public class WithingsStructureType {
     public static final short WORKOUT_SCREEN_LIST = 316;
     public static final short WORKOUT_SCREEN_DATA = 317;
 
+    public static final short SHORTCUT_ACTION = (short) 0x09A1;
+    public static final short GLANCE_STATUS = (short) 0x097A;
+    public static final short LUMINOSITY_LEVEL = (short) 0x0937;
+    public static final short TRACKER_MOVE_HANDS = (short) 0x09BB;
+    public static final short TRACKER_WEAR_POS = (short) 0x012F;
+
     private WithingsStructureType() {}
 }

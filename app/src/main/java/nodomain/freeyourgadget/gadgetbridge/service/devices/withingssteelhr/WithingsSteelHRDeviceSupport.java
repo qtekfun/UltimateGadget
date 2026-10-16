@@ -210,6 +210,9 @@ public class WithingsSteelHRDeviceSupport extends AbstractBTLESingleDeviceSuppor
     private void postConnectInitialization() {
         final TransactionBuilder builder = createTransactionBuilder("delayed initialization");
         builder.notify(getWithingsUUIDs().WITHINGS_WRITE_CHARACTERISTIC_UUID, true);
+        if (getWithingsUUIDs().WITHINGS_NOTIFY_CHARACTERISTIC_UUID != null) {
+            builder.notify(getWithingsUUIDs().WITHINGS_NOTIFY_CHARACTERISTIC_UUID, true);
+        }
         builder.requestMtu(512);
         builder.queue();
     }
@@ -313,6 +316,7 @@ public class WithingsSteelHRDeviceSupport extends AbstractBTLESingleDeviceSuppor
                 addSimpleConversationToQueue(new WithingsMessage(WithingsMessageType.GET_ALARM));
                 addSimpleConversationToQueue(new WithingsMessage(WithingsMessageType.GET_ALARM_ENABLED));
                 addSimpleConversationToQueue(new WithingsMessage(WithingsMessageType.GET_WORKOUT_SCREEN_LIST), new WorkoutScreenListHandler(this));
+                addExtraSyncCommands();
                 addSampleRequests(syncStartSeconds(getLastSyncTimestamp()));
             }
         } catch (Exception e) {
@@ -428,6 +432,9 @@ public class WithingsSteelHRDeviceSupport extends AbstractBTLESingleDeviceSuppor
     @Override
     public void onSendConfiguration(String config) {
         try {
+            if (handleExtraConfiguration(config)) {
+                return;
+            }
             switch (config) {
                 case HuamiConst.PREF_WORKOUT_ACTIVITY_TYPES_SORTABLE:
                     setWorkoutActivityTypes();
@@ -525,6 +532,19 @@ public class WithingsSteelHRDeviceSupport extends AbstractBTLESingleDeviceSuppor
      * Whether a sync that returned no data still moves the "synced up to" marker. Models that only
      * answer well-formed requests must not skip data because an empty answer was a protocol miss.
      */
+    /** Model-specific settings; return true when the key was handled. */
+    protected boolean handleExtraConfiguration(final String config) {
+        return false;
+    }
+
+    /** Model-specific commands of a full sync (typically reads of the watch's settings). */
+    protected void addExtraSyncCommands() {
+    }
+
+    protected void sendQueue() {
+        conversationQueue.send();
+    }
+
     protected long syncStartSeconds(final long lastSyncMillis) {
         return lastSyncMillis / 1000;
     }

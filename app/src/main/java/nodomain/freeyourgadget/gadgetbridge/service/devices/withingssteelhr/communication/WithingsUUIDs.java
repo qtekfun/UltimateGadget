@@ -28,6 +28,8 @@ public final class WithingsUUIDs {
 
     public final UUID WITHINGS_SERVICE_UUID;
     public final UUID WITHINGS_WRITE_CHARACTERISTIC_UUID;
+    /** Second notify characteristic of the service (ScanWatch only); null when the model has none. */
+    public final UUID WITHINGS_NOTIFY_CHARACTERISTIC_UUID;
     public final UUID WITHINGS_APP_CHARACTERISTIC_UUID;
     public final UUID WITHINGS_APP_CHARACTERISTIC2_UUID;
     public final UUID CCC_DESCRIPTOR_UUID = WithingsUUID.CCC_DESCRIPTOR_UUID;
@@ -36,9 +38,10 @@ public final class WithingsUUIDs {
     public final UUID CONTROL_POINT_CHARACTERISTIC_UUID;
     public final UUID DATA_SOURCE_CHARACTERISTIC_UUID;
 
-    private WithingsUUIDs(final String protocolSuffix, final String ancsSuffix) {
+    private WithingsUUIDs(final String protocolSuffix, final String ancsSuffix, final boolean secondNotify) {
         WITHINGS_SERVICE_UUID = uuid("00000020", protocolSuffix);
         WITHINGS_WRITE_CHARACTERISTIC_UUID = uuid("00000024", protocolSuffix);
+        WITHINGS_NOTIFY_CHARACTERISTIC_UUID = secondNotify ? uuid("00000023", protocolSuffix) : null;
         WITHINGS_APP_CHARACTERISTIC_UUID = uuid("10000059", protocolSuffix);
         WITHINGS_APP_CHARACTERISTIC2_UUID = uuid("10000028", protocolSuffix);
         WITHINGS_ANCS_SERVICE_UUID = uuid("10000057", ancsSuffix);
@@ -51,6 +54,6 @@ public final class WithingsUUIDs {
         return UUID.fromString(first + "-5749-5448-" + suffix + "-000000000000");
     }
 
-    public static final WithingsUUIDs STEEL_HR = new WithingsUUIDs("0037", "0037");
-    public static final WithingsUUIDs SCANWATCH = new WithingsUUIDs("005d", "0037");
+    public static final WithingsUUIDs STEEL_HR = new WithingsUUIDs("0037", "0037", false);
+    public static final WithingsUUIDs SCANWATCH = new WithingsUUIDs("005d", "0037", true);
 }
