@@ -1144,9 +1144,9 @@
             android:label="@string/qhybrid_title_calibration"
             android:parentActivityName=".devices.qhybrid.HRConfigActivity" />
         <activity
-            android:name=".activities.ultimate.withings.UltimateWithingsMeasurementsActivity"
+            android:name=".activities.ultimate.health.UltimateHealthMeasurementsActivity"
             android:exported="false"
-            android:label="@string/ult_withings_measurements" />
+            android:label="@string/ult_health_measurements" />
         <activity
             android:name=".activities.ultimate.withings.UltimateWithingsCalibrationActivity"
             android:exported="false"
