@@ -64,7 +64,7 @@ public class WithingsCalibrationActivity extends AbstractGBActivity {
         setContentView(R.layout.activity_withings_calibration);
         List<GBDevice> devices = GBApplication.app().getDeviceManager().getSelectedDevices();
         for(GBDevice device : devices){
-            if(device.getType() == DeviceType.WITHINGS_STEEL_HR ){
+            if (device.getType() == DeviceType.WITHINGS_STEEL_HR || device.getType() == DeviceType.WITHINGS_SCANWATCH) {
                 this.device = device;
                 break;
             }

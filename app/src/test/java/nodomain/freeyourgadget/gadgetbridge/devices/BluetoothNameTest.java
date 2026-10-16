@@ -17,6 +17,7 @@ public class BluetoothNameTest extends TestBase {
     @Test
     public void deviceMatchingByNameTest() {
         final Map<String, DeviceType> bluetoothNameToExpectedType = new HashMap<>() {{
+            put("ScanWatch C6", DeviceType.WITHINGS_SCANWATCH); // ScanWatch (2020), name seen in a capture
             put("AAWireless-xUkL1YH0", DeviceType.AAWIRELESS);
             put("AAWireless-12345abc", DeviceType.AAWIRELESS);
             put("AndroidAuto-AAW12345abc", DeviceType.AAWIRELESS);

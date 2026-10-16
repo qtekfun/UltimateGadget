@@ -62,7 +62,7 @@ import nodomain.freeyourgadget.gadgetbridge.service.btle.GattService;
 import nodomain.freeyourgadget.gadgetbridge.service.btle.ServerTransactionBuilder;
 import nodomain.freeyourgadget.gadgetbridge.service.btle.TransactionBuilder;
 import nodomain.freeyourgadget.gadgetbridge.service.devices.withingssteelhr.activity.WithingsActivityType;
-import nodomain.freeyourgadget.gadgetbridge.service.devices.withingssteelhr.communication.WithingsUUID;
+import nodomain.freeyourgadget.gadgetbridge.service.devices.withingssteelhr.communication.WithingsUUIDs;
 import nodomain.freeyourgadget.gadgetbridge.service.devices.withingssteelhr.communication.conversation.ActivitySampleHandler;
 import nodomain.freeyourgadget.gadgetbridge.service.devices.withingssteelhr.communication.conversation.BatteryStateHandler;
 import nodomain.freeyourgadget.gadgetbridge.service.devices.withingssteelhr.communication.conversation.Conversation;
@@ -135,6 +135,11 @@ public class WithingsSteelHRDeviceSupport extends AbstractBTLESingleDeviceSuppor
     private final IncomingMessageHandlerFactory incomingMessageHandlerFactory;
     private final Handler backgroundTasksHandler = new Handler(Looper.getMainLooper());
 
+    /** The UUID family of this watch; models other than the Steel HR override it. */
+    protected WithingsUUIDs getWithingsUUIDs() {
+        return WithingsUUIDs.STEEL_HR;
+    }
+
     public WithingsSteelHRDeviceSupport() {
         super(logger);
         conversationQueue = new ConversationQueue(this);
@@ -142,7 +147,7 @@ public class WithingsSteelHRDeviceSupport extends AbstractBTLESingleDeviceSuppor
         messageBuilder = new MessageBuilder(this, new MessageFactory(new DataStructureFactory()));
         liveWorkoutHandler = new LiveWorkoutHandler(this);
         incomingMessageHandlerFactory = IncomingMessageHandlerFactory.getInstance(this);
-        addSupportedService(WithingsUUID.WITHINGS_SERVICE_UUID);
+        addSupportedService(getWithingsUUIDs().WITHINGS_SERVICE_UUID);
         addSupportedService(GattService.UUID_SERVICE_GENERIC_ACCESS);
         addSupportedService(GattService.UUID_SERVICE_GENERIC_ATTRIBUTE);
         addANCSService();
@@ -204,7 +209,7 @@ public class WithingsSteelHRDeviceSupport extends AbstractBTLESingleDeviceSuppor
 
     private void postConnectInitialization() {
         final TransactionBuilder builder = createTransactionBuilder("delayed initialization");
-        builder.notify(WithingsUUID.WITHINGS_WRITE_CHARACTERISTIC_UUID, true);
+        builder.notify(getWithingsUUIDs().WITHINGS_WRITE_CHARACTERISTIC_UUID, true);
         builder.requestMtu(512);
         builder.queue();
     }
@@ -253,7 +258,31 @@ public class WithingsSteelHRDeviceSupport extends AbstractBTLESingleDeviceSuppor
         conversationQueue.send();
     }
 
+    protected ActivitySampleHandler getActivitySampleHandler() {
+        return activitySampleHandler;
+    }
+
+    /** Asks the watch for the data stored since {@code fromSeconds}; models override the sequence. */
+    protected void addSampleRequests(final long fromSeconds) {
+        WithingsMessage message = new WithingsMessage(WithingsMessageType.GET_ACTIVITY_SAMPLES, ExpectedResponse.EOT);
+        message.addDataStructure(new GetActivitySamples(fromSeconds, (short) 0));
+        addSimpleConversationToQueue(message, activitySampleHandler);
+        message = new WithingsMessage(WithingsMessageType.GET_MOVEMENT_SAMPLES, ExpectedResponse.EOT);
+        message.addDataStructure(new GetActivitySamples(fromSeconds, (short) 0));
+        message.addDataStructure(new TypeVersion());
+        addSimpleConversationToQueue(message, activitySampleHandler);
+        message = new WithingsMessage(WithingsMessageType.GET_HEARTRATE_SAMPLES, ExpectedResponse.EOT);
+        message.addDataStructure(new GetActivitySamples(fromSeconds, (short) 0));
+        message.addDataStructure(new TypeVersion());
+        addSimpleConversationToQueue(message, activitySampleHandler);
+    }
+
     public void doSync() {
+        doSync(false);
+    }
+
+    /** @param force skip the "synced less than a minute ago" shortcut (a manual sync must fetch). */
+    public void doSync(final boolean force) {
         activitySampleHandler = new ActivitySampleHandler(this);
         conversationQueue.clear();
         try {
@@ -268,7 +297,7 @@ public class WithingsSteelHRDeviceSupport extends AbstractBTLESingleDeviceSuppor
             addSimpleConversationToQueue(new WithingsMessage(WithingsMessageType.GET_BATTERY_STATUS), new BatteryStateHandler(this));
             addSimpleConversationToQueue(new WithingsMessage(WithingsMessageType.SET_TIME, new Time()));
 
-            if (shoudSync()) {
+            if (force || shoudSync()) {
                 logger.debug("Doing full sync...");
                 WithingsMessage message = new WithingsMessage(WithingsMessageType.SET_USER);
                 message.addDataStructure(getUser());
@@ -284,19 +313,7 @@ public class WithingsSteelHRDeviceSupport extends AbstractBTLESingleDeviceSuppor
                 addSimpleConversationToQueue(new WithingsMessage(WithingsMessageType.GET_ALARM));
                 addSimpleConversationToQueue(new WithingsMessage(WithingsMessageType.GET_ALARM_ENABLED));
                 addSimpleConversationToQueue(new WithingsMessage(WithingsMessageType.GET_WORKOUT_SCREEN_LIST), new WorkoutScreenListHandler(this));
-                Calendar c = Calendar.getInstance();
-                c.setTimeInMillis(getLastSyncTimestamp());
-                message = new WithingsMessage(WithingsMessageType.GET_ACTIVITY_SAMPLES, ExpectedResponse.EOT);
-                message.addDataStructure(new GetActivitySamples(c.getTimeInMillis() / 1000, (short) 0));
-                addSimpleConversationToQueue(message, activitySampleHandler);
-                message = new WithingsMessage(WithingsMessageType.GET_MOVEMENT_SAMPLES, ExpectedResponse.EOT);
-                message.addDataStructure(new GetActivitySamples(c.getTimeInMillis() / 1000, (short) 0));
-                message.addDataStructure(new TypeVersion());
-                addSimpleConversationToQueue(message, activitySampleHandler);
-                message = new WithingsMessage(WithingsMessageType.GET_HEARTRATE_SAMPLES, ExpectedResponse.EOT);
-                message.addDataStructure(new GetActivitySamples(c.getTimeInMillis() / 1000, (short) 0));
-                message.addDataStructure(new TypeVersion());
-                addSimpleConversationToQueue(message, activitySampleHandler);
+                addSampleRequests(syncStartSeconds(getLastSyncTimestamp()));
             }
         } catch (Exception e) {
             logger.error("Could not synchronize! ", e);
@@ -386,7 +403,7 @@ public class WithingsSteelHRDeviceSupport extends AbstractBTLESingleDeviceSuppor
 
     @Override
     public boolean onCharacteristicWriteRequest(BluetoothDevice device, int requestId, BluetoothGattCharacteristic characteristic, boolean preparedWrite, boolean responseNeeded, int offset, byte[] value) {
-        if (characteristic.getUuid().equals(WithingsUUID.CONTROL_POINT_CHARACTERISTIC_UUID)) {
+        if (characteristic.getUuid().equals(getWithingsUUIDs().CONTROL_POINT_CHARACTERISTIC_UUID)) {
             logger.debug("Got GetNotificationAttributesRequest: " + GB.hexdump(value));
             GetNotificationAttributes request = new GetNotificationAttributes();
             request.deserialize(value);
@@ -398,7 +415,7 @@ public class WithingsSteelHRDeviceSupport extends AbstractBTLESingleDeviceSuppor
 
     @Override
     public void onFetchRecordedData(int dataTypes) {
-        doSync();
+        doSync(true);
     }
 
     @Override
@@ -447,9 +464,9 @@ public class WithingsSteelHRDeviceSupport extends AbstractBTLESingleDeviceSuppor
         try {
             TransactionBuilder builder = createTransactionBuilder("conversation");
             builder.setCallback(this);
-            BluetoothGattCharacteristic characteristic = getCharacteristic(WithingsUUID.WITHINGS_WRITE_CHARACTERISTIC_UUID);
+            BluetoothGattCharacteristic characteristic = getCharacteristic(getWithingsUUIDs().WITHINGS_WRITE_CHARACTERISTIC_UUID);
             if (characteristic == null) {
-                logger.info("Characteristic with UUID " + WithingsUUID.WITHINGS_WRITE_CHARACTERISTIC_UUID + " not found.");
+                logger.info("Characteristic with UUID " + getWithingsUUIDs().WITHINGS_WRITE_CHARACTERISTIC_UUID + " not found.");
                 return;
             }
 
@@ -499,7 +516,21 @@ public class WithingsSteelHRDeviceSupport extends AbstractBTLESingleDeviceSuppor
             getDevice().sendDeviceUpdateIntent(getContext());
         }
         activitySampleHandler.onSyncFinished();
-        saveLastSyncTimestamp(new Date().getTime());
+        if (advanceSyncMarkerWithoutData() || activitySampleHandler.hasReceivedData()) {
+            saveLastSyncTimestamp(new Date().getTime());
+        }
+    }
+
+    /**
+     * Whether a sync that returned no data still moves the "synced up to" marker. Models that only
+     * answer well-formed requests must not skip data because an empty answer was a protocol miss.
+     */
+    protected long syncStartSeconds(final long lastSyncMillis) {
+        return lastSyncMillis / 1000;
+    }
+
+    protected boolean advanceSyncMarkerWithoutData() {
+        return true;
     }
 
     void onAuthenticationFinished() {
@@ -562,22 +593,22 @@ public class WithingsSteelHRDeviceSupport extends AbstractBTLESingleDeviceSuppor
     }
 
     private void addANCSService() {
-        BluetoothGattService withingsGATTService = new BluetoothGattService(WithingsUUID.WITHINGS_ANCS_SERVICE_UUID, BluetoothGattService.SERVICE_TYPE_PRIMARY);
-        notificationSourceCharacteristic = new BluetoothGattCharacteristic(WithingsUUID.NOTIFICATION_SOURCE_CHARACTERISTIC_UUID, BluetoothGattCharacteristic.PROPERTY_NOTIFY, BluetoothGattCharacteristic.PERMISSION_READ);
-        notificationSourceCharacteristic.addDescriptor(new BluetoothGattDescriptor(WithingsUUID.CCC_DESCRIPTOR_UUID, BluetoothGattCharacteristic.PERMISSION_WRITE));
+        BluetoothGattService withingsGATTService = new BluetoothGattService(getWithingsUUIDs().WITHINGS_ANCS_SERVICE_UUID, BluetoothGattService.SERVICE_TYPE_PRIMARY);
+        notificationSourceCharacteristic = new BluetoothGattCharacteristic(getWithingsUUIDs().NOTIFICATION_SOURCE_CHARACTERISTIC_UUID, BluetoothGattCharacteristic.PROPERTY_NOTIFY, BluetoothGattCharacteristic.PERMISSION_READ);
+        notificationSourceCharacteristic.addDescriptor(new BluetoothGattDescriptor(getWithingsUUIDs().CCC_DESCRIPTOR_UUID, BluetoothGattCharacteristic.PERMISSION_WRITE));
         withingsGATTService.addCharacteristic(notificationSourceCharacteristic);
-        withingsGATTService.addCharacteristic(new BluetoothGattCharacteristic(WithingsUUID.CONTROL_POINT_CHARACTERISTIC_UUID, BluetoothGattCharacteristic.PROPERTY_WRITE, BluetoothGattCharacteristic.PERMISSION_WRITE));
-        dataSourceCharacteristic = new BluetoothGattCharacteristic(WithingsUUID.DATA_SOURCE_CHARACTERISTIC_UUID, BluetoothGattCharacteristic.PROPERTY_NOTIFY, BluetoothGattCharacteristic.PERMISSION_READ);
-        dataSourceCharacteristic.addDescriptor(new BluetoothGattDescriptor(WithingsUUID.CCC_DESCRIPTOR_UUID, BluetoothGattCharacteristic.PERMISSION_WRITE));
+        withingsGATTService.addCharacteristic(new BluetoothGattCharacteristic(getWithingsUUIDs().CONTROL_POINT_CHARACTERISTIC_UUID, BluetoothGattCharacteristic.PROPERTY_WRITE, BluetoothGattCharacteristic.PERMISSION_WRITE));
+        dataSourceCharacteristic = new BluetoothGattCharacteristic(getWithingsUUIDs().DATA_SOURCE_CHARACTERISTIC_UUID, BluetoothGattCharacteristic.PROPERTY_NOTIFY, BluetoothGattCharacteristic.PERMISSION_READ);
+        dataSourceCharacteristic.addDescriptor(new BluetoothGattDescriptor(getWithingsUUIDs().CCC_DESCRIPTOR_UUID, BluetoothGattCharacteristic.PERMISSION_WRITE));
         withingsGATTService.addCharacteristic(dataSourceCharacteristic);
         addSupportedServerService(withingsGATTService);
     }
 
-    private void addSimpleConversationToQueue(Message message) {
+    protected void addSimpleConversationToQueue(Message message) {
         addSimpleConversationToQueue(message, null);
     }
 
-    private void addSimpleConversationToQueue(Message message, ResponseHandler handler) {
+    protected void addSimpleConversationToQueue(Message message, ResponseHandler handler) {
         Conversation conversation = new SimpleConversation(handler);
         conversation.setRequest(message);
         conversationQueue.addConversation(conversation);

@@ -20,7 +20,15 @@ import java.nio.ByteBuffer;
 
 public class TypeVersion extends WithingsStructure {
 
-    private byte version = 0x01;
+    private final byte version;
+
+    public TypeVersion() {
+        this((byte) 0x01);
+    }
+
+    public TypeVersion(final byte version) {
+        this.version = version;
+    }
 
     @Override
     public short getLength() {
