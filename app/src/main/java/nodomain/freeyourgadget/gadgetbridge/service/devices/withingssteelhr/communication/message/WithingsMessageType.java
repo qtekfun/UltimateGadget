@@ -64,6 +64,12 @@ public final class WithingsMessageType {
     public static final short GET_NOTIFICATION = 2404;
     public static final short GET_UNICODE_GLYPH = 2403;
 
+    // ScanWatch health features
+    public static final short SET_FEATURE_TAGS = 0x0987;
+    public static final short COMMIT_FEATURE_TAGS = 0x0993;
+    public static final short COMMIT_NOTIFICATION_CONFIG = 0x0994;
+    public static final short SET_LOCAL_NOTIFICATIONS = 0x0990;
+
     // ScanWatch settings
     public static final short SET_TRACKER_WEAR_POS = 0x014F;
     public static final short GET_TRACKER_WEAR_POS = 0x0150;

@@ -765,6 +765,15 @@
     <string name="withings_scanwatch_move_hands">Apartar las agujas</string>
     <string name="withings_scanwatch_move_hands_summary">Mueve las agujas a las 10:10 al encender la pantalla</string>
     <string name="withings_scanwatch_shortcut">Atajo de pulsación larga</string>
+    <string name="withings_scanwatch_health_category">Salud</string>
+    <string name="withings_scanwatch_ecg">ECG</string>
+    <string name="withings_scanwatch_ecg_summary">Activa la app de ECG del reloj. Las lecturas son orientativas y no son un diagnóstico médico</string>
+    <string name="withings_scanwatch_afib_day">Avisos de ritmo irregular (día)</string>
+    <string name="withings_scanwatch_afib_night">Avisos de ritmo irregular (noche)</string>
+    <string name="withings_scanwatch_afib_summary">Requiere tener el ECG activado</string>
+    <string name="withings_scanwatch_spo2">Oxígeno en sangre (SpO2)</string>
+    <string name="withings_scanwatch_spo2_summary">Activa las mediciones de SpO2 en el reloj</string>
+    <string name="withings_scanwatch_spo2_sleep">Medir también el SpO2 durante el sueño</string>
     <string name="ult_golf_on_watch">EN EL RELOJ</string>
     <string name="ult_golf_refresh">Actualizar los campos del reloj</string>
     <string name="ult_golf_refreshing">Leyendo la lista de campos del reloj…</string>

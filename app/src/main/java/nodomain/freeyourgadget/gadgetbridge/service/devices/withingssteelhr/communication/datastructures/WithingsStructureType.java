@@ -74,5 +74,9 @@ public class WithingsStructureType {
     public static final short TRACKER_MOVE_HANDS = (short) 0x09BB;
     public static final short TRACKER_WEAR_POS = (short) 0x012F;
 
+    public static final short FEATURE_TAG = (short) 0x099C;
+    public static final short FEATURE_TAGS_USER_ID = (short) 0x0145;
+    public static final short LOCAL_NOTIFICATION = (short) 0x09A8;
+
     private WithingsStructureType() {}
 }
