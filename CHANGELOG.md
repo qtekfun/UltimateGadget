@@ -2,6 +2,13 @@
 
 <!-- For contributors: do not modify this file - the project maintainers will update it as needed -->
 
+#### 0.115.27
+
+* **One format for the ECGs and SpO2 readings of every watch.** The app now has its own common record for them: each brand's sensor is adapted to it, and one **Health measurements** screen lists them all, newest first, with the ECG strip, the average heart rate and what the watch itself concluded. Withings ScanWatch and Huawei are connected (Huawei ECGs are listed once a watch has stored some; their result codes are shown as codes until they are verified on real recordings). Another brand only needs a small adapter
+* **Home**: the Pulse and SpO2 tile now takes the pulse from the first watch that has one (it used to look only at the first connected watch, which could be a watch with no heart sensor) and shows the **last ECG** with the date and what the watch concluded; tapping it opens the list. SpO2 shows "--" instead of 0 % when there is none, and the resting line is hidden when empty
+* Withings ScanWatch: a SpO2 reading the watch measured now also goes to the standard SpO2 charts. Inconclusive readings, and a reading of exactly 100 % (how an unusable one looked), are not charted
+* Withings ScanWatch: the Health measurements row is in the watch page; the first test builds stored ECG and SpO2 with the same kind, so those rows are cleaned and downloaded again from the watch
+
 #### 0.115.26
 
 * Withings ScanWatch: **ECG and SpO2 recordings are now downloaded, saved and shown.** A new "Health measurements" screen in the device page lists them and draws the 30-second strip (300 Hz) with the watch's own classification (for example "Normal sinus rhythm") and average heart rate. An SpO2 reading the watch called inconclusive is shown as such instead of as a percentage. It is informational and not a medical diagnosis. The formats were worked out from real recordings and are covered by tests
