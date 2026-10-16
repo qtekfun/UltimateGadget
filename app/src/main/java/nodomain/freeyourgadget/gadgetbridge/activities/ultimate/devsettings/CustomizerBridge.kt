@@ -50,6 +50,30 @@ internal class CustomizerBridge(
 
     private val prefs = LinkedHashMap<String, Preference>()
 
+    /** Click handlers the customizer attached to action rows, by key. */
+    var summaryKeys: Set<String> = emptySet()
+
+    /** Keys of the rows the customizer hid (including everything inside a hidden sub-screen). */
+    val hidden = LinkedHashSet<String>()
+
+    private fun keysIn(n: PrefNode): List<String> = when (n) {
+        is PrefNode.SubScreen -> listOfNotNull(n.key) + n.children.flatMap(::keysIn)
+        is PrefNode.Conditional -> n.children.flatMap(::keysIn)
+        is PrefNode.Switch -> listOf(n.key)
+        is PrefNode.SingleChoice -> listOf(n.key)
+        is PrefNode.MultiChoice -> listOf(n.key)
+        is PrefNode.Sortable -> listOf(n.key)
+        is PrefNode.Slider -> listOf(n.key)
+        is PrefNode.Text -> listOf(n.key)
+        is PrefNode.TimePicker -> listOf(n.key)
+        is PrefNode.DatePicker -> listOf(n.key)
+        is PrefNode.Action -> listOfNotNull(n.key)
+        is PrefNode.Info -> listOfNotNull(n.key)
+        else -> emptyList()
+    }
+
+    val clicks = LinkedHashMap<String, (Context, GBDevice?) -> Boolean>()
+
     // ---- DeviceSpecificSettingsHandler / SettingsRenderHost -------------------------------
 
     @Suppress("UNCHECKED_CAST")
@@ -81,7 +105,7 @@ internal class CustomizerBridge(
     private fun register(nodes: List<PrefNode>) {
         for (n in nodes) {
             when (n) {
-                is PrefNode.SubScreen -> register(n.children)
+                is PrefNode.SubScreen -> { n.key?.let { put(it, Preference(ctx)) }; register(n.children) }
                 is PrefNode.Conditional -> register(n.children)
                 is PrefNode.Switch -> put(n.key, SwitchPreferenceCompat(ctx).also { it.isChecked = n.default })
                 is PrefNode.SingleChoice -> put(n.key, ListPreference(ctx).also {
@@ -122,45 +146,60 @@ internal class CustomizerBridge(
 
     /** Re-creates [nodes] with whatever the customizer changed on the matching preferences. */
     private fun apply(nodes: List<PrefNode>): List<PrefNode> = nodes.mapNotNull { n ->
-        when (n) {
-            is PrefNode.SubScreen -> n.copy(children = apply(n.children))
-            is PrefNode.Conditional -> n.copy(children = apply(n.children))
-            is PrefNode.SingleChoice -> prefs[n.key]?.let { p ->
-                if (!p.isVisible) null else {
-                    val lp = p as? ListPreference
-                    val e = lp?.entries?.map { it.toString() }
-                    val v = lp?.entryValues?.map { it.toString() }
-                    if (e != null && v != null && e.size == v.size && e.isNotEmpty()) {
-                        n.copy(entries = e, values = v, summary = n.summary ?: staticSummary(p))
-                    } else n.copy(summary = n.summary ?: staticSummary(p))
-                }
-            } ?: n
-            is PrefNode.MultiChoice -> prefs[n.key]?.let { p ->
-                if (!p.isVisible) null else {
-                    val mp = p as? MultiSelectListPreference
-                    val e = mp?.entries?.map { it.toString() }
-                    val v = mp?.entryValues?.map { it.toString() }
-                    if (e != null && v != null && e.size == v.size && e.isNotEmpty()) n.copy(entries = e, values = v) else n
-                }
-            } ?: n
-            is PrefNode.Sortable -> prefs[n.key]?.let { p ->
-                if (!p.isVisible) null else {
-                    val lp = p as? ListPreference
-                    val e = lp?.entries?.map { it.toString() }
-                    val v = lp?.entryValues?.map { it.toString() }
-                    if (e != null && v != null && e.size == v.size && e.isNotEmpty()) n.copy(entries = e, values = v) else n
-                }
-            } ?: n
-            is PrefNode.Slider -> prefs[n.key]?.let { p ->
-                if (!p.isVisible) null else (p as? SeekBarPreference)?.let { sp ->
-                    n.copy(min = sp.min, max = sp.max, summary = n.summary ?: staticSummary(p))
-                } ?: n
-            } ?: n
-            is PrefNode.Switch -> prefs[n.key]?.let { p -> if (!p.isVisible) null else n.copy(summary = n.summary ?: staticSummary(p)) } ?: n
-            is PrefNode.Text -> prefs[n.key]?.let { p -> if (!p.isVisible) null else n.copy(summary = n.summary ?: staticSummary(p)) } ?: n
-            is PrefNode.TimePicker -> prefs[n.key]?.let { p -> if (!p.isVisible) null else n } ?: n
-            else -> n
+        apply1(n).also { if (it == null) hidden += keysIn(n) }
+    }
+
+    /** The node as the customizer left it, or null when it hid the row; unknown keys stay as they are. */
+    private fun visible(key: String?, n: PrefNode, adjust: (Preference) -> PrefNode): PrefNode? {
+        val p = key?.let { prefs[it] } ?: return n
+        return if (p.isVisible) adjust(p) else null
+    }
+
+    private fun apply1(n: PrefNode): PrefNode? = when (n) {
+        is PrefNode.SubScreen -> visible(n.key, n) { n.copy(children = apply(n.children)) }
+        is PrefNode.Conditional -> n.copy(children = apply(n.children))
+        is PrefNode.SingleChoice -> visible(n.key, n) { p ->
+            val lp = p as? ListPreference
+            val e = lp?.entries?.map { it.toString() }
+            val v = lp?.entryValues?.map { it.toString() }
+            if (e != null && v != null && e.size == v.size && e.isNotEmpty()) {
+                n.copy(entries = e, values = v, summary = n.summary ?: staticSummary(p))
+            } else n.copy(summary = n.summary ?: staticSummary(p))
         }
+        is PrefNode.MultiChoice -> visible(n.key, n) { p ->
+            val mp = p as? MultiSelectListPreference
+            val e = mp?.entries?.map { it.toString() }
+            val v = mp?.entryValues?.map { it.toString() }
+            if (e != null && v != null && e.size == v.size && e.isNotEmpty()) n.copy(entries = e, values = v) else n
+        }
+        is PrefNode.Sortable -> visible(n.key, n) { p ->
+            val lp = p as? ListPreference
+            val e = lp?.entries?.map { it.toString() }
+            val v = lp?.entryValues?.map { it.toString() }
+            if (e != null && v != null && e.size == v.size && e.isNotEmpty()) n.copy(entries = e, values = v) else n
+        }
+        is PrefNode.Slider -> visible(n.key, n) { p ->
+            (p as? SeekBarPreference)?.let { sp ->
+                n.copy(min = sp.min, max = sp.max, summary = n.summary ?: staticSummary(p))
+            } ?: n
+        }
+        is PrefNode.Action -> {
+            val k = n.key
+            val p = k?.let { prefs[it] }
+            if (k == null || p == null) n
+            else if (!p.isVisible) null
+            else {
+                val l = p.onPreferenceClickListener
+                if (l != null) clicks[k] = { _, _ -> l.onPreferenceClick(p) }
+                if (l == null && k in summaryKeys) PrefNode.Info(k, n.summary, n.title, n.iconRes)
+                else n.copy(summary = n.summary ?: staticSummary(p))
+            }
+        }
+        is PrefNode.Switch -> visible(n.key, n) { p -> n.copy(summary = n.summary ?: staticSummary(p)) }
+        is PrefNode.Text -> visible(n.key, n) { p -> n.copy(summary = n.summary ?: staticSummary(p)) }
+        is PrefNode.TimePicker -> visible(n.key, n) { n }
+        is PrefNode.Info -> visible(n.key, n) { n }
+        else -> n
     }
 
     private fun staticSummary(p: Preference): String? = p.summary?.toString()?.takeIf { it.isNotBlank() }
@@ -169,11 +208,18 @@ internal class CustomizerBridge(
         private val LOG = LoggerFactory.getLogger(CustomizerBridge::class.java)
 
         /** Runs the device's customizer (if any) over [nodes] and returns the adjusted tree. */
-        fun customize(ctx: Context, device: GBDevice, nodes: List<PrefNode>): List<PrefNode> {
+        class Result(
+            val nodes: List<PrefNode>,
+            val clicks: Map<String, (Context, GBDevice?) -> Boolean>,
+            val hidden: Set<String> = emptySet(),
+        )
+
+        fun customize(ctx: Context, device: GBDevice, nodes: List<PrefNode>): Result {
             val customizer = runCatching { device.deviceCoordinator.getDeviceSpecificSettingsCustomizer(device) }.getOrNull()
-                ?: return nodes
+                ?: return Result(nodes, emptyMap())
             val bridge = CustomizerBridge(ctx, device)
             bridge.register(nodes)
+            bridge.summaryKeys = runCatching { customizer.preferenceKeysWithSummary }.getOrNull().orEmpty()
             val prefs = Prefs(GBApplication.getDeviceSpecificSharedPrefs(device.address))
             // The classic fragment calls the customizer once per screen it opens; do the same for the
             // root and for every sub-screen, all against the one shared set of preferences.
@@ -189,7 +235,8 @@ internal class CustomizerBridge(
                 runCatching { customizer.customizeSettings(bridge, prefs, key) }
                     .onFailure { LOG.debug("Customizer failed for root key {}: {}", key, it.toString()) }
             }
-            return bridge.apply(nodes)
+            val applied = bridge.apply(nodes)
+            return Result(applied, bridge.clicks, bridge.hidden)
         }
     }
 }

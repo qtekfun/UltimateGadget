@@ -537,7 +537,7 @@ private fun PrefRow(
 
         is PrefNode.Info -> SimpleRow(
             title = node.title,
-            summary = node.summary,
+            summary = liveInfoValue(node, store) ?: node.summary,
             iconRes = node.iconRes,
             enabled = true,
             onClick = null,
@@ -767,4 +767,23 @@ private fun EmptyNotice() {
             color = palette.onSurfaceVariant,
         )
     }
+}
+
+
+/**
+ * The value a device support has stored under an info row's key (FTP address/status, hotspot
+ * state, …), kept current while the screen is open; null when nothing is stored.
+ */
+@Composable
+private fun liveInfoValue(node: PrefNode.Info, store: DeviceSettingsStore): String? {
+    val key = node.key ?: return null
+    var value by remember(key) { mutableStateOf(runCatching { store.rawPrefs.getString(key, null) }.getOrNull()) }
+    androidx.compose.runtime.DisposableEffect(key) {
+        val l = android.content.SharedPreferences.OnSharedPreferenceChangeListener { sp, k ->
+            if (k == key) value = runCatching { sp.getString(key, null) }.getOrNull()
+        }
+        store.rawPrefs.registerOnSharedPreferenceChangeListener(l)
+        onDispose { store.rawPrefs.unregisterOnSharedPreferenceChangeListener(l) }
+    }
+    return value?.takeIf { it.isNotBlank() }
 }
