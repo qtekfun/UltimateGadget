@@ -747,4 +747,5 @@
     <string name="ult_golf_not_on_watch">%1$s was sent but the watch does not list it (the watch has %2$d course(s)). It may have rejected the file.</string>
     <string name="ult_golf_done_count">%1$s ✓ · the watch has %2$d course(s)</string>
     <string name="ult_options_when_connected">Options appear once the device is connected</string>
+    <string name="ult_battery_history_sub">See the battery level over time</string>
 </resources>
