@@ -150,8 +150,8 @@ class UltimateDeviceActivity : AppCompatActivity() {
             options += DeviceOptionUi("measure_hr", getString(R.string.ult_measure_hr), getString(R.string.ult_measure_hr_sub), section = sWatch)
         }
 
-        if (device.type == DeviceType.WITHINGS_SCANWATCH) {
-            options += DeviceOptionUi("withings_measurements", getString(R.string.ult_withings_measurements), getString(R.string.ult_withings_measurements_sub), section = sWatch)
+        if (nodomain.freeyourgadget.gadgetbridge.activities.ultimate.health.HealthMeasurements.supports(device)) {
+            options += DeviceOptionUi("health_measurements", getString(R.string.ult_health_measurements), getString(R.string.ult_health_measurements_sub), section = sWatch)
         }
 
         // --- Maps and navigation ---
@@ -187,8 +187,8 @@ class UltimateDeviceActivity : AppCompatActivity() {
                 GBApplication.deviceService(device).onFetchRecordedData(RecordedDataTypes.TYPE_SYNC)
                 toast(getString(R.string.ult_syncing_toast))
             }
-            "withings_measurements" -> startActivity(
-                nodomain.freeyourgadget.gadgetbridge.activities.ultimate.withings.UltimateWithingsMeasurementsActivity.intent(this, device),
+            "health_measurements" -> startActivity(
+                nodomain.freeyourgadget.gadgetbridge.activities.ultimate.health.UltimateHealthMeasurementsActivity.intent(this, device),
             )
             "measure_hr" -> {
                 GBApplication.deviceService(device).onHeartRateTest()
