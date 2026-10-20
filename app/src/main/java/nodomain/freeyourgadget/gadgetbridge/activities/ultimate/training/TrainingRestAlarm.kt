@@ -49,8 +49,13 @@ object TrainingRestAlarm {
 
     fun schedule(context: Context, endsAtMs: Long) {
         val am = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        // Inexact-while-idle is plenty for a rest timer and needs no special permission.
-        am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, endsAtMs, pending(context))
+        // A rest timer must ring on time with the screen off: use an exact alarm when the user allows
+        // it (SCHEDULE_EXACT_ALARM), otherwise the inexact one, which the system may delay by minutes.
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || am.canScheduleExactAlarms()) {
+            am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, endsAtMs, pending(context))
+        } else {
+            am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, endsAtMs, pending(context))
+        }
     }
 
     fun cancel(context: Context) {
