@@ -71,6 +71,13 @@ object InAppNetworkImpl : InAppNetwork {
         return name
     }
 
+    override fun downloadFile(context: Context, url: String, wifiOnly: Boolean, onProgress: (done: Long, total: Long) -> Unit): File {
+        if (wifiOnly && !isOnWifi(context)) throw IllegalStateException("Not on Wi-Fi")
+        val dest = File(context.cacheDir, "download-" + System.nanoTime() + ".zip")
+        Downloader.downloadUrlToFile(url, dest, onProgress)
+        return dest
+    }
+
     override fun golfCountries(): List<GolfCountry> =
         GolfApi.countries().map { GolfCountry(it.id, it.code, it.name) }
 

@@ -69,6 +69,14 @@ interface InAppNetwork {
     @Throws(Exception::class)
     fun downloadMap(context: Context, id: String, onProgress: (done: Long, total: Long) -> Unit): String
 
+    /**
+     * Blocking. Downloads the single file at the HTTPS [url] into the app cache and returns it,
+     * reporting `(done, total)` bytes (total is -1 when unknown). With [wifiOnly] it fails unless
+     * the phone is on Wi-Fi. Used for the exercise pack; the caller deletes the file afterwards.
+     */
+    @Throws(Exception::class)
+    fun downloadFile(context: Context, url: String, wifiOnly: Boolean, onProgress: (done: Long, total: Long) -> Unit): java.io.File
+
     /** Blocking. Huawei golf catalog: countries. */
     @Throws(Exception::class)
     fun golfCountries(): List<GolfCountry>
