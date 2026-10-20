@@ -120,7 +120,7 @@ private fun ActiveSessionScreen(initial: Session, store: TrainingStore, onClose:
     val context = LocalContext.current
     val palette = LocalUltimatePalette.current
     val units = remember { TrainingUnits.load(context) }
-    val catalog = remember { TrainingCatalog(store) }
+    val catalog = remember { TrainingCatalog.create(context, store) }
     val history = remember { store.finishedSessions(60) }
 
     var session by remember { mutableStateOf(initial) }

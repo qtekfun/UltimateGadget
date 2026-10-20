@@ -89,7 +89,7 @@ private fun RoutineEditor(routineId: String?, onClose: () -> Unit) {
     val context = LocalContext.current
     val palette = LocalUltimatePalette.current
     val store = remember { TrainingStore.get(context) }
-    val catalog = remember { TrainingCatalog(store) }
+    val catalog = remember { TrainingCatalog.create(context, store) }
     val units = remember { TrainingUnits.load(context) }
     val existing = remember { routineId?.let { store.routine(it) } }
     val defaultName = stringResource(R.string.ult_train_new_routine)

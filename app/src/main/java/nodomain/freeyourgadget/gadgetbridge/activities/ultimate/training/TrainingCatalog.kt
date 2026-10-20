@@ -16,20 +16,47 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 package nodomain.freeyourgadget.gadgetbridge.activities.ultimate.training
 
-/** The exercises the user can pick: the built-in starter list plus their own (packs join in Phase 2). */
-class TrainingCatalog(private val store: TrainingStore) {
+import java.text.Normalizer
+import java.util.Locale
+
+/**
+ * The exercises the user can pick: the built-in starter list, the installed resource packs and
+ * their own. Pack metadata comes from [packs] (read from disk once, kept in memory).
+ */
+class TrainingCatalog(private val store: TrainingStore, private val packs: () -> List<Exercise> = { emptyList() }) {
     private var cache: List<Exercise>? = null
+    private var index: Map<String, Exercise>? = null
+    private var haystacks: Map<String, String>? = null
+    private var sorted: Pair<String, List<Exercise>>? = null
 
-    fun all(): List<Exercise> = cache ?: (BuiltinExercises.all + store.customExercises()).also { cache = it }
+    /** Built-in first, then pack, then custom; a later source never hides an earlier id. */
+    fun all(): List<Exercise> = cache ?: (BuiltinExercises.all + packs() + store.customExercises())
+        .distinctBy { it.id }.also { cache = it; index = it.associateBy { e -> e.id }; haystacks = null; sorted = null }
 
-    fun find(id: String): Exercise? = all().firstOrNull { it.id == id }
+    fun find(id: String): Exercise? { all(); return index?.get(id) }
 
-    fun invalidate() { cache = null }
+    fun invalidate() { cache = null; index = null; haystacks = null; sorted = null }
 
-    fun search(query: String, locale: java.util.Locale = java.util.Locale.getDefault()): List<Exercise> {
-        val q = query.trim().lowercase()
-        val list = all().sortedBy { it.displayName(locale).lowercase() }
-        if (q.isEmpty()) return list
-        return list.filter { e -> e.names.values.any { it.lowercase().contains(q) } || e.muscle.contains(q) || e.equipment.contains(q) }
+    private fun haystack(): Map<String, String> = haystacks ?: all().associate { e ->
+        e.id to fold((e.names.values + e.muscle + e.musclesSecondary + e.equipment).joinToString("\n"))
+    }.also { haystacks = it }
+
+    fun search(query: String, locale: Locale = Locale.getDefault()): List<Exercise> {
+        val q = fold(query.trim())
+        val lang = locale.language
+        val ordered = sorted?.takeIf { it.first == lang && cache != null }?.second
+            ?: all().sortedBy { fold(it.displayName(locale)) }.also { sorted = lang to it }
+        if (q.isEmpty()) return ordered
+        val h = haystack()
+        return ordered.filter { h[it.id]?.contains(q) == true }
+    }
+
+    companion object {
+        /** The catalog the screens use: built-in, installed packs and the user's own. */
+        fun create(context: android.content.Context, store: TrainingStore) = TrainingCatalog(store) { TrainingPacks.exercises(context) }
+
+        private val MARKS = Regex("\\p{M}+")
+        /** Lower-case and accent-free, so "dominadas" matches "Dominádas" and vice versa. */
+        fun fold(s: String): String = MARKS.replace(Normalizer.normalize(s, Normalizer.Form.NFD), "").lowercase()
     }
 }
