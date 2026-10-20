@@ -197,6 +197,25 @@ private fun AppsScreen(onBack: () -> Unit, onOpenRules: () -> Unit) {
                         it.label.lowercase().contains(q) || it.packageName.lowercase().contains(q)
                     }
                 }
+                // Bulk actions apply to what the search currently shows.
+                fun setAll(send: Boolean) {
+                    filtered.forEach {
+                        if (send) GBApplication.removeFromAppsNotifBlacklist(it.packageName)
+                        else GBApplication.addAppToNotifBlacklist(it.packageName)
+                    }
+                    revision++
+                }
+                Row(
+                    Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+                    horizontalArrangement = Arrangement.End,
+                ) {
+                    TextButton(onClick = { setAll(true) }) {
+                        Text(stringResource(R.string.ult_notif_select_all))
+                    }
+                    TextButton(onClick = { setAll(false) }) {
+                        Text(stringResource(R.string.ult_notif_select_none))
+                    }
+                }
                 LazyColumn(
                     Modifier.fillMaxSize(),
                     contentPadding = androidx.compose.foundation.layout.PaddingValues(

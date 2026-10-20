@@ -2,6 +2,11 @@
 
 <!-- For contributors: do not modify this file - the project maintainers will update it as needed -->
 
+#### 0.115.29
+
+* **Notifications**: new **Select all** and **Select none** buttons above the app list (they apply to the apps the search is showing)
+* The "Device settings" row only mentions notifications on watches whose settings really have them (notifications are chosen in the Notifications menu)
+
 #### 0.115.28
 
 * Withings ScanWatch: **forgetting the watch in the app now resets it too**, with the same two commands the official app sends when it dissociates the product (checked on a capture), so the watch is ready to be paired with another phone and no reset by hand is needed. The confirmation says so; if the watch is not connected it says it cannot be reset now. As before, the Bluetooth pairing of the phone is removed too
