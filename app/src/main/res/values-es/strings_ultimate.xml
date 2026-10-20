@@ -17,7 +17,7 @@
     <string name="ult_connect">Conectar</string>
     <string name="ult_connect_sub">Conectar con el dispositivo</string>
     <string name="ult_device_settings">Ajustes del dispositivo</string>
-    <string name="ult_device_settings_sub">Notificaciones, pantalla, gestos…</string>
+    <string name="ult_device_settings_sub">Pantalla, gestos, conexión y opciones del reloj…</string>
     <string name="ult_alarms">Alarmas</string>
     <string name="ult_alarms_sub">Alarmas del reloj</string>
     <string name="ult_reminders">Recordatorios</string>
@@ -499,6 +499,8 @@
     <string name="ult_notif_schedule_rules">Reglas de horario</string>
     <string name="ult_notif_choose_apps">Elige qué apps envían sus notificaciones al reloj.</string>
     <string name="ult_notif_search_app">Buscar app…</string>
+    <string name="ult_notif_select_all">Seleccionar todas</string>
+    <string name="ult_notif_select_none">Ninguna</string>
     <string name="ult_notif_dnd">No molestar</string>
     <string name="ult_notif_dnd_desc">Durante este horario no se envían notificaciones al reloj.</string>
     <string name="ult_notif_enable_schedule">Activar horario</string>

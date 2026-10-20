@@ -17,7 +17,7 @@
     <string name="ult_connect">Connect</string>
     <string name="ult_connect_sub">Connect to the device</string>
     <string name="ult_device_settings">Device settings</string>
-    <string name="ult_device_settings_sub">Notifications, screen, gestures…</string>
+    <string name="ult_device_settings_sub">Display, gestures, connection and watch options…</string>
     <string name="ult_alarms">Alarms</string>
     <string name="ult_alarms_sub">Watch alarms</string>
     <string name="ult_reminders">Reminders</string>
@@ -499,6 +499,8 @@
     <string name="ult_notif_schedule_rules">Schedule rules</string>
     <string name="ult_notif_choose_apps">Choose which apps send their notifications to the watch.</string>
     <string name="ult_notif_search_app">Search app…</string>
+    <string name="ult_notif_select_all">Select all</string>
+    <string name="ult_notif_select_none">Select none</string>
     <string name="ult_notif_dnd">Do not disturb</string>
     <string name="ult_notif_dnd_desc">During this schedule, no notifications are sent to the watch.</string>
     <string name="ult_notif_enable_schedule">Enable schedule</string>
