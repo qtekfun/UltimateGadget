@@ -133,6 +133,9 @@ class TrainingStore(context: Context, name: String? = DB_NAME) : SQLiteOpenHelpe
         private const val VERSION = 1
 
         @Volatile private var instance: TrainingStore? = null
+        /** Drops the cached instance so a test (or a restore) reopens the database. */
+        fun reset() { synchronized(this) { instance?.close(); instance = null } }
+
         fun get(context: Context): TrainingStore =
             instance ?: synchronized(this) { instance ?: TrainingStore(context).also { instance = it } }
     }

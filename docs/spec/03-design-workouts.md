@@ -19,7 +19,7 @@ A built-in workout planner and logger in the spirit of Hevy, living in the same 
 
 ## 2. Principles
 
-- The Gadgetbridge core is not touched beyond a hook or two: the feature is a new package (`activities/ultimate/workouts/`) plus its own storage, so upstream merges stay easy.
+- The Gadgetbridge core is not touched beyond a hook or two: the feature is a new package (`activities/ultimate/training/` (the existing `workout` package is for watch activity summaries)) plus its own storage, so upstream merges stay easy.
 - Brand-neutral, like the common health measurements: workouts know nothing about watch brands. A small adapter per source supplies heart-rate/calorie samples for a time window.
 - Everything is stored on disk (SQLite), nothing important only in memory. A session in progress is persisted after every edit.
 - All user-visible text in string resources (EN base, ES), as in the rest of the app.

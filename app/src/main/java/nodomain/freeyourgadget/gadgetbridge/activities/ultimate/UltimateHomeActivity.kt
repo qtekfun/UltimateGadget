@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Watch
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -162,6 +163,13 @@ class UltimateHomeActivity : AppCompatActivity() {
                                 label = { Text(stringResource(R.string.ult_tab_devices)) },
                                 colors = itemColors,
                             )
+                            NavigationBarItem(
+                                selected = tab == 2,
+                                onClick = { tab = 2 },
+                                icon = { Icon(Icons.Filled.FitnessCenter, contentDescription = null) },
+                                label = { Text(stringResource(R.string.ult_tab_training)) },
+                                colors = itemColors,
+                            )
                         }
                     },
                 ) { inner ->
@@ -178,6 +186,7 @@ class UltimateHomeActivity : AppCompatActivity() {
                                 onSettings = onSettings,
                                 onQuit = onQuit,
                             )
+                            2 -> nodomain.freeyourgadget.gadgetbridge.activities.ultimate.training.TrainingHome()
                             else -> UltimateHomeScreen(
                                 devices = devices,
                                 onOpenDevice = { openDevice(it) },
