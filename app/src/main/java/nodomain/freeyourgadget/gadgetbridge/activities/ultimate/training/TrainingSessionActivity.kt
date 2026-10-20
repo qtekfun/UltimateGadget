@@ -31,6 +31,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -174,7 +175,7 @@ private fun ActiveSessionScreen(initial: Session, store: TrainingStore, onClose:
         bottomBar = {
             if (restLeft > 0) {
                 Row(
-                    Modifier.fillMaxWidth().background(palette.primaryContainer).padding(horizontal = 16.dp, vertical = 10.dp),
+                    Modifier.fillMaxWidth().background(palette.primaryContainer).navigationBarsPadding().padding(horizontal = 16.dp, vertical = 10.dp),
                     verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Text(stringResource(R.string.ult_train_rest_label, TrainingMath.formatDuration(restLeft)), color = palette.onPrimaryContainer, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))

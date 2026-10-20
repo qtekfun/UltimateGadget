@@ -2,6 +2,10 @@
 
 <!-- For contributors: do not modify this file - the project maintainers will update it as needed -->
 
+#### 0.115.31
+
+* Workouts: the **rest timer now rings on time with the screen off** (it uses an exact alarm when the system allows it; before, Android could delay it by a minute or more), and its bar no longer overlaps the gesture bar. Checked on a real phone: workout kept after killing the app, previous values, records, and the rest notification opening the workout
+
 #### 0.115.30
 
 * **Workouts** (new tab): plan and log your own training, in the same app as your watches. Create **routines** (exercises, planned sets by reps and weight, time or distance, rest time), start an empty workout or a routine, and log it set by set with the **previous values** next to each set, a **rest timer** (vibration, or a notification when the app is in the background), warm-up/drop/failure sets and **personal records** on finishing. The workout in progress is saved after every change, so it survives the app being closed; the screen stays on during it. History with duration, volume and sets, and "save as routine" from any past workout
