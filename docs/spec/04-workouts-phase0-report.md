@@ -35,13 +35,13 @@ Exercise: `id` (source uuid, stable), `name` and `description` as `{en, es}`, `c
 
 ## 5. Prototype result
 
-`tools/workout-pack/build_pack.py` (to move to the separate data repository) builds the pack from a wger dump:
+`build_pack.py` (now in the separate private data repository `ultimate-gadget-workouts-data`) builds the pack from a wger dump:
 
 - 932 exercises, 382 of 383 images converted (one AVIF skipped because the local image library lacks AVIF support).
 - Media 3.7 MB, **zip 4.0 MB** — small enough that a single pack covers everything; a size well under the 15–30 MB guessed earlier, because the images are re-encoded.
 
-## 6. Decisions to take before Phase 1
+## 6. Decisions taken
 
-1. Create the separate private data repository for the pack tool and releases (needs your go-ahead; public only after a review of the pack).
-2. Spanish: translate the 287 missing exercises ourselves (machine draft, then review) — and decide who reviews.
-3. Only 279 of 932 exercises have images; accept that, or add our own images later.
+1. The separate data repository exists (private for now; it goes public after a review of the pack).
+2. Spanish: the 287 exercises wger has no Spanish text for have a draft translation in the data repository, flagged `draftTranslations: ["es"]` in the pack until the owner reviews it. Pack result: 932 exercises with English and Spanish names and descriptions.
+3. Images: only 279 of 932 exercises have one. Generating our own is a **separate side project** (an image generator, to be designed on its own); until it exists, exercises without an image show a muscle-group icon and the app does not depend on images.
