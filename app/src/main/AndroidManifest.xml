@@ -309,6 +309,9 @@
             android:theme="@style/GadgetbridgeThemeDark.NoActionBar"
             android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
         <activity android:name=".activities.ultimate.detail.UltimateHealthDetailActivity" android:exported="false" android:theme="@style/GadgetbridgeThemeDark.NoActionBar" android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
+        <activity android:name=".activities.ultimate.training.TrainingSessionActivity" android:exported="false" android:launchMode="singleTop" android:theme="@style/GadgetbridgeThemeDark.NoActionBar" android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
+        <activity android:name=".activities.ultimate.training.TrainingRoutineActivity" android:exported="false" android:theme="@style/GadgetbridgeThemeDark.NoActionBar" android:parentActivityName=".activities.ultimate.UltimateHomeActivity" android:windowSoftInputMode="adjustResize" />
+        <receiver android:name=".activities.ultimate.training.RestTimerReceiver" android:exported="false" />
         <activity android:name=".activities.ultimate.workout.UltimateWorkoutActivity" android:exported="false" android:theme="@style/GadgetbridgeThemeDark.NoActionBar" android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
         <activity android:name=".activities.ultimate.workout.UltimateWorkoutMapActivity" android:exported="false" android:theme="@style/GadgetbridgeThemeDark.NoActionBar" android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />
         <activity android:name=".activities.ultimate.golf.UltimateGolfActivity" android:exported="false" android:theme="@style/GadgetbridgeThemeDark.NoActionBar" android:parentActivityName=".activities.ultimate.UltimateHomeActivity" />

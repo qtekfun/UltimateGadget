@@ -2,6 +2,12 @@
 
 <!-- For contributors: do not modify this file - the project maintainers will update it as needed -->
 
+#### 0.115.30
+
+* **Workouts** (new tab): plan and log your own training, in the same app as your watches. Create **routines** (exercises, planned sets by reps and weight, time or distance, rest time), start an empty workout or a routine, and log it set by set with the **previous values** next to each set, a **rest timer** (vibration, or a notification when the app is in the background), warm-up/drop/failure sets and **personal records** on finishing. The workout in progress is saved after every change, so it survives the app being closed; the screen stays on during it. History with duration, volume and sets, and "save as routine" from any past workout
+* A starter list of 43 exercises (English and Spanish) and your own custom exercises; kilograms/kilometres or pounds/miles
+* **Export and import** all your workouts as a file in the app's own format (merge or replace). Exercise catalog packs with images and importing from other apps come in the next versions
+
 #### 0.115.29
 
 * **Notifications**: new **Select all** and **Select none** buttons above the app list (they apply to the apps the search is showing)
