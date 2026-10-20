@@ -123,6 +123,8 @@ fun TrainingHome() {
         }
     }
 
+    val importHevy = rememberHevyImport(store, catalog) { version++ }
+
     fun start(routine: Routine?) {
         if (active != null) { context.startActivity(TrainingSessionActivity.intent(context)); return }
         val title = routine?.name ?: context.getString(R.string.ult_train_default_title)
@@ -139,6 +141,7 @@ fun TrainingHome() {
                 DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
                     DropdownMenuItem(text = { Text(stringResource(R.string.ult_train_export)) }, onClick = { menu = false; exportLauncher.launch("ultimategadget-workouts.json") })
                     DropdownMenuItem(text = { Text(stringResource(R.string.ult_train_import)) }, onClick = { menu = false; importLauncher.launch(arrayOf("application/json", "text/*", "*/*")) })
+                    DropdownMenuItem(text = { Text(stringResource(R.string.ult_train_hevy_import)) }, onClick = { menu = false; importHevy() })
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.ult_train_units) + ": " + stringResource(if (units.imperial) R.string.ult_train_units_imperial else R.string.ult_train_units_metric)) },
                         onClick = { menu = false; TrainingUnits.save(context, !units.imperial); units = TrainingUnits.load(context) },
