@@ -142,6 +142,39 @@ object Downloader {
         }
     }
 
+    /**
+     * Download [url] (HTTPS, redirects followed) into [dest] through a `.part` file that is renamed
+     * only when the whole body arrived. Used for single-file packs such as the exercise pack.
+     */
+    fun downloadUrlToFile(url: String, dest: java.io.File, onProgress: (done: Long, total: Long) -> Unit) {
+        require(url.startsWith("https://")) { "Insecure URL" }
+        dest.parentFile?.mkdirs()
+        val part = java.io.File(dest.parentFile, dest.name + ".part")
+        val conn = open(url)
+        try {
+            val total = conn.contentLengthLong
+            var done = 0L
+            part.outputStream().use { out ->
+                conn.inputStream.use { input ->
+                    val buf = ByteArray(1 shl 16)
+                    while (true) {
+                        val n = input.read(buf)
+                        if (n < 0) break
+                        out.write(buf, 0, n)
+                        done += n
+                        onProgress(done, total)
+                    }
+                }
+            }
+            check(part.renameTo(dest)) { "Could not save the download" }
+        } catch (e: Exception) {
+            part.delete()
+            throw e
+        } finally {
+            conn.disconnect()
+        }
+    }
+
     private fun get(url: String): ByteArray {
         val conn = open(url)
         try {

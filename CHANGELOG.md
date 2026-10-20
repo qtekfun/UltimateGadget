@@ -2,6 +2,11 @@
 
 <!-- For contributors: do not modify this file - the project maintainers will update it as needed -->
 
+#### 0.115.32
+
+* Workouts: **import your Hevy history** (CSV) with a preview of what will be created and the exercises that did not match; the app backup now includes your workouts
+* Workouts: **exercise packs**. Import a pack (zip) from the menu, or on the Play build download it in the app. A pack adds about 930 exercises in English and Spanish with photos, muscles, equipment and instructions, shown with their authors and licence. Without a pack everything keeps working with the starter list
+
 #### 0.115.31
 
 * Workouts: the **rest timer now rings on time with the screen off** (it uses an exact alarm when the system allows it; before, Android could delay it by a minute or more), and its bar no longer overlaps the gesture bar. Checked on a real phone: workout kept after killing the app, previous values, records, and the rest notification opening the workout

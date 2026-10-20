@@ -31,6 +31,9 @@ object InAppNetworkImpl : InAppNetwork {
     override fun downloadMap(context: Context, id: String, onProgress: (done: Long, total: Long) -> Unit): String =
         throw UnsupportedOperationException("This build has no network access")
 
+    override fun downloadFile(context: Context, url: String, wifiOnly: Boolean, onProgress: (done: Long, total: Long) -> Unit): java.io.File =
+        throw UnsupportedOperationException("This build has no network access")
+
     override fun golfCountries(): List<GolfCountry> = throw UnsupportedOperationException("This build has no network access")
 
     override fun golfCities(country: GolfCountry): List<GolfCity> =
