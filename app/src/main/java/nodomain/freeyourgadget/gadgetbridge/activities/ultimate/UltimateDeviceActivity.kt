@@ -122,7 +122,19 @@ class UltimateDeviceActivity : AppCompatActivity() {
 
         // --- Watch: settings and the watch's own features ---
         val sWatch = getString(R.string.ult_section_watch)
-        options += DeviceOptionUi("settings", getString(R.string.ult_device_settings), getString(R.string.ult_device_settings_sub), section = sWatch)
+        // Only promise notifications when this device's settings really contain them.
+        val notifXml = intArrayOf(
+            nodomain.freeyourgadget.gadgetbridge.activities.devicesettings.DeviceSpecificSettingsScreen.NOTIFICATIONS.xml,
+            nodomain.freeyourgadget.gadgetbridge.activities.devicesettings.DeviceSpecificSettingsScreen.CALLS_AND_NOTIFICATIONS.xml,
+        )
+        val hasNotifSettings = coordinator != null && cap {
+            coordinator.getDeviceSpecificSettings(device)?.allScreens?.any { it in notifXml } == true
+        }
+        options += DeviceOptionUi(
+            "settings", getString(R.string.ult_device_settings),
+            getString(if (hasNotifSettings) R.string.ult_device_settings_sub else R.string.ult_device_settings_sub_basic),
+            section = sWatch,
+        )
         if (coordinator != null) {
             if (runCatching { coordinator.getAlarmSlotCount(device) }.getOrDefault(0) > 0) {
                 options += DeviceOptionUi("alarms", getString(R.string.ult_alarms), getString(R.string.ult_alarms_sub), section = sWatch)

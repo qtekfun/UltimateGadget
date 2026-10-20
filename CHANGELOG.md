@@ -5,7 +5,7 @@
 #### 0.115.29
 
 * **Notifications**: new **Select all** and **Select none** buttons above the app list (they apply to the apps the search is showing)
-* The "Device settings" row no longer promises notifications, which live in the Notifications menu
+* The "Device settings" row only mentions notifications on watches whose settings really have them (notifications are chosen in the Notifications menu)
 
 #### 0.115.28
 
