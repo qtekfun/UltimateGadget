@@ -70,6 +70,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import nodomain.freeyourgadget.gadgetbridge.R
+import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.net.InAppNetworkImpl
 import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.theme.LocalUltimatePalette
 import java.text.DateFormat
 import java.util.Date
@@ -82,7 +83,7 @@ fun TrainingHome() {
     val context = LocalContext.current
     val palette = LocalUltimatePalette.current
     val store = remember { TrainingStore.get(context) }
-    val catalog = remember { TrainingCatalog(store) }
+    val catalog = remember { TrainingCatalog.create(context, store) }
     val scope = rememberCoroutineScope()
     var version by remember { mutableStateOf(0) }
     var pane by remember { mutableStateOf(Pane.ROUTINES) }
@@ -90,6 +91,8 @@ fun TrainingHome() {
     var units by remember { mutableStateOf(TrainingUnits.load(context)) }
     var pendingImport by remember { mutableStateOf<TrainingJson.Document?>(null) }
     var info by remember { mutableStateOf<Exercise?>(null) }
+    var packAbout by remember { mutableStateOf(false) }
+    var packDownload by remember { mutableStateOf(false) }
 
     // Come back from the other screens with fresh data.
     val owner = LocalLifecycleOwner.current
@@ -103,6 +106,7 @@ fun TrainingHome() {
     val history = remember(version) { store.finishedSessions() }
     val active = remember(version) { store.activeSession() }
     val exercises = remember(version) { catalog.search("") }
+    val installedPacks = remember(version) { TrainingPacks.installed(context) }
 
     val exportDone = stringResource(R.string.ult_train_export_done)
     val importError = stringResource(R.string.ult_train_import_error)
@@ -123,6 +127,17 @@ fun TrainingHome() {
         }
     }
 
+    val packDone = stringResource(R.string.ult_train_pack_done)
+    val packError = stringResource(R.string.ult_train_pack_error)
+    val packLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
+        if (uri != null) scope.launch {
+            val result = withContext(Dispatchers.IO) { runCatching { installPackFromUri(context, uri) } }
+            result.onSuccess { catalog.invalidate(); version++; Toast.makeText(context, packDone, Toast.LENGTH_SHORT).show() }
+                .onFailure { Toast.makeText(context, packError.format(it.message.orEmpty()), Toast.LENGTH_LONG).show() }
+        }
+    }
+    val pickPack = { packLauncher.launch(arrayOf("application/zip", "application/x-zip-compressed", "application/octet-stream", "*/*")) }
+
     fun start(routine: Routine?) {
         if (active != null) { context.startActivity(TrainingSessionActivity.intent(context)); return }
         val title = routine?.name ?: context.getString(R.string.ult_train_default_title)
@@ -139,6 +154,13 @@ fun TrainingHome() {
                 DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
                     DropdownMenuItem(text = { Text(stringResource(R.string.ult_train_export)) }, onClick = { menu = false; exportLauncher.launch("ultimategadget-workouts.json") })
                     DropdownMenuItem(text = { Text(stringResource(R.string.ult_train_import)) }, onClick = { menu = false; importLauncher.launch(arrayOf("application/json", "text/*", "*/*")) })
+                    DropdownMenuItem(text = { Text(stringResource(R.string.ult_train_pack_import)) }, onClick = { menu = false; pickPack() })
+                    if (InAppNetworkImpl.available) {
+                        DropdownMenuItem(text = { Text(stringResource(R.string.ult_train_pack_download)) }, onClick = { menu = false; packDownload = true })
+                    }
+                    if (installedPacks.isNotEmpty()) {
+                        DropdownMenuItem(text = { Text(stringResource(R.string.ult_train_pack_about)) }, onClick = { menu = false; packAbout = true })
+                    }
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.ult_train_units) + ": " + stringResource(if (units.imperial) R.string.ult_train_units_imperial else R.string.ult_train_units_metric)) },
                         onClick = { menu = false; TrainingUnits.save(context, !units.imperial); units = TrainingUnits.load(context) },
@@ -207,6 +229,9 @@ fun TrainingHome() {
                     }
                 }
                 Pane.EXERCISES -> {
+                    if (installedPacks.isEmpty()) item(key = "pack-banner") {
+                        PackBanner(onImport = pickPack, onDownload = if (InAppNetworkImpl.available) ({ packDownload = true }) else null)
+                    }
                     items(exercises, key = { it.id }) { e ->
                         ExerciseRow(e) { info = e }
                     }
@@ -220,22 +245,19 @@ fun TrainingHome() {
             history.flatMap { s -> s.exercises.filter { it.exerciseId == e.id }.flatMap { it.sets.filter { st -> TrainingMath.counts(st) } } }
                 .maxByOrNull { TrainingMath.estimatedOneRepMaxKg(it) }
         }
-        AlertDialog(
-            onDismissRequest = { info = null },
-            title = { Text(e.displayName()) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text(listOf(e.muscle, e.equipment, measureLabelPlain(e.measure)).filter { it.isNotBlank() }.joinToString(" · "))
-                    Text(
-                        best?.let { stringResource(R.string.ult_train_best, TrainingMath.describe(it, e.measure) { kg -> units.weightWithUnit(kg, context.getString(units.weightLabelRes)) }) }
-                            ?: stringResource(R.string.ult_train_no_history_ex),
-                    )
-                }
-            },
-            confirmButton = { TextButton(onClick = { info = null }) { Text(stringResource(android.R.string.ok)) } },
-            dismissButton = if (e.custom) {
-                { TextButton(onClick = { store.deleteExercise(e.id); catalog.invalidate(); version++; info = null }) { Text(stringResource(R.string.ult_train_delete)) } }
-            } else null,
+        ExerciseDetail(
+            e,
+            best = best?.let { TrainingMath.describe(it, e.measure) { kg -> units.weightWithUnit(kg, context.getString(units.weightLabelRes)) } },
+            onDismiss = { info = null },
+            onDelete = if (e.custom) ({ store.deleteExercise(e.id); catalog.invalidate(); version++; info = null }) else null,
+        )
+    }
+
+    if (packAbout) PackAboutDialog(installedPacks) { packAbout = false }
+    if (packDownload) {
+        PackDownloadDialog(
+            onDismiss = { packDownload = false },
+            onInstalled = { packDownload = false; catalog.invalidate(); version++; Toast.makeText(context, packDone, Toast.LENGTH_SHORT).show() },
         )
     }
 
@@ -260,6 +282,3 @@ fun TrainingHome() {
         )
     }
 }
-
-@Composable
-private fun measureLabelPlain(m: Measure): String = measureLabel(m)

@@ -897,4 +897,27 @@
     <string name="ult_train_mi">mi</string>
     <string name="ult_train_best">Mejor: %1$s</string>
     <string name="ult_train_no_history_ex">Aún no realizado</string>
+    <string name="ult_train_close">Cerrar</string>
+    <string name="ult_train_detail_description">Descripción</string>
+    <string name="ult_train_detail_muscles_secondary">Músculos secundarios</string>
+    <string name="ult_train_detail_measure">Se registra como</string>
+    <string name="ult_train_attribution">Atribución</string>
+    <string name="ult_train_attr_unknown_author">autor desconocido</string>
+    <string name="ult_train_attr_text">Texto: %1$s (%2$s)</string>
+    <string name="ult_train_attr_image">Imagen %1$d: %2$s (%3$s)</string>
+    <string name="ult_train_attr_ai">Imagen generada por IA</string>
+    <string name="ult_train_attr_draft">Traducción en borrador, aún sin revisar</string>
+    <string name="ult_train_pack_import">Importar paquete de ejercicios</string>
+    <string name="ult_train_pack_download">Descargar paquete de ejercicios</string>
+    <string name="ult_train_pack_download_action">Descargar</string>
+    <string name="ult_train_pack_download_text">Descarga el paquete de ejercicios con nombres, descripciones e imágenes en inglés y español.</string>
+    <string name="ult_train_pack_downloading">Descargando… %1$s</string>
+    <string name="ult_train_pack_about">Paquete de ejercicios</string>
+    <string name="ult_train_pack_none">No hay ningún paquete de ejercicios instalado.</string>
+    <string name="ult_train_pack_counts">%1$d ejercicios, %2$d con imágenes</string>
+    <string name="ult_train_pack_licenses">Licencias: %1$s</string>
+    <string name="ult_train_pack_banner_title">Consigue la lista completa de ejercicios</string>
+    <string name="ult_train_pack_banner_text">Un paquete de ejercicios añade cientos de ejercicios con descripciones e imágenes. La app funciona sin él.</string>
+    <string name="ult_train_pack_done">Paquete de ejercicios instalado</string>
+    <string name="ult_train_pack_error">No se pudo instalar el paquete: %1$s</string>
 </resources>
