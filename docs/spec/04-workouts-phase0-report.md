@@ -44,4 +44,4 @@ Exercise: `id` (source uuid, stable), `name` and `description` as `{en, es}`, `c
 
 1. The separate data repository exists (private for now; it goes public after a review of the pack).
 2. Spanish: the 287 exercises wger has no Spanish text for have a draft translation in the data repository, flagged `draftTranslations: ["es"]` in the pack until the owner reviews it. Pack result: 932 exercises with English and Spanish names and descriptions.
-3. Images: only 279 of 932 exercises have one. Generating our own is under study (see the design document); nothing generated is shipped before its licence and look are agreed.
+3. Images: only 279 of 932 exercises have one. Generating our own is a **separate side project** (an image generator, to be designed on its own); until it exists, exercises without an image show a muscle-group icon and the app does not depend on images.
