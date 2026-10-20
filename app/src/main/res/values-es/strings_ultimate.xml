@@ -920,4 +920,15 @@
     <string name="ult_train_pack_banner_text">Un paquete de ejercicios añade cientos de ejercicios con descripciones e imágenes. La app funciona sin él.</string>
     <string name="ult_train_pack_done">Paquete de ejercicios instalado</string>
     <string name="ult_train_pack_error">No se pudo instalar el paquete: %1$s</string>
+    <string name="ult_train_hevy_import">Importar desde Hevy</string>
+    <string name="ult_train_hevy_title">Importar desde Hevy</string>
+    <string name="ult_train_hevy_summary">%1$d entrenamientos, del %2$s al %3$s, %4$d series</string>
+    <string name="ult_train_hevy_matched">%1$d ejercicios coinciden con el catálogo</string>
+    <string name="ult_train_hevy_unmatched">%1$d ejercicios no están en el catálogo. Activa los que quieras crear como ejercicios propios; el resto se omite.</string>
+    <string name="ult_train_hevy_weight_unit">El archivo no indica la unidad de peso. Los pesos están en:</string>
+    <string name="ult_train_hevy_confirm">Importar</string>
+    <string name="ult_train_hevy_importing">Importando entrenamientos…</string>
+    <string name="ult_train_hevy_done">Importados %1$d entrenamientos (%2$d ya estaban), creados %3$d ejercicios</string>
+    <string name="ult_train_hevy_error">No es un archivo de exportación de Hevy</string>
+    <string name="ult_train_hevy_empty">No hay entrenamientos en este archivo</string>
 </resources>

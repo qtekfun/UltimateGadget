@@ -21,6 +21,8 @@ import org.json.JSONObject
 import org.slf4j.LoggerFactory
 import nodomain.freeyourgadget.gadgetbridge.BuildConfig
 import nodomain.freeyourgadget.gadgetbridge.GBDatabaseManager
+import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.training.TrainingBackup
+import nodomain.freeyourgadget.gadgetbridge.activities.ultimate.training.TrainingStore
 import nodomain.freeyourgadget.gadgetbridge.entities.DaoMaster
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -47,6 +49,7 @@ import java.util.zip.ZipOutputStream
  *                             the per-device devicesettings_<ADDRESS>.xml, widgetsettings_*,
  *                             and any coordinator/capability prefs the app keeps
  *   files/routes/<name>.gpx   saved routes (filesDir/routes)
+ *   training/workouts.json    the Workouts tab data (own JSON format, see [TrainingBackup])
  * ```
  * Maps (the `.pmtiles` tiles under filesDir/maps, and filesDir/mapcore) are deliberately excluded:
  * large and re-downloadable.
@@ -62,6 +65,7 @@ object UltimateBackup {
     private const val ENTRY_DB = "db/Gadgetbridge"
     private const val PREFIX_PREFS = "shared_prefs/"
     private const val PREFIX_ROUTES = "files/routes/"
+    private const val ENTRY_TRAINING = TrainingBackup.ENTRY
 
     const val FILE_EXTENSION = "ugbak"
 
@@ -113,6 +117,11 @@ object UltimateBackup {
                     routeCount++
                 }
 
+            // training/workouts.json – routines, sessions and custom exercises.
+            zos.putNextEntry(ZipEntry(ENTRY_TRAINING))
+            zos.write(TrainingBackup.snapshot(TrainingStore.get(context)))
+            zos.closeEntry()
+
             // manifest.json – written last (we now know the counts).
             val manifest = JSONObject()
                 .put("format", "ultimategadget-backup")
@@ -154,6 +163,7 @@ object UltimateBackup {
         var sourcePackage: String? = null
         val rawPrefs = LinkedHashMap<String, ByteArray>()
         val routes = LinkedHashMap<String, ByteArray>()
+        var training: ByteArray? = null
 
         ZipInputStream(ByteArrayInputStream(zipBytes)).use { zis ->
             var entry: ZipEntry? = zis.nextEntry
@@ -162,6 +172,7 @@ object UltimateBackup {
                 if (!entry.isDirectory) {
                     when {
                         name == ENTRY_DB -> dbBytes = readEntry(zis)
+                        name == ENTRY_TRAINING -> training = readEntry(zis)
                         name == ENTRY_MANIFEST -> sourcePackage = runCatching {
                             JSONObject(String(readEntry(zis), Charsets.UTF_8)).optString("packageName")
                         }.getOrNull()?.takeIf { it.isNotBlank() }
@@ -207,6 +218,12 @@ object UltimateBackup {
             for ((leaf, bytes) in routes) {
                 File(routesDir, leaf).outputStream().use { it.write(bytes) }
             }
+        }
+
+        // 4) Workouts (backups made before this entry existed leave the local workouts untouched).
+        training?.let { bytes ->
+            runCatching { TrainingBackup.restore(TrainingStore.get(context), bytes) }
+                .onFailure { LOG.warn("Could not restore the workouts", it) }
         }
 
         return ImportResult(prefsFiles = prefs.size, routeFiles = routes.size)

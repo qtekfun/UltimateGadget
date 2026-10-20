@@ -137,6 +137,7 @@ fun TrainingHome() {
         }
     }
     val pickPack = { packLauncher.launch(arrayOf("application/zip", "application/x-zip-compressed", "application/octet-stream", "*/*")) }
+    val importHevy = rememberHevyImport(store, catalog) { version++ }
 
     fun start(routine: Routine?) {
         if (active != null) { context.startActivity(TrainingSessionActivity.intent(context)); return }
@@ -161,6 +162,7 @@ fun TrainingHome() {
                     if (installedPacks.isNotEmpty()) {
                         DropdownMenuItem(text = { Text(stringResource(R.string.ult_train_pack_about)) }, onClick = { menu = false; packAbout = true })
                     }
+                    DropdownMenuItem(text = { Text(stringResource(R.string.ult_train_hevy_import)) }, onClick = { menu = false; importHevy() })
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.ult_train_units) + ": " + stringResource(if (units.imperial) R.string.ult_train_units_imperial else R.string.ult_train_units_metric)) },
                         onClick = { menu = false; TrainingUnits.save(context, !units.imperial); units = TrainingUnits.load(context) },
