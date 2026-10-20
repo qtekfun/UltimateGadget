@@ -42,7 +42,7 @@ Own database file (not the greenDAO schema, which is bumped per release and shar
 - Published as assets of a GitHub release in a separate data repository, like the course data. The app never ships third-party media in the APK or the source repo.
 - `mainline`: import from a local file (storage picker). `play`: offered at first run and updated through the `InAppNetwork` contract, Wi-Fi only by default.
 - Without a pack the app is fully usable: a small built-in text-only starter list plus custom exercises.
-- Source and licence: candidates are open exercise datasets (for example free-exercise-db, wger). **Each source's licence must be checked in Phase 0 before anything is packaged**, including whether its media can be redistributed under AGPL-compatible terms and what attribution the pack must carry. Spanish text has to be produced by us (or taken from a source that already has it) and reviewed.
+- Source and licence: **wger** (per-item CC-BY-SA / CC0 with authors), verified in Phase 0 (see `04-workouts-phase0-report.md`); free-exercise-db was rejected because its images are scraped. Spanish covers 645 of 932 exercises at the source; the rest is translated by us and reviewed.
 
 ## 5. Import and export
 
@@ -62,7 +62,7 @@ Workouts tab: **Today** (program day or quick start), **Routines**, **Programs**
 
 ## 8. Phases (each ends with tests, PR and release)
 
-1. **Phase 0 — Sources**: choose and legally verify the catalog/media sources, define the pack format, build the pack tool in the data repo, produce a first pack. Acceptance: licences documented per source, pack imports in a prototype, size per pack reported.
+1. **Phase 0 — Sources (done, see report)**: choose and legally verify the catalog/media sources, define the pack format, build the pack tool in the data repo, produce a first pack. Acceptance: licences documented per source, pack imports in a prototype, size per pack reported.
 2. **Phase 1 — Core**: database, custom exercises, routines, session logging with persistence (survives kill), rest timer, last-time values, history, our-JSON export/import, Workouts tab. Acceptance: unit tests for model/units/PR maths, JSON round trip, a session recovered after process death on a real phone.
 3. **Phase 2 — Packs**: pack import (mainline), automatic download (play), exercise browser with media and cross-fade, EN/ES names. Acceptance: pack installed and updated on both flavors; app still works with no pack.
 4. **Phase 3 — Programs and Home**: multi-week programs, today's workout card on Home, set kinds, supersets, time/distance sets, machines. Acceptance: a 4-week program advances correctly across weeks and rest days.
