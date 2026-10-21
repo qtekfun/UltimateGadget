@@ -142,7 +142,8 @@ fun ExerciseDetail(e: Exercise, best: String?, onDismiss: () -> Unit, onDelete: 
                     Section(stringResource(R.string.ult_train_detail_measure)) {
                         Text(measureLabel(e.measure), style = MaterialTheme.typography.bodyMedium, color = palette.onSurface)
                     }
-                    e.pack?.let { Attribution(e, it, locale) }
+                    // A pack made only of original work (no authors, no third-party pictures) has nothing to credit.
+                    e.pack?.takeIf { it.hasCredits(locale) }?.let { Attribution(e, it, locale) }
                 }
                 if (onDelete != null) {
                     TextButton(onClick = onDelete, modifier = Modifier.padding(horizontal = 8.dp)) { Text(stringResource(R.string.ult_train_delete)) }
@@ -160,6 +161,9 @@ private fun Section(title: String, content: @Composable () -> Unit) {
         content()
     }
 }
+
+private fun PackInfo.hasCredits(locale: Locale) =
+    authors.isNotEmpty() || media.any { !it.generated } || locale.language in draftTranslations
 
 @Composable
 private fun Attribution(e: Exercise, info: PackInfo, locale: Locale) {

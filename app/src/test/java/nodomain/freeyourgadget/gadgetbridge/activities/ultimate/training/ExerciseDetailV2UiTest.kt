@@ -164,6 +164,20 @@ class ExerciseDetailV2UiTest {
         assertFalse(rule.onAllNodes(androidx.compose.ui.test.hasText("Image 2", substring = true)).fetchSemanticsNodes().isNotEmpty())
     }
 
+    @Test fun originalPackShowsNoAttributionAtAll() {
+        val ctx = ApplicationProvider.getApplicationContext<Context>()
+        TrainingPacks.invalidate()
+        TrainingPacks.rootDir(ctx).deleteRecursively()
+        val manifest = org.json.JSONObject(PackFixture.manifest(schema = 2)).put("attribution", "").put("licenses", org.json.JSONArray()).toString()
+        TrainingPacks.install(ctx, PackFixture.zip(manifest = manifest, exercises = PackFixture.exercisesOriginal(), media = mapOf("media/uuid-squat.anim.webp" to byteArrayOf(1))).inputStream())
+        TrainingStore.reset()
+        catalog = TrainingCatalog.create(ctx, TrainingStore.get(ctx))
+        show("uuid-squat", "ex_anim")
+        rule.onNodeWithText("Hold the weight.").assertExists()
+        assertFalse(rule.onAllNodes(androidx.compose.ui.test.hasText("Attribution")).fetchSemanticsNodes().isNotEmpty())
+        assertFalse(rule.onAllNodes(androidx.compose.ui.test.hasText("CC0", substring = true)).fetchSemanticsNodes().isNotEmpty())
+    }
+
     @Test fun playbackStopsWhenTheActivityPausesAndResumes() {
         show("uuid-squat", "ex_anim")
         val anim = animations.getValue("uuid-squat.anim.webp")

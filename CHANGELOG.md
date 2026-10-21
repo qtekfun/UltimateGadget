@@ -2,6 +2,10 @@
 
 <!-- For contributors: do not modify this file - the project maintainers will update it as needed -->
 
+#### 0.115.34
+
+* Workouts: the exercise pack is now **entirely original** (own animations and texts for every exercise, no third-party photos), so the exercise screen no longer shows a credits section when the pack has nothing to credit
+
 #### 0.115.33
 
 * Workouts: **exercise animations and clearer instructions**. Exercise packs in the new format show a looping animation of the movement (a still picture before Android 9) with a button to switch to the photos, plus a short summary, numbered steps and form tips, in English or Spanish. Packs in the previous format keep working, and their wrapped description lines are now joined into proper paragraphs
