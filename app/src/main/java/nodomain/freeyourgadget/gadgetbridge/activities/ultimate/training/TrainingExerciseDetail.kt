@@ -30,6 +30,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -46,8 +47,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -57,6 +60,8 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -82,6 +87,7 @@ private const val IMAGE_FADE_MS = 700
 fun ExerciseDetail(e: Exercise, best: String?, onDismiss: () -> Unit, onDelete: (() -> Unit)? = null) {
     val palette = LocalUltimatePalette.current
     val locale = Locale.getDefault()
+    val context = LocalContext.current
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Surface(Modifier.fillMaxSize(), color = palette.background) {
             Column(Modifier.fillMaxSize()) {
@@ -92,27 +98,46 @@ fun ExerciseDetail(e: Exercise, best: String?, onDismiss: () -> Unit, onDelete: 
                     }
                 }
                 Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                    ExerciseImages(e)
+                    ExerciseMedia(e)
                     Text(
                         best?.let { stringResource(R.string.ult_train_best, it) } ?: stringResource(R.string.ult_train_no_history_ex),
                         style = MaterialTheme.typography.titleMedium, color = palette.primary,
                     )
-                    val description = e.description(locale)
-                    if (description.isNotBlank()) {
-                        Section(stringResource(R.string.ult_train_detail_description)) {
-                            Text(description, style = MaterialTheme.typography.bodyMedium, color = palette.onSurface)
+                    val summary = e.summary(locale)
+                    val steps = e.steps(locale)
+                    val tips = e.tips(locale)
+                    if (summary.isNotBlank()) {
+                        Text(summary, style = MaterialTheme.typography.bodyLarge, color = palette.onSurface, modifier = Modifier.testTag("ex_summary"))
+                    }
+                    if (steps.isNotEmpty()) {
+                        Section(stringResource(R.string.ult_train_detail_steps)) { NumberedList(steps, "ex_step_") }
+                    } else {
+                        // Schema 1 packs and custom exercises: the plain description, with its wrapped lines joined.
+                        val description = e.cleanDescription(locale)
+                        if (description.isNotBlank()) {
+                            Section(stringResource(R.string.ult_train_detail_description)) {
+                                Text(description, style = MaterialTheme.typography.bodyMedium, color = palette.onSurface)
+                            }
                         }
                     }
+                    if (tips.isNotEmpty()) {
+                        Section(stringResource(R.string.ult_train_detail_tips)) { BulletList(tips, "ex_tip_") }
+                    }
                     Section(stringResource(R.string.ult_train_muscle)) {
-                        Text(e.muscle.ifBlank { "-" }, style = MaterialTheme.typography.bodyMedium, color = palette.onSurface)
+                        Text(TrainingLabels.labels(context, e.muscle).ifBlank { "-" }, style = MaterialTheme.typography.bodyMedium, color = palette.onSurface)
                     }
                     if (e.musclesSecondary.isNotBlank()) {
                         Section(stringResource(R.string.ult_train_detail_muscles_secondary)) {
-                            Text(e.musclesSecondary, style = MaterialTheme.typography.bodyMedium, color = palette.onSurface)
+                            Text(TrainingLabels.labels(context, e.musclesSecondary), style = MaterialTheme.typography.bodyMedium, color = palette.onSurface)
                         }
                     }
                     Section(stringResource(R.string.ult_train_equipment)) {
-                        Text(e.equipment.ifBlank { "-" }, style = MaterialTheme.typography.bodyMedium, color = palette.onSurface)
+                        Text(TrainingLabels.labels(context, e.equipment).ifBlank { "-" }, style = MaterialTheme.typography.bodyMedium, color = palette.onSurface)
+                    }
+                    if (e.category.isNotBlank()) {
+                        Section(stringResource(R.string.ult_train_detail_category)) {
+                            Text(TrainingLabels.label(context, e.category), style = MaterialTheme.typography.bodyMedium, color = palette.onSurface)
+                        }
                     }
                     Section(stringResource(R.string.ult_train_detail_measure)) {
                         Text(measureLabel(e.measure), style = MaterialTheme.typography.bodyMedium, color = palette.onSurface)
@@ -150,7 +175,14 @@ private fun Attribution(e: Exercise, info: PackInfo, locale: Locale) {
             if (locale.language in info.draftTranslations) {
                 Text(stringResource(R.string.ult_train_attr_draft), style = MaterialTheme.typography.bodySmall, color = palette.error)
             }
-            info.media.forEachIndexed { i, m ->
+            // Animations drawn for the app have no authors (CC0): one line for all of them. Photos keep their credits.
+            info.media.filter { it.generated }.map { it.license.ifBlank { "CC0-1.0" } }.distinct().forEach { license ->
+                Text(
+                    stringResource(R.string.ult_train_attr_animation, license),
+                    style = MaterialTheme.typography.bodySmall, color = palette.onSurfaceVariant,
+                )
+            }
+            info.media.filter { !it.generated }.forEachIndexed { i, m ->
                 val who = m.authors.joinToString(", ").ifBlank { unknown }
                 Text(
                     stringResource(R.string.ult_train_attr_image, i + 1, who, m.license.ifBlank { "?" }),
@@ -172,21 +204,95 @@ internal fun decodeScaled(file: File, maxSide: Int = 800): ImageBitmap? {
 }
 
 @Composable
-private fun ExerciseImages(e: Exercise) {
+private fun NumberedList(items: List<String>, tagPrefix: String) {
+    val palette = LocalUltimatePalette.current
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        items.forEachIndexed { i, text ->
+            Row(Modifier.testTag(tagPrefix + i), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("${i + 1}.", style = MaterialTheme.typography.bodyMedium, color = palette.primary, modifier = Modifier.widthIn(min = 22.dp))
+                Text(text, style = MaterialTheme.typography.bodyMedium, color = palette.onSurface, modifier = Modifier.weight(1f))
+            }
+        }
+    }
+}
+
+@Composable
+private fun BulletList(items: List<String>, tagPrefix: String) {
+    val palette = LocalUltimatePalette.current
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        items.forEachIndexed { i, text ->
+            Row(Modifier.testTag(tagPrefix + i), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("•", style = MaterialTheme.typography.bodyMedium, color = palette.primary, modifier = Modifier.widthIn(min = 22.dp))
+                Text(text, style = MaterialTheme.typography.bodyMedium, color = palette.onSurface, modifier = Modifier.weight(1f))
+            }
+        }
+    }
+}
+
+/**
+ * The top of the detail: the looping animation when the pack has one (a still first frame before Android 9),
+ * otherwise the photos, otherwise the muscle icon. With both, the animation comes first and a button swaps to the photos.
+ */
+@Composable
+private fun ExerciseMedia(e: Exercise) {
+    val context = LocalContext.current
+    val decoder = LocalAnimationDecoder.current
+    val info = e.pack
+    val split = remember(e.id) { splitMedia(info?.media.orEmpty()) }
+    val anim by produceState<AnimLoad>(if (split.animations.isEmpty()) AnimLoad.Failed else AnimLoad.Loading, e.id) {
+        val file = info?.let { i -> split.animations.firstNotNullOfOrNull { TrainingPacks.mediaFile(context, i.packId, it.file) } }
+        value = if (file == null) AnimLoad.Failed else withContext(Dispatchers.IO) {
+            decoder.decode(file)?.let { AnimLoad.Ready(it) } ?: AnimLoad.Failed
+        }
+    }
+    var showPhotos by rememberSaveable(e.id) { mutableStateOf(false) }
+    val hasPhotos = split.photos.isNotEmpty()
+    val a = anim
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        when {
+            a is AnimLoad.Loading -> IconFrame()
+            a is AnimLoad.Ready && !(showPhotos && hasPhotos) -> {
+                val description = stringResource(R.string.ult_train_media_animation_cd)
+                val palette = LocalUltimatePalette.current
+                AnimatedDrawableView(
+                    a.drawable,
+                    Modifier.fillMaxWidth().height(240.dp).clip(RoundedCornerShape(16.dp)).background(palette.surfaceContainer)
+                        .semantics { contentDescription = description }.testTag("ex_anim"),
+                )
+            }
+            else -> ExercisePhotos(e, split.photos)
+        }
+        if (a is AnimLoad.Ready && hasPhotos) {
+            TextButton(onClick = { showPhotos = !showPhotos }, modifier = Modifier.testTag("ex_media_toggle")) {
+                Text(stringResource(if (showPhotos) R.string.ult_train_media_show_animation else R.string.ult_train_media_show_photos))
+            }
+        }
+    }
+}
+
+private val MEDIA_FRAME = Modifier.fillMaxWidth().height(240.dp).clip(RoundedCornerShape(16.dp))
+
+@Composable
+private fun IconFrame() {
+    val palette = LocalUltimatePalette.current
+    Box(MEDIA_FRAME.background(palette.primaryContainer).testTag("ex_icon"), contentAlignment = Alignment.Center) {
+        Icon(Icons.Filled.FitnessCenter, contentDescription = null, tint = palette.onPrimaryContainer, modifier = Modifier.size(72.dp))
+    }
+}
+
+@Composable
+private fun ExercisePhotos(e: Exercise, photos: List<PackMedia>) {
     val palette = LocalUltimatePalette.current
     val context = LocalContext.current
     val info = e.pack
     // Images are decoded lazily and only for the exercise on screen.
     val images by produceState<List<ImageBitmap>>(emptyList(), e.id) {
         value = if (info == null) emptyList() else withContext(Dispatchers.IO) {
-            info.media.mapNotNull { m -> TrainingPacks.mediaFile(context, info.packId, m.file)?.let { decodeScaled(it) } }
+            photos.mapNotNull { m -> TrainingPacks.mediaFile(context, info.packId, m.file)?.let { decodeScaled(it) } }
         }
     }
-    val frame = Modifier.fillMaxWidth().height(240.dp).clip(RoundedCornerShape(16.dp))
     if (images.isEmpty()) {
-        Box(frame.background(palette.primaryContainer).testTag("ex_icon"), contentAlignment = Alignment.Center) {
-            Icon(Icons.Filled.FitnessCenter, contentDescription = null, tint = palette.onPrimaryContainer, modifier = Modifier.size(72.dp))
-        }
+        IconFrame()
         return
     }
     var index by remember(images) { mutableIntStateOf(0) }
@@ -198,7 +304,7 @@ private fun ExerciseImages(e: Exercise) {
             }
         }
     }
-    Crossfade(targetState = index, animationSpec = tween(IMAGE_FADE_MS), label = "exercise-images", modifier = frame.background(palette.surfaceContainer)) { i ->
+    Crossfade(targetState = index, animationSpec = tween(IMAGE_FADE_MS), label = "exercise-images", modifier = MEDIA_FRAME.background(palette.surfaceContainer)) { i ->
         Image(images[i], contentDescription = null, contentScale = ContentScale.Fit, modifier = Modifier.fillMaxSize().testTag("ex_image_$i"))
     }
 }

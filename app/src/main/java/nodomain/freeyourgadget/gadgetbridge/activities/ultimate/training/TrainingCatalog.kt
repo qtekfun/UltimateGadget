@@ -23,7 +23,12 @@ import java.util.Locale
  * The exercises the user can pick: the built-in starter list, the installed resource packs and
  * their own. Pack metadata comes from [packs] (read from disk once, kept in memory).
  */
-class TrainingCatalog(private val store: TrainingStore, private val packs: () -> List<Exercise> = { emptyList() }) {
+class TrainingCatalog(
+    private val store: TrainingStore,
+    /** Extra search text (the labels in every supported language) for a stored muscle/equipment/category list. */
+    private val labelText: (String) -> String = { "" },
+    private val packs: () -> List<Exercise> = { emptyList() },
+) {
     private var cache: List<Exercise>? = null
     private var index: Map<String, Exercise>? = null
     private var haystacks: Map<String, String>? = null
@@ -38,7 +43,7 @@ class TrainingCatalog(private val store: TrainingStore, private val packs: () ->
     fun invalidate() { cache = null; index = null; haystacks = null; sorted = null }
 
     private fun haystack(): Map<String, String> = haystacks ?: all().associate { e ->
-        e.id to fold((e.names.values + e.muscle + e.musclesSecondary + e.equipment).joinToString("\n"))
+        e.id to fold((e.names.values + e.muscle + e.musclesSecondary + e.equipment + e.category).joinToString("\n") + "\n" + labelText(e.muscle) + "\n" + labelText(e.musclesSecondary) + "\n" + labelText(e.equipment) + "\n" + labelText(e.category))
     }.also { haystacks = it }
 
     fun search(query: String, locale: Locale = Locale.getDefault()): List<Exercise> {
@@ -53,7 +58,8 @@ class TrainingCatalog(private val store: TrainingStore, private val packs: () ->
 
     companion object {
         /** The catalog the screens use: built-in, installed packs and the user's own. */
-        fun create(context: android.content.Context, store: TrainingStore) = TrainingCatalog(store) { TrainingPacks.exercises(context) }
+        fun create(context: android.content.Context, store: TrainingStore) =
+            TrainingCatalog(store, TrainingLabels.searchText(context)) { TrainingPacks.exercises(context) }
 
         private val MARKS = Regex("\\p{M}+")
         /** Lower-case and accent-free, so "dominadas" matches "Dominádas" and vice versa. */

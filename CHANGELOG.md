@@ -2,6 +2,12 @@
 
 <!-- For contributors: do not modify this file - the project maintainers will update it as needed -->
 
+#### 0.115.33
+
+* Workouts: **exercise animations and clearer instructions**. Exercise packs in the new format show a looping animation of the movement (a still picture before Android 9) with a button to switch to the photos, plus a short summary, numbered steps and form tips, in English or Spanish. Packs in the previous format keep working, and their wrapped description lines are now joined into proper paragraphs
+* Workouts: muscle, equipment and category names are **translated to Spanish** in the lists, the exercise detail and the search (you can search in either language)
+* Workouts: weights in the workout summary, records and history use your language's decimal separator (for example "122,5 kg")
+
 #### 0.115.32
 
 * Workouts: **import your Hevy history** (CSV) with a preview of what will be created and the exercises that did not match; the app backup now includes your workouts

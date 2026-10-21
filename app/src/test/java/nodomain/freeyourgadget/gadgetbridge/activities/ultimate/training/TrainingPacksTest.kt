@@ -78,7 +78,7 @@ class TrainingPacksTest {
 
     @Test fun badManifestsAreRejected() {
         val bad = listOf(
-            PackFixture.manifest(schema = 2), PackFixture.manifest(id = "../x"), PackFixture.manifest(id = "Has Space"),
+            PackFixture.manifest(schema = 3), PackFixture.manifest(id = "../x"), PackFixture.manifest(id = "Has Space"),
             PackFixture.manifest(id = ""), "not json", null,
         )
         for (m in bad) assertThrows(PackException::class.java) { install(PackFixture.zip(manifest = m)) }

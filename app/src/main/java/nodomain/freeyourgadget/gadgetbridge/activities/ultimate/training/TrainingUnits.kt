@@ -20,7 +20,8 @@ import android.content.Context
 import java.util.Locale
 
 /** Metric or imperial display; storage is always kg / metres. */
-class TrainingUnits(val imperial: Boolean) {
+/** [locale] decides the decimal separator of the display texts; null follows the device language. */
+class TrainingUnits(val imperial: Boolean, private val locale: Locale? = null) {
     val weightLabelRes get() = if (imperial) nodomain.freeyourgadget.gadgetbridge.R.string.ult_train_lb else nodomain.freeyourgadget.gadgetbridge.R.string.ult_train_kg
     val distanceLabelRes get() = if (imperial) nodomain.freeyourgadget.gadgetbridge.R.string.ult_train_mi else nodomain.freeyourgadget.gadgetbridge.R.string.ult_train_km
 
@@ -34,8 +35,16 @@ class TrainingUnits(val imperial: Boolean) {
     fun parseWeight(text: String): Double? = text.replace(',', '.').toDoubleOrNull()?.let { if (imperial) TrainingMath.lbToKg(it) else it }
     fun parseDistance(text: String): Double? = text.replace(',', '.').toDoubleOrNull()?.let { if (imperial) TrainingMath.milesToMetres(it) else it * 1000.0 }
 
-    /** "82.5 kg" style text for summaries. */
-    fun weightWithUnit(kg: Double, unit: String) = trim(weightValue(kg)) + " " + unit
+    /** "82.5 kg" style text for summaries, with the locale decimal separator ("82,5 kg" in Spanish). */
+    fun weightWithUnit(kg: Double, unit: String) = display(weightValue(kg)) + " " + unit
+
+    /** "1.5 km" style text, with the locale decimal separator. */
+    fun distanceWithUnit(m: Double, unit: String) = display(distanceValue(m)) + " " + unit
+
+    private fun display(v: Double): String =
+        java.text.NumberFormat.getNumberInstance(locale ?: Locale.getDefault()).apply {
+            maximumFractionDigits = 2; minimumFractionDigits = 0; isGroupingUsed = false
+        }.format(v)
 
     private fun trim(v: Double): String {
         val r = Math.round(v * 100.0) / 100.0

@@ -61,6 +61,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -215,9 +216,10 @@ fun ExercisePicker(catalog: TrainingCatalog, store: TrainingStore, onPick: (Exer
 @Composable
 fun ExerciseRow(e: Exercise, onClick: () -> Unit) {
     val palette = LocalUltimatePalette.current
+    val context = LocalContext.current
     Column(Modifier.fillMaxWidth().clickable(onClick = onClick).padding(horizontal = 16.dp, vertical = 10.dp)) {
         Text(e.displayName(), style = MaterialTheme.typography.titleMedium, color = palette.onSurface)
-        val sub = listOf(e.muscle, e.equipment).filter { it.isNotBlank() }.joinToString(" · ")
+        val sub = listOf(TrainingLabels.labels(context, e.muscle), TrainingLabels.labels(context, e.equipment)).filter { it.isNotBlank() }.joinToString(" · ")
         if (sub.isNotEmpty()) Text(sub, style = MaterialTheme.typography.bodySmall, color = palette.onSurfaceVariant)
     }
 }

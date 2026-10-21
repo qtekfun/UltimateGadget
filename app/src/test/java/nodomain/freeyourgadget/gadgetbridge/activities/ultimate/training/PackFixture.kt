@@ -47,6 +47,33 @@ object PackFixture {
         ex("uuid-plank", "Plank", null),
     ))).toString()
 
+    private fun lang(en: Any, es: Any?) = JSONObject().put("en", en).also { if (es != null) it.put("es", es) }
+
+    fun animMedia(file: String, generated: Boolean = true) = JSONObject()
+        .put("file", file).put("main", true).put("ai", false).put("animated", true).put("generated", generated)
+        .put("license", "CC0-1.0").put("authors", JSONArray())
+
+    /** Pack format 2: summary, steps, tips and animated media next to schema 1 style entries. */
+    fun exercisesV2(): String = JSONObject().put("schema", 2).put("source", "test").put("exercises", JSONArray(listOf(
+        ex("uuid-squat", "Goblet Squat", "Sentadilla goblet", listOf(animMedia("media/uuid-squat.anim.webp"), media("media/uuid-squat_1.png", main = false)))
+            .put("summary", lang("A squat holding a weight at the chest.", "Una sentadilla con peso al pecho."))
+            .put("steps", lang(JSONArray(listOf("Hold the weight.", "Sit down.", "Stand up.")), JSONArray(listOf("Sujeta el peso.", "Baja.", "Sube."))))
+            .put("tips", lang(JSONArray(listOf("Keep the chest up.")), JSONArray(listOf("Pecho arriba."))))
+            .put("category", "Legs"),
+        ex("uuid-lunge", "Lunge", "Zancada", listOf(animMedia("media/uuid-lunge.anim.webp")))
+            .put("steps", JSONObject().put("en", JSONArray(listOf("Step forward.", "  ", "Return.")))),
+        ex("uuid-plank", "Plank", null, listOf(animMedia("media/uuid-plank.anim.webp")))
+            .put("description", JSONObject().put("en", "Line one\nwrapped line\n\nSecond paragraph.")),
+    ))).toString()
+
+    fun zipV2(): ByteArray = zip(
+        manifest = manifest(schema = 2), exercises = exercisesV2(),
+        media = mapOf(
+            "media/uuid-squat.anim.webp" to byteArrayOf(1), "media/uuid-squat_1.png" to byteArrayOf(2),
+            "media/uuid-lunge.anim.webp" to byteArrayOf(3), "media/uuid-plank.anim.webp" to byteArrayOf(4),
+        ),
+    )
+
     /** [extra] are additional raw entries (name to bytes), e.g. a zip-slip path. */
     fun zip(
         manifest: String? = manifest(), exercises: String? = exercises(),
