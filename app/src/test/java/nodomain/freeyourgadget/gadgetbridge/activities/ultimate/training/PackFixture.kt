@@ -66,6 +66,17 @@ object PackFixture {
             .put("description", JSONObject().put("en", "Line one\nwrapped line\n\nSecond paragraph.")),
     ))).toString()
 
+    /** An all-original pack: only generated animations, no authors, no per-exercise licence. */
+    fun exercisesOriginal(): String = JSONObject().put("schema", 2).put("source", "test").put("exercises", JSONArray(listOf(
+        JSONObject().put("id", "uuid-squat")
+            .put("name", lang("Goblet Squat", "Sentadilla goblet"))
+            .put("summary", lang("A squat holding a weight at the chest.", "Una sentadilla con peso al pecho."))
+            .put("steps", lang(JSONArray(listOf("Hold the weight.", "Sit down.")), JSONArray(listOf("Sujeta el peso.", "Baja."))))
+            .put("category", "Legs").put("muscles", JSONArray(listOf("Quads"))).put("musclesSecondary", JSONArray())
+            .put("equipment", JSONArray(listOf("Barbell")))
+            .put("media", JSONArray(listOf(animMedia("media/uuid-squat.anim.webp")))),
+    ))).toString()
+
     fun zipV2(): ByteArray = zip(
         manifest = manifest(schema = 2), exercises = exercisesV2(),
         media = mapOf(
