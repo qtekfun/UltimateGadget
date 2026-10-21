@@ -45,17 +45,47 @@ data class Exercise(
     val musclesSecondary: String = "",
     /** Set for exercises that come from an installed resource pack: attribution and media. */
     val pack: PackInfo? = null,
+    /** Pack category in English ("Legs", "Back"...); empty for built-in and custom exercises. */
+    val category: String = "",
+    /** Pack format v2: a one or two sentence summary by language code. */
+    val summaries: Map<String, String> = emptyMap(),
+    /** Pack format v2: the numbered steps by language code. */
+    val steps: Map<String, List<String>> = emptyMap(),
+    /** Pack format v2: form cues and common mistakes by language code. */
+    val tips: Map<String, List<String>> = emptyMap(),
 ) {
     fun description(locale: Locale = Locale.getDefault()): String =
         descriptions[locale.language]?.takeIf { it.isNotBlank() } ?: descriptions["en"]?.takeIf { it.isNotBlank() }
             ?: descriptions.values.firstOrNull { it.isNotBlank() } ?: notes
 
+    /** The description with hard-wrapped lines joined (schema 1 packs wrap their text). */
+    fun cleanDescription(locale: Locale = Locale.getDefault()): String = TrainingText.clean(description(locale))
+
+    fun summary(locale: Locale = Locale.getDefault()): String =
+        pickByLanguage(summaries, locale) { it.isNotBlank() } ?: ""
+
+    fun steps(locale: Locale = Locale.getDefault()): List<String> =
+        pickByLanguage(steps, locale) { it.isNotEmpty() } ?: emptyList()
+
+    fun tips(locale: Locale = Locale.getDefault()): List<String> =
+        pickByLanguage(tips, locale) { it.isNotEmpty() } ?: emptyList()
+
     fun displayName(locale: Locale = Locale.getDefault()): String =
         names[locale.language] ?: names["en"] ?: names.values.firstOrNull() ?: id
 }
 
-/** One picture of a pack exercise; [file] is relative to the pack folder. */
-data class PackMedia(val file: String, val main: Boolean, val ai: Boolean, val license: String, val authors: List<String>)
+/** Same fallback as the names: the locale language, then English, then anything non-empty. */
+internal fun <T> pickByLanguage(m: Map<String, T>, locale: Locale, usable: (T) -> Boolean): T? =
+    m[locale.language]?.takeIf(usable) ?: m["en"]?.takeIf(usable) ?: m.values.firstOrNull(usable)
+
+/**
+ * One picture or animation of a pack exercise; [file] is relative to the pack folder. [animated] items are
+ * looping animated WebP files; [generated] ones were drawn for the app (CC0, no authors) rather than taken from a photo.
+ */
+data class PackMedia(
+    val file: String, val main: Boolean, val ai: Boolean, val license: String, val authors: List<String>,
+    val animated: Boolean = false, val generated: Boolean = false,
+)
 
 /** Where a pack exercise comes from: which pack, who wrote it, under which licence, its pictures. */
 data class PackInfo(

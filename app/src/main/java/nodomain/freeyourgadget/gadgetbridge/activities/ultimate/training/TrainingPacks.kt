@@ -51,9 +51,11 @@ class PackException(message: String) : IOException(message)
  * version of the same pack replaces the older one.
  */
 object TrainingPacks {
-    const val SCHEMA = 1
+    /** Newest pack format this app reads; schema 1 packs (no summary/steps/tips/animations) still load. */
+    const val SCHEMA = 2
+    private val SUPPORTED_SCHEMAS = 1..SCHEMA
     const val MAX_ENTRIES = 5000
-    const val MAX_TOTAL_BYTES = 256L * 1024 * 1024
+    const val MAX_TOTAL_BYTES = 512L * 1024 * 1024
     const val MAX_ENTRY_BYTES = 32L * 1024 * 1024
     const val MAX_JSON_BYTES = 16L * 1024 * 1024
     private val ID_RE = Regex("[a-z0-9][a-z0-9_-]{0,39}")
@@ -126,11 +128,12 @@ object TrainingPacks {
     private fun readManifest(f: File): PackManifest {
         if (!f.isFile) throw PackException("manifest.json is missing")
         val o = try { JSONObject(f.readText()) } catch (e: Exception) { throw PackException("manifest.json is not valid") }
-        if (o.optInt("schema", -1) != SCHEMA) throw PackException("Unsupported pack schema")
+        val schema = o.optInt("schema", -1)
+        if (schema !in SUPPORTED_SCHEMAS) throw PackException("Unsupported pack schema")
         val id = o.optString("id")
         if (!ID_RE.matches(id)) throw PackException("Invalid pack id")
         return PackManifest(
-            SCHEMA, id, o.optString("version"), strings(o.optJSONArray("languages")),
+            schema, id, o.optString("version"), strings(o.optJSONArray("languages")),
             o.optInt("exercises"), o.optInt("withMedia"), strings(o.optJSONArray("licenses")), o.optString("attribution"),
         )
     }
@@ -139,7 +142,7 @@ object TrainingPacks {
         if (!f.isFile) throw PackException("exercises.json is missing")
         try {
             val o = JSONObject(f.readText())
-            if (o.optInt("schema", -1) != SCHEMA) throw PackException("Unsupported exercises schema")
+            if (o.optInt("schema", -1) !in SUPPORTED_SCHEMAS) throw PackException("Unsupported exercises schema")
             val arr = o.getJSONArray("exercises")
             for (i in 0 until arr.length()) {
                 val e = arr.getJSONObject(i)
@@ -174,6 +177,12 @@ object TrainingPacks {
         return out
     }
 
+    private fun langLists(o: JSONObject?): Map<String, List<String>> {
+        val out = linkedMapOf<String, List<String>>()
+        o?.keys()?.forEach { k -> strings(o.optJSONArray(k)).map { it.trim() }.filter { it.isNotEmpty() }.takeIf { it.isNotEmpty() }?.let { out[k] = it } }
+        return out
+    }
+
     private fun mapExercise(packId: String, o: JSONObject): Exercise {
         val equipment = strings(o.optJSONArray("equipment")).map { it.lowercase() }
             .map { if (it.startsWith("none")) "bodyweight" else it }.distinct()
@@ -184,7 +193,8 @@ object TrainingPacks {
         }
         val media = (o.optJSONArray("media") ?: JSONArray()).let { a ->
             (0 until a.length()).map { a.getJSONObject(it) }.map {
-                PackMedia(it.optString("file"), it.optBoolean("main"), it.optBoolean("ai"), it.optString("license"), strings(it.optJSONArray("authors")))
+                PackMedia(it.optString("file"), it.optBoolean("main"), it.optBoolean("ai"), it.optString("license"), strings(it.optJSONArray("authors")),
+                    it.optBoolean("animated"), it.optBoolean("generated"))
             }
         }.sortedByDescending { it.main }
         return Exercise(
@@ -193,6 +203,10 @@ object TrainingPacks {
             equipment = equipment.joinToString(", "), custom = false,
             descriptions = langMap(o.optJSONObject("description")),
             musclesSecondary = strings(o.optJSONArray("musclesSecondary")).joinToString(", ") { it.lowercase() },
+            category = o.optString("category"),
+            summaries = langMap(o.optJSONObject("summary")),
+            steps = langLists(o.optJSONObject("steps")),
+            tips = langLists(o.optJSONObject("tips")),
             pack = PackInfo(packId, o.optString("license"), strings(o.optJSONArray("authors")), strings(o.optJSONArray("draftTranslations")), media),
         )
     }
