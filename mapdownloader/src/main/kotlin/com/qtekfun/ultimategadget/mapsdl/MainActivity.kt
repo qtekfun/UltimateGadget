@@ -99,6 +99,7 @@ private fun App() {
         "maps" -> MapsScreen(folder, onPick) { screen = "home" }
         "golf" -> GolfScreen(folder, onPick) { screen = "home" }
         "agnss" -> AgnssScreen(folder, onPick) { screen = "home" }
+        "exercises" -> ExercisesScreen(folder, onPick) { screen = "home" }
         "authkey" -> AuthKeyScreen { screen = "home" }
         else -> HomeScreen(
             folderLabel = folderName(context, folder),
@@ -200,6 +201,7 @@ private fun HomeScreen(folderLabel: String, onPick: () -> Unit, onOpen: (String)
             ToolTile("🗺️", "Offline maps", "Base maps (.pmtiles) for the watch") { onOpen("maps") }
             ToolTile("⛳", "Golf courses", "Mapas de campos para enviar al reloj") { onOpen("golf") }
             ToolTile("🛰️", "A-GNSS (GPS)", "Ephemeris so the watch fixes faster") { onOpen("agnss") }
+            ToolTile("🏋️", "Exercise pack", "Exercise catalog with animations for Workouts") { onOpen("exercises") }
             ToolTile("🔑", "Auth key (Amazfit/Zepp/Xiaomi)", "Bluetooth key without the official app") { onOpen("authkey") }
         }
     }
@@ -556,6 +558,62 @@ private fun RowCard(text: String, onClick: () -> Unit) {
         Row(Modifier.padding(14.dp).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text(text, color = Scheme.onSurface, modifier = Modifier.weight(1f))
             Text("›", color = Scheme.onSurfaceVariant)
+        }
+    }
+}
+
+// ----- Exercise pack -----
+
+private const val EXERCISE_PACK_URL =
+    "https://github.com/qtekfun/ultimate-workouts-data/releases/latest/download/pack-wger.zip"
+private const val EXERCISE_PACK_FILE = "ultimate-exercises-pack.zip"
+
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+@Composable
+private fun ExercisesScreen(folder: Uri?, onPick: () -> Unit, onBack: () -> Unit) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val scope = rememberCoroutineScope()
+    var busy by remember { mutableStateOf(false) }
+    var status by remember { mutableStateOf("") }
+    var error by remember { mutableStateOf(false) }
+
+    Scaffold(containerColor = Scheme.background, topBar = { bar("Exercise pack", onBack) }) { inner ->
+        Column(
+            Modifier.padding(inner).fillMaxSize().padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Hint(
+                "Download the exercise catalog (names, steps and animations in English and Spanish), " +
+                    "then import it in UltimateGadget: Workouts → menu → Import exercise pack.",
+            )
+            FolderCard(folderName(context, folder), onPick)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Button(
+                    enabled = !busy && folder != null,
+                    onClick = {
+                        val f = folder ?: return@Button
+                        busy = true; status = "Downloading…"; error = false
+                        scope.launch {
+                            val pack = MapRegion(
+                                id = "exercises", name = "Exercise pack", parent = "",
+                                url = EXERCISE_PACK_URL, size = 0, sha256 = "", file = EXERCISE_PACK_FILE,
+                            )
+                            runCatching {
+                                withContext(Dispatchers.IO) {
+                                    Downloader.download(context, pack, f) { done, _ ->
+                                        status = "Downloading… ${fmt(done)}"
+                                    }
+                                }
+                            }
+                                .onSuccess { status = "Saved $EXERCISE_PACK_FILE in the destination folder" }
+                                .onFailure { status = it.message ?: "Error"; error = true }
+                            busy = false
+                        }
+                    },
+                ) { Text("Download pack") }
+                if (busy) CircularProgressIndicator(Modifier.padding(start = 4.dp))
+            }
+            StatusLine(status, error)
         }
     }
 }
