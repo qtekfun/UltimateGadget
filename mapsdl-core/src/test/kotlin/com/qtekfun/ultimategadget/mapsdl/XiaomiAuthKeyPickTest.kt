@@ -5,8 +5,8 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 
 class XiaomiAuthKeyPickTest {
-    private val authKey = "00112233445566778899aabbccddeeff"
-    private val other = "ffeeddccbbaa99887766554433221100"
+    private val authKey = "a".repeat(32)
+    private val other = "b".repeat(32)
 
     @Test
     fun authKeyWinsOverEarlierSiblingSecrets() {
