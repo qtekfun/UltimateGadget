@@ -433,16 +433,29 @@ object XiaomiToken {
     }
 
     private val HEX32 = Regex("^[0-9a-fA-F]{32}$")
-    private val KEY_NAMES = listOf("auth_key", "authkey", "key", "secret", "bt_key", "btkey", "beaconkey", "encrypt_key", "device_key", "token")
 
-    // The auth key is 32 hex chars (16 bytes). Prefer a leaf whose name looks like a key; otherwise
-    // take any 32-hex value, since the field name varies across Mi Fitness device types.
-    private fun findAuthKey(leaves: Map<String, String>): String? {
-        for ((k, v) in leaves) {
-            val leaf = k.substringAfterLast('.').substringBefore('[').lowercase()
-            if (KEY_NAMES.any { leaf == it || leaf.endsWith(it) } && HEX32.matches(v)) return v
+    // Field names that may carry a key, best first. `auth_key` is the Bluetooth authentication key
+    // (what huami-token reads from `detail.auth_key`); the others are different secrets (beacon
+    // key, encryption key, ...) that only serve as a last resort when `auth_key` is absent.
+    private val KEY_NAMES = listOf("auth_key", "authkey", "bt_key", "btkey", "device_key", "encrypt_key", "beaconkey", "secret", "key", "token")
+
+    /**
+     * Picks the Bluetooth auth key (32 hex chars, 16 bytes) out of a flattened source. Ranked by
+     * field name, not by JSON order, so a sibling secret such as a beacon key listed earlier can
+     * never be picked over `auth_key` (which makes the band reject the authentication). An exact
+     * `auth_key` leaf wins over a looser name; any 32-hex value is only a final fallback.
+     */
+    internal fun findAuthKey(leaves: Map<String, String>): String? {
+        val hex = leaves.filterValues { HEX32.matches(it) }
+        if (hex.isEmpty()) return null
+        fun leafOf(k: String) = k.substringAfterLast('.').substringBefore('[').lowercase()
+        for (name in KEY_NAMES) {
+            hex.entries.firstOrNull { leafOf(it.key) == name }?.let { return it.value }
         }
-        return leaves.values.firstOrNull { HEX32.matches(it) }
+        for (name in KEY_NAMES) {
+            hex.entries.firstOrNull { leafOf(it.key).endsWith(name) }?.let { return it.value }
+        }
+        return hex.values.first()
     }
 
     private val MAC_RE = Regex("^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$")
