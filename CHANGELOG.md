@@ -2,6 +2,11 @@
 
 <!-- For contributors: do not modify this file - the project maintainers will update it as needed -->
 
+#### 0.115.35
+
+* Xiaomi: getting the **auth key** from your Xiaomi account now picks the `auth_key` field instead of another key-like value listed before it, which made the band reject the authentication
+* The **status-bar notification icon** and the remaining in-app graphics (drawer header, widget preview, dashboard placeholder, store icon) now use the UltimateGadget icon instead of the old Gadgetbridge one
+
 #### 0.115.34
 
 * Workouts: the exercise pack is now **entirely original** (own animations and texts for every exercise, no third-party photos), so the exercise screen no longer shows a credits section when the pack has nothing to credit
