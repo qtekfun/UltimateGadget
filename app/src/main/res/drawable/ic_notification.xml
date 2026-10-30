@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Status-bar glyph derived from the UltimateGadget launcher artwork (alpha only). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="72"
+    android:viewportHeight="72">
+    <group android:translateX="-18" android:translateY="-18">
+        <path android:pathData="M42,22 h24 a4,4 0 0 1 4,4 v12 h-32 v-12 a4,4 0 0 1 4,-4 z" android:fillColor="#FFFFFFFF"/>
+        <path android:pathData="M38,70 h32 v12 a4,4 0 0 1 -4,4 h-24 a4,4 0 0 1 -4,-4 v-12 z" android:fillColor="#FFFFFFFF"/>
+        <path android:pathData="M48,30 h12 a14,14 0 0 1 14,14 v20 a14,14 0 0 1 -14,14 h-12 a14,14 0 0 1 -14,-14 v-20 a14,14 0 0 1 14,-14 z M48,36 a9,9 0 0 0 -9,9 v18 a9,9 0 0 0 9,9 h12 a9,9 0 0 0 9,-9 v-18 a9,9 0 0 0 -9,-9 z" android:fillColor="#FFFFFFFF" android:fillType="evenOdd"/>
+        <path android:pathData="M74,48 h4 a1.5,1.5 0 0 1 1.5,1.5 v9 a1.5,1.5 0 0 1 -1.5,1.5 h-4 z" android:fillColor="#FFFFFFFF"/>
+        <path android:pathData="M42,54 L48,54 L51,45 L55,63 L59,49 L62,54 L66,54" android:strokeColor="#FFFFFFFF" android:strokeWidth="3.2" android:strokeLineCap="round" android:strokeLineJoin="round"/>
+    </group>
+</vector>
